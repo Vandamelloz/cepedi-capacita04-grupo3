@@ -1,0 +1,94 @@
+# ============================================
+# Ambiente Virtual
+# ============================================
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+projeto_gipar/
+backend/projeto_gipar/
+*/projeto_gipar/
+
+# ============================================
+# Arquivos de Ambiente e Configuração
+# ============================================
+.env
+.env.local
+.env.dev
+.env.production
+.env.backup
+*.env
+
+# ============================================
+# Python
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pyc
+*.pyo
+*.pyd
+
+# ============================================
+# Distribuição / Pacotes
+# ============================================
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ============================================
+# Testes
+# ============================================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ============================================
+# IDE e Editores
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ============================================
+# Banco de Dados
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+
+# ============================================
+# Logs
+# ============================================
+*.log
+logs/
+
+# ============================================
+# Arquivos do Projeto (específicos)
+# ============================================
+*.bak
+*.tmp
+*.tempprojeto_gipar/
