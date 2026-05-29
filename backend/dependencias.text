@@ -1,0 +1,13 @@
+versão python utilizada 
+
+Python 3.14.2
+
+-- Bibliotecas necessárias
+
+pip install fastapi uvicorn pydantic pymysql
+
+pip install python-dotenv
+
+Banco de dados e Tabelas estão sendo criadas por meio de interface gráfica mySQL (versão local provisória)
+
+é necessário acessar o banco de dados por meio das credenciais em um arquivo .env

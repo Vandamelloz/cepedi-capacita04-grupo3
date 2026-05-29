@@ -1,0 +1,111 @@
+-- =====================================================================
+-- SCRIPT DE CRIAÇÃO DO BANCO DE DE DADOS - PROJETO GIPAR
+-- Ambiente: Produção (Sintaxe Nativa MySQL)
+
+-- Comandos SQL para criação do banco de dados e tabelas
+-- =====================================================================
+
+CREATE DATABASE IF NOT EXISTS gipar_db
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+USE gipar_db;
+
+-- ---------------------------------------------------------------------
+-- 1. TABELA: categoria
+-- Descrição: Classificação dos equipamentos (Notebook, Projetor, etc.)
+-- ---------------------------------------------------------------------
+CREATE TABLE categoria (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL UNIQUE,
+    descricao TEXT,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 2. TABELA: usuario
+-- Descrição: Registo de utilizadores, técnicos e administradores
+-- ---------------------------------------------------------------------
+CREATE TABLE usuario (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    senha VARCHAR(255) NOT NULL, -- Armazenará o hash da senha (Segurança)
+    ativo BOOLEAN DEFAULT TRUE, -- Controle de Inativação
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 3. TABELA: equipamento
+-- Descrição: Registo individual dos bens patrimoniais
+-- ---------------------------------------------------------------------
+CREATE TABLE equipamento (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_patrimonio VARCHAR(50) UNIQUE NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    modelo VARCHAR(100),
+    id_categoria INT NOT NULL,
+    ativo BOOLEAN DEFAULT TRUE, -- Para Soft Delete [RF004]
+    FOREIGN KEY (id_categoria) REFERENCES categoria(id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 4. TABELA: manutencao
+-- Descrição: Controlo de ordens de serviço e reparações [RF009, RF010]
+-- ---------------------------------------------------------------------
+CREATE TABLE manutencao (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_equipamento INT NOT NULL,
+    descricao_defeito TEXT NOT NULL,
+    data_abertura DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_conclusao VARCHAR(20) NULL,
+    FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 5. TABELA: reserva
+-- Descrição: Solicitações de reserva prévia de equipamentos [RF001]
+-- ---------------------------------------------------------------------
+CREATE TABLE reserva (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_equipamento INT NOT NULL,
+    id_usuario INT NOT NULL, -- Quem solicitou a reserva
+    data_reserva DATE NOT NULL, -- Data para quando o equipamento foi reservado
+    data_solicitacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE RESTRICT,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 6. TABELA: emprestimo
+-- Descrição: Fluxo de retirada e devolução de equipamentos [RF005, RF007]
+-- ---------------------------------------------------------------------
+CREATE TABLE emprestimo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_equipamento INT NOT NULL,
+    id_usuario INT NOT NULL, -- Quem pegou emprestado
+    id_tecnico_saida INT NOT NULL, -- Técnico que entregou/autorizou
+    id_tecnico_retorno INT NULL, -- Técnico que recebeu na devolução
+    data_retirada DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_previsao_devolucao DATETIME NOT NULL,
+    data_devolucao_real DATETIME NULL,
+    observacoes TEXT,
+    FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE RESTRICT,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE RESTRICT,
+    FOREIGN KEY (id_tecnico_saida) REFERENCES usuario(id) ON DELETE RESTRICT,
+    FOREIGN KEY (id_tecnico_retorno) REFERENCES usuario(id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 7. TABELA: historico_movimentacao (Auditoria / Logs)
+-- Descrição: Registo cronológico para o Relatório de Movimentações [RF017]
+-- ---------------------------------------------------------------------
+CREATE TABLE historico_movimentacao (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_equipamento INT NOT NULL,
+    id_usuario_acao INT NOT NULL, -- Quem realizou a ação no sistema
+    descricao_motivo VARCHAR(255) NOT NULL, -- Ex: "Início do empréstimo nº 12", "Entrada em manutenção"
+    data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario_acao) REFERENCES usuario(id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
