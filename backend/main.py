@@ -316,15 +316,17 @@ async def criar_equipamento(equipamento: Equipamento):
 
 """READ (listar)"""
 
+"""READ (listar)"""
 @app.get("/listar_equipamentos")
 async def listar_equipamentos():
-    """Endpoint para listar todos os equipamentos"""
+    """Endpoint para listar apenas os equipamentos ativos"""
 
     con = pymysql.connect(**config_db)
     cur = con.cursor()
 
     try:
-        sql = "SELECT * FROM equipamento"
+        # SELECT com o filtro de Soft Delete
+        sql = "SELECT id, codigo_patrimonio, nome, modelo, id_categoria, ativo FROM equipamento WHERE ativo = True"
         cur.execute(sql)
         equipamentos = cur.fetchall()
 
@@ -367,20 +369,28 @@ async def atualizar_equipamento(equipamento_id: int, equipamento: Equipamento):
 """DELETE (apagar)"""
 @app.delete("/excluir_equipamento/{equipamento_id}")
 async def excluir_equipamento(equipamento_id: int):
-    """Endpoint para excluir um equipamento existente"""
+    """Endpoint para inativar (Soft Delete) um equipamento existente"""
 
     con = pymysql.connect(**config_db)
     cur = con.cursor()
 
     try:
-        sql = "DELETE FROM equipamento WHERE id = %s"
+        # O UPDATE substitui o DELETE FROM
+        sql = "UPDATE equipamento SET ativo = False WHERE id = %s"
         cur.execute(sql, (equipamento_id,))
+        
+        # Trava de segurança para ver se o equipamento realmente existia
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Equipamento não encontrado.")
+            
         con.commit()
 
         return {
             "sucesso": True,
-            "mensagem": "Equipamento excluído com sucesso"
+            "mensagem": "Equipamento inativado com sucesso"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         con.rollback()
         traceback.print_exc()
