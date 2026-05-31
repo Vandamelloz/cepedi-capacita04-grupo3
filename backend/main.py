@@ -199,13 +199,14 @@ async def criar_usuario(usuario: Usuario):
 """READ (listar)"""
 @app.get("/listar_usuarios")
 async def listar_usuarios():
-    """Endpoint para listar todos os usuários"""
+    """Endpoint para listar apenas os usuários ativos"""
 
     con = pymysql.connect(**config_db)
     cur = con.cursor()
 
     try:
-        sql = "SELECT * FROM usuario"
+        # Filtro de ativos e remoção do SELECT *
+        sql = "SELECT id, nome, email, ativo, data_cadastro FROM usuario WHERE ativo = True"
         cur.execute(sql)
         usuarios = cur.fetchall()
 
@@ -245,24 +246,35 @@ async def atualizar_usuario(usuario_id: int, usuario: Usuario):
         cur.close()
         con.close()
 
-"""DELETE (apagar)"""
+"""DELETE (inativar)"""
 @app.delete("/excluir_usuario/{usuario_id}")
 async def excluir_usuario(usuario_id: int):
-    """Endpoint para excluir um usuário existente"""
+    """Endpoint para inativar (Soft Delete) um usuário existente"""
 
     con = pymysql.connect(**config_db)
     cur = con.cursor()
 
     try:
-        sql = "DELETE FROM usuario WHERE id = %s"
+        # Comando de UPDATE no lugar do DELETE FROM
+        sql = "UPDATE usuario SET ativo = False WHERE id = %s"
         cur.execute(sql, (usuario_id,))
+        
+        # Validação: verifica se o banco de dados realmente encontrou e alterou a linha
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+            
         con.commit()
 
         return {
             "sucesso": True,
-            "mensagem": "Usuário excluído com sucesso"
+            "mensagem": "Usuário inativado com sucesso"
         }
+        
+    except HTTPException:
+        # Permite que o erro 404 (Não encontrado) passe direto para o cliente
+        raise
     except Exception as e:
+        # Captura erros graves de banco de dados ou sintaxe
         con.rollback()
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
