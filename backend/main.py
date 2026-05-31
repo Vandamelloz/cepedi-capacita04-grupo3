@@ -316,7 +316,6 @@ async def criar_equipamento(equipamento: Equipamento):
 
 """READ (listar)"""
 
-"""READ (listar)"""
 @app.get("/listar_equipamentos")
 async def listar_equipamentos():
     """Endpoint para listar apenas os equipamentos ativos"""
@@ -351,7 +350,7 @@ async def atualizar_equipamento(equipamento_id: int, equipamento: Equipamento):
 
     try:
         sql = "UPDATE equipamento SET codigo_patrimonio = %s, nome = %s, modelo = %s, id_categoria = %s WHERE id = %s"
-        cur.execute(sql, (equipamento.codigo_patrimonio, equipamento.nome, equipamento.modelo, equipamento.id_categoria, equipamento.id_categoria))
+        cur.execute(sql, (equipamento.codigo_patrimonio, equipamento.nome, equipamento.modelo, equipamento.id_categoria, equipamento_id))
         con.commit()
 
         return {
