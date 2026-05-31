@@ -9,7 +9,7 @@ class Categoria(BaseModel):
 class Usuario(BaseModel):
     nome: str
     email: str
-    senha: str #Armazenará o hash da senha (segurança)
+    senha: str 
     ativo: Optional[bool] = True
 
 class Equipamento(BaseModel):
