@@ -199,13 +199,14 @@ async def criar_usuario(usuario: Usuario):
 """READ (listar)"""
 @app.get("/listar_usuarios")
 async def listar_usuarios():
-    """Endpoint para listar todos os usuários"""
+    """Endpoint para listar apenas os usuários ativos"""
 
     con = pymysql.connect(**config_db)
     cur = con.cursor()
 
     try:
-        sql = "SELECT * FROM usuario"
+        # Filtro de ativos e remoção do SELECT *
+        sql = "SELECT id, nome, email, ativo, data_cadastro FROM usuario WHERE ativo = True"
         cur.execute(sql)
         usuarios = cur.fetchall()
 
@@ -245,24 +246,35 @@ async def atualizar_usuario(usuario_id: int, usuario: Usuario):
         cur.close()
         con.close()
 
-"""DELETE (apagar)"""
+"""DELETE (inativar)"""
 @app.delete("/excluir_usuario/{usuario_id}")
 async def excluir_usuario(usuario_id: int):
-    """Endpoint para excluir um usuário existente"""
+    """Endpoint para inativar (Soft Delete) um usuário existente"""
 
     con = pymysql.connect(**config_db)
     cur = con.cursor()
 
     try:
-        sql = "DELETE FROM usuario WHERE id = %s"
+        # Comando de UPDATE no lugar do DELETE FROM
+        sql = "UPDATE usuario SET ativo = False WHERE id = %s"
         cur.execute(sql, (usuario_id,))
+        
+        # Validação: verifica se o banco de dados realmente encontrou e alterou a linha
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+            
         con.commit()
 
         return {
             "sucesso": True,
-            "mensagem": "Usuário excluído com sucesso"
+            "mensagem": "Usuário inativado com sucesso"
         }
+        
+    except HTTPException:
+        # Permite que o erro 404 (Não encontrado) passe direto para o cliente
+        raise
     except Exception as e:
+        # Captura erros graves de banco de dados ou sintaxe
         con.rollback()
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
@@ -306,13 +318,14 @@ async def criar_equipamento(equipamento: Equipamento):
 
 @app.get("/listar_equipamentos")
 async def listar_equipamentos():
-    """Endpoint para listar todos os equipamentos"""
+    """Endpoint para listar apenas os equipamentos ativos"""
 
     con = pymysql.connect(**config_db)
     cur = con.cursor()
 
     try:
-        sql = "SELECT * FROM equipamento"
+        # SELECT com o filtro de Soft Delete
+        sql = "SELECT id, codigo_patrimonio, nome, modelo, id_categoria, ativo FROM equipamento WHERE ativo = True"
         cur.execute(sql)
         equipamentos = cur.fetchall()
 
@@ -337,7 +350,7 @@ async def atualizar_equipamento(equipamento_id: int, equipamento: Equipamento):
 
     try:
         sql = "UPDATE equipamento SET codigo_patrimonio = %s, nome = %s, modelo = %s, id_categoria = %s WHERE id = %s"
-        cur.execute(sql, (equipamento.codigo_patrimonio, equipamento.nome, equipamento.modelo, equipamento.id_categoria, equipamento.id_categoria))
+        cur.execute(sql, (equipamento.codigo_patrimonio, equipamento.nome, equipamento.modelo, equipamento.id_categoria, equipamento_id))
         con.commit()
 
         return {
@@ -355,20 +368,28 @@ async def atualizar_equipamento(equipamento_id: int, equipamento: Equipamento):
 """DELETE (apagar)"""
 @app.delete("/excluir_equipamento/{equipamento_id}")
 async def excluir_equipamento(equipamento_id: int):
-    """Endpoint para excluir um equipamento existente"""
+    """Endpoint para inativar (Soft Delete) um equipamento existente"""
 
     con = pymysql.connect(**config_db)
     cur = con.cursor()
 
     try:
-        sql = "DELETE FROM equipamento WHERE id = %s"
+        # O UPDATE substitui o DELETE FROM
+        sql = "UPDATE equipamento SET ativo = False WHERE id = %s"
         cur.execute(sql, (equipamento_id,))
+        
+        # Trava de segurança para ver se o equipamento realmente existia
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Equipamento não encontrado.")
+            
         con.commit()
 
         return {
             "sucesso": True,
-            "mensagem": "Equipamento excluído com sucesso"
+            "mensagem": "Equipamento inativado com sucesso"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         con.rollback()
         traceback.print_exc()

@@ -58,7 +58,7 @@ CREATE TABLE manutencao (
     id_equipamento INT NOT NULL,
     descricao_defeito TEXT NOT NULL,
     data_abertura DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    data_conclusao VARCHAR(20) NULL,
+    data_conclusao DATETIME NULL,
     FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
