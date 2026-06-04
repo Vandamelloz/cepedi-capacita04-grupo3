@@ -22,6 +22,13 @@ import os
 """importações de models"""
 from models.models import Categoria, Usuario, Equipamento, Manutencao
 
+"""importações de repositórios"""
+from gerenciador_db.categoria import CategoriaRepositorio
+from gerenciador_db.usuario import UsuarioRepositorio
+from gerenciador_db.equipamento import EquipamentoRepositorio
+from gerenciador_db.manutencao import ManutencaoRepositorio
+
+
 load_dotenv() # Carrega as variáveis de ambiente do arquivo .env
 
 config_db = {
@@ -33,6 +40,12 @@ config_db = {
 }
 
 app = FastAPI(debug=True)
+
+"""Instância de classe Para controle das tabelas do banco de dados"""
+categoria_repositorio = CategoriaRepositorio(config_db)
+usuario_repositorio = UsuarioRepositorio(config_db)
+equipamento_repositorio = EquipamentoRepositorio(config_db)
+manutencao_repositorio = ManutencaoRepositorio(config_db)
 
 @app.get("/")
 async def home():
@@ -50,7 +63,15 @@ async def home():
             "POST /criar_usuario": "Criar usuário",
             "GET /listar_usuarios": "Listar usuários",
             "PUT /atualizar_usuario/{usuario_id}": "Atualizar usuário",
-            "DELETE /excluir_usuario/{usuario_id}": "Excluir usuário"
+            "PATCH /inativar_usuario/{usuario_id}": "Inativar usuário",
+            "PATCH /reativar_usuario/{usuario_id}": "Reativar usuário",
+            "POST /criar_equipamento": "Criar equipamento",
+            "GET /listar_equipamentos": "Listar equioamentos",
+            "PUT /atualizar_equipamento/{equipamento_id}": "Atualizar equipamento",
+            "PATCH /inativar_equipamento/{equipamento_id}": "Inativar equipamento",
+            "PATCH / reativar_equipamento/{equipamento_id}": "Reativar equipamento",
+            "POSR /criar_manutencao": "Criar manutenção",
+            "GET /listar_manutencoes": "Listar manuteções",
 
         }
     }
@@ -63,108 +84,25 @@ async def home():
 @app.post("/criar_categoria")
 async def criar_categoria(categoria: Categoria):
     """Endpoint para criar uma nova categoria"""
-    
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-    
-    try:
-        #categoria.data_criacao = datetime.now() #define a data de criação no momento da inserção
-        sql = "INSERT INTO categoria (nome, descricao) VALUES (%s, %s)"
-        cur.execute(sql, (categoria.nome, categoria.descricao))
-        con.commit()
-
-        id_gerado = cur.lastrowid
-
-        return {
-            "sucesso": True,
-            "mensagem": "Categoria criada com sucesso",
-            "id": id_gerado,
-            "categoria": {
-                "nome": categoria.nome,
-                "descricao": categoria.descricao               
-            }
-        }
-    except Exception as e:
-        con.rollback()
-        traceback.print_exc()  # ← Isso mostra o erro completo
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+    return await categoria_repositorio.criar_categoria(categoria)
 
 """READ (listar)"""
 @app.get("/listar_categorias")
 async def listar_categorias():
     """Endpoint para listar todas as categorias"""
-    
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        sql = "SELECT * FROM categoria"
-        cur.execute(sql)
-        categorias = cur.fetchall()
-
-        return {
-            "sucesso": True,
-            "categorias": categorias
-        }
-    except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+    return await categoria_repositorio.listar_categorias()
 
 """UPDATE (atualizar)"""
 @app.put("/atualizar_categoria/{categoria_id}")
 async def atualizar_categoria(categoria_id: int, categoria: Categoria):
     """Endpoint para atualizar uma categoria existente"""
-
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        sql = "UPDATE categoria SET nome = %s, descricao = %s WHERE id = %s"
-        cur.execute(sql, (categoria.nome, categoria.descricao, categoria_id))
-        con.commit()
-
-        return {
-            "sucesso": True,
-            "mensagem": "Categoria atualizada com sucesso"
-        }
-    except Exception as e:
-        con.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+    return await categoria_repositorio.atualizar_categoria(categoria_id, categoria)
 
 """DELETE (apagar)"""
 @app.delete("/excluir_categoria/{categoria_id}")
 async def excluir_categoria(categoria_id: int):
     """Endpoint para excluir uma categoria existente"""
-
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        sql = "DELETE FROM categoria WHERE id = %s"
-        cur.execute(sql, (categoria_id,))
-        con.commit()
-
-        return {
-            "sucesso": True,
-            "mensagem": "Categoria excluída com sucesso"
-        }
-    except Exception as e:
-        con.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+    return await categoria_repositorio.excluir_categoria(categoria_id)
 
 
 #===============================================================================================
@@ -175,112 +113,31 @@ async def excluir_categoria(categoria_id: int):
 @app.post("/criar_usuario")
 async def criar_usuario(usuario: Usuario):
     """Endpoint para criar um novo usuário"""
-
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        sql = "INSERT INTO usuario (nome, email, senha) VALUES (%s, %s, %s)"
-        cur.execute(sql, (usuario.nome, usuario.email, usuario.senha))
-        con.commit()
-
-        return {
-            "sucesso": True,
-            "mensagem": "Usuário criado com sucesso"
-        }
-    except Exception as e:
-        con.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+    return await usuario_repositorio.criar_usuario(usuario)
 
 """READ (listar)"""
 @app.get("/listar_usuarios")
 async def listar_usuarios():
     """Endpoint para listar apenas os usuários ativos"""
-
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        # Filtro de ativos e remoção do SELECT *
-        sql = "SELECT id, nome, email, ativo, data_cadastro FROM usuario WHERE ativo = True"
-        cur.execute(sql)
-        usuarios = cur.fetchall()
-
-        return {
-            "sucesso": True,
-            "usuarios": usuarios
-        }
-    except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+    return await usuario_repositorio.listar_usuarios()
 
 """UPDATE (atualizar)"""
 @app.put("/atualizar_usuario/{usuario_id}")
 async def atualizar_usuario(usuario_id: int, usuario: Usuario):
     """Endpoint para atualizar um usuário existente"""
+    return await usuario_repositorio.atualizar_usuario(usuario_id, usuario)
 
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        sql = "UPDATE usuario SET nome = %s, email = %s, senha = %s WHERE id = %s"
-        cur.execute(sql, (usuario.nome, usuario.email, usuario.senha, usuario_id))
-        con.commit()
-
-        return {
-            "sucesso": True,
-            "mensagem": "Usuário atualizado com sucesso"
-        }
-    except Exception as e:
-        con.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
-
-"""DELETE (inativar)"""
-@app.delete("/excluir_usuario/{usuario_id}")
-async def excluir_usuario(usuario_id: int):
+"""INACTIVATE (inativar)""" #patch serve para atualizar apenas um campo específico, nesse caso o campo "ativo"
+@app.patch("/inativar_usuario/{usuario_id}")
+async def inativar_usuario(usuario_id: int):
     """Endpoint para inativar (Soft Delete) um usuário existente"""
+    return await usuario_repositorio.inativar_usuario(usuario_id)
 
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        # Comando de UPDATE no lugar do DELETE FROM
-        sql = "UPDATE usuario SET ativo = False WHERE id = %s"
-        cur.execute(sql, (usuario_id,))
-        
-        # Validação: verifica se o banco de dados realmente encontrou e alterou a linha
-        if cur.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Usuário não encontrado.")
-            
-        con.commit()
-
-        return {
-            "sucesso": True,
-            "mensagem": "Usuário inativado com sucesso"
-        }
-        
-    except HTTPException:
-        # Permite que o erro 404 (Não encontrado) passe direto para o cliente
-        raise
-    except Exception as e:
-        # Captura erros graves de banco de dados ou sintaxe
-        con.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+"""REACTIVATE (reativar)"""
+@app.patch("/reativar_usuario/{usuario_id}")
+async def reativar_usuario(usuario_id: int):
+    """Endpoint para reativar (Soft Delete) um usuário existente"""
+    return await usuario_repositorio.reativar_usuario(usuario_id)
 
 
 #===============================================================================================
@@ -289,159 +146,45 @@ async def excluir_usuario(usuario_id: int):
 
 
 """CREATE (criar)"""
-
 @app.post("/criar_equipamento")
 async def criar_equipamento(equipamento: Equipamento):
     """Endpoint para criar um novo equipamento"""
-
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        sql = "INSERT INTO equipamento (codigo_patrimonio, nome, modelo, id_categoria) VALUES (%s, %s, %s, %s)"
-        cur.execute(sql, (equipamento.codigo_patrimonio, equipamento.nome, equipamento.modelo, equipamento.id_categoria))
-        con.commit()
-
-        return {
-            "sucesso": True,
-            "mensagem": "Equipamento criado com sucesso"
-        }
-    except Exception as e:
-        con.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+    return await equipamento_repositorio.criar_equipamento(equipamento)
 
 """READ (listar)"""
-
 @app.get("/listar_equipamentos")
 async def listar_equipamentos():
     """Endpoint para listar apenas os equipamentos ativos"""
-
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        # SELECT com o filtro de Soft Delete
-        sql = "SELECT id, codigo_patrimonio, nome, modelo, id_categoria, ativo FROM equipamento WHERE ativo = True"
-        cur.execute(sql)
-        equipamentos = cur.fetchall()
-
-        return {
-            "sucesso": True,
-            "equipamentos": equipamentos
-        }
-    except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+    return await equipamento_repositorio.listar_equipamentos()
 
 """UPDATE (atualizar)"""
 @app.put("/atualizar_equipamento/{equipamento_id}")
 async def atualizar_equipamento(equipamento_id: int, equipamento: Equipamento):
     """Endpoint para atualizar um equipamento existente"""
+    return await equipamento_repositorio.atualizar_equipamento(equipamento_id, equipamento)
 
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        sql = "UPDATE equipamento SET codigo_patrimonio = %s, nome = %s, modelo = %s, id_categoria = %s WHERE id = %s"
-        cur.execute(sql, (equipamento.codigo_patrimonio, equipamento.nome, equipamento.modelo, equipamento.id_categoria, equipamento_id))
-        con.commit()
-
-        return {
-            "sucesso": True,
-            "mensagem": "Equipamento atualizado com sucesso"
-        }
-    except Exception as e:
-        con.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
-
-"""DELETE (apagar)"""
-@app.delete("/excluir_equipamento/{equipamento_id}")
-async def excluir_equipamento(equipamento_id: int):
+"""INACTIVATE (inativar)"""
+@app.patch("/inativar_equipamento/{equipamento_id}")
+async def inativar_equipamento(equipamento_id: int):
     """Endpoint para inativar (Soft Delete) um equipamento existente"""
+    return await equipamento_repositorio.inativar_equipamento(equipamento_id)
 
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        # O UPDATE substitui o DELETE FROM
-        sql = "UPDATE equipamento SET ativo = False WHERE id = %s"
-        cur.execute(sql, (equipamento_id,))
-        
-        # Trava de segurança para ver se o equipamento realmente existia
-        if cur.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Equipamento não encontrado.")
-            
-        con.commit()
-
-        return {
-            "sucesso": True,
-            "mensagem": "Equipamento inativado com sucesso"
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        con.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+"""REACTIVATE (reativar)"""
+@app.patch("/reativar_equipamento/{equipamento_id}")
+async def reativar_equipamento(equipamento_id: int):
+    """Endpoint para reativar (Soft Delete) um equipamento existente"""
+    return await equipamento_repositorio.reativar_equipamento(equipamento_id)
 
 
 #===============================================================================================
 #                               CRUD - MANUTENÇÃO
 #===============================================================================================
 
-""" MODELO da tabela de manutenção do banco de dados
-
-CREATE TABLE manutencao (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_equipamento INT NOT NULL,
-    descricao_defeito TEXT NOT NULL,
-    data_abertura DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    data_conclusao DATETIME NULL,
-    FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE RESTRICT
-) ENGINE=InnoDB;
-
-
-"""
-
 """CREATE (criar)"""
-
 @app.post("/criar_manutencao")
 async def criar_manutencao(manutencao: Manutencao):
     """Endpoint para criar uma nova manutenção"""
-
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        sql = "INSERT INTO manutencao (id_equipamento, descricao_defeito, data_conclusao) VALUES (%s, %s, %s)"
-        cur.execute(sql, (manutencao.id_equipamento, manutencao.descricao_defeito, manutencao.data_conclusao))
-        con.commit()
-
-        return {
-            "sucesso": True,
-            "mensagem": "Manutenção criada com sucesso"
-        }
-    except Exception as e:
-        con.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+    return await manutencao_repositorio.criar_manutencao(manutencao)
 
 """READ (listar)"""
 @app.get("/listar_manutencoes")
