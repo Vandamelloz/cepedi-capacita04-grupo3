@@ -8,6 +8,7 @@
 
 """Importações de bibliotecas necessárias"""
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pymysql
 from pymysql.cursors import DictCursor
@@ -42,6 +43,15 @@ config_db = {
 }
 
 app = FastAPI(debug=True)
+
+# Configuração de CORS (Essencial para o Frontend React)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Permitir conexões de qualquer origem (em dev)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 """Instância de classe Para controle das tabelas do banco de dados"""
 categoria_repositorio = CategoriaRepositorio(config_db)
