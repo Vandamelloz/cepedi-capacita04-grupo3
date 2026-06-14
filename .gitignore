@@ -99,3 +99,4 @@ logs/
 backend/__pycache__/main.cpython-314.pyc
 backend/models/__pycache__/models.cpython-314.pyc
 projeto_gipar
+.venv/

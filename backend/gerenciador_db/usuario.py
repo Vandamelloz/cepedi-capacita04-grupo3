@@ -2,6 +2,7 @@ from fastapi import HTTPException
 import pymysql
 from pymysql.cursors import DictCursor
 import traceback
+from seguranca import obter_hash_senha
 
 # gerenciador_db/usuario.py
 from models.models import Usuario
@@ -12,16 +13,22 @@ class UsuarioRepositorio:
         self.config_db["cursorclass"] = DictCursor
     
     # Método assíncrono para criar um novo usuário
+    # Método assíncrono para criar um novo usuário
     async def criar_usuario(self, usuario: Usuario):
         con = None
         cur = None
 
         try:
+            # 1. Hasheia a senha recebida da API
+            senha_hasheada = obter_hash_senha(usuario.senha)
+
+            # 2. Abre a conexão com o banco de dados
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
 
+            # 3. Executa a query com a senha criptografada
             sql = "INSERT INTO usuario (nome, email, senha) VALUES (%s, %s, %s)"
-            cur.execute(sql, (usuario.nome, usuario.email, usuario.senha))
+            cur.execute(sql, (usuario.nome, usuario.email, senha_hasheada))
             con.commit()
 
             return {
@@ -29,8 +36,11 @@ class UsuarioRepositorio:
                 "mensagem": "Usuário criado com sucesso"
             }
         except Exception as e:
-            con.rollback()
+            if con:
+                con.rollback()
+            import traceback
             traceback.print_exc()
+            from fastapi import HTTPException
             raise HTTPException(status_code=500, detail=str(e))
         finally:
             if cur:

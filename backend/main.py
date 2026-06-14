@@ -12,8 +12,10 @@ from pydantic import BaseModel
 import pymysql
 from pymysql.cursors import DictCursor
 from datetime import datetime
-
-import traceback  # ← Adicione esta importação
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import Depends
+from seguranca import verificar_senha, criar_token_acesso
+import traceback 
 
 """importações para dados sensíveis do banco"""
 from dotenv import load_dotenv
@@ -256,6 +258,26 @@ async def excluir_manutencao(manutencao_id: int):
         con.rollback()
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        con.close()
+#Rota para login
+@app.post("/login")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    con = pymysql.connect(**config_db)
+    cur = con.cursor()
+    
+    try:
+        sql = "SELECT id, email, senha FROM usuario WHERE email = %s AND ativo = True"
+        cur.execute(sql, (form_data.username,))
+        usuario_db = cur.fetchone()
+
+        if not usuario_db or not verificar_senha(form_data.password, usuario_db['senha']):
+            raise HTTPException(status_code=401, detail="Email ou senha incorretos")
+
+        token_acesso = criar_token_acesso(dados={"sub": usuario_db['email'], "id": usuario_db['id']})
+        
+        return {"access_token": token_acesso, "token_type": "bearer"}
     finally:
         cur.close()
         con.close()
