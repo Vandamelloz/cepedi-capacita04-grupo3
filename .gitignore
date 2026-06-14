@@ -31,6 +31,10 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.models.cpython-314.pyc
+*.cpython-314.pyc
+*.ipynb_checkpoints
+
 
 # ============================================
 # Distribuição / Pacotes
@@ -92,3 +96,6 @@ logs/
 *.bak
 *.tmp
 *.tempprojeto_gipar/
+backend/__pycache__/main.cpython-314.pyc
+backend/models/__pycache__/models.cpython-314.pyc
+projeto_gipar
