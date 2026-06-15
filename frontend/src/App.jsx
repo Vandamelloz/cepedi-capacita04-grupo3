@@ -1,5 +1,7 @@
 import {Routes, Route} from 'react-router-dom';
 import Login from './pages/login/Login';
+import Botao from "./components/Botao/index.jsx";
+import TituloPagina from './components/TituloPagina/index.jsx';
 
 function Home() {
   return (
