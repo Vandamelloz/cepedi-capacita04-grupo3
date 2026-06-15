@@ -30,6 +30,7 @@ from gerenciador_db.categoria import CategoriaRepositorio
 from gerenciador_db.usuario import UsuarioRepositorio
 from gerenciador_db.equipamento import EquipamentoRepositorio
 from gerenciador_db.manutencao import ManutencaoRepositorio
+from servicos.email_service import enviar_email
 
 
 load_dotenv() # Carrega as variáveis de ambiente do arquivo .env
@@ -271,6 +272,27 @@ async def excluir_manutencao(manutencao_id: int):
     finally:
         cur.close()
         con.close()
+#===============================================================================================
+#                               SERVIÇOS EXTRAS
+#===============================================================================================
+
+class EmailRequest(BaseModel):
+    destinatario: str
+    assunto: str
+    corpo: str
+
+@app.post("/testar-email")
+async def testar_email(req: EmailRequest):
+    """Endpoint para testar a integração do disparo de e-mails"""
+    try:
+        sucesso = enviar_email(req.destinatario, req.assunto, req.corpo)
+        if sucesso:
+            return {"sucesso": True, "mensagem": f"E-mail enviado com sucesso para {req.destinatario}!"}
+        else:
+            raise HTTPException(status_code=500, detail="Falha ao enviar e-mail. Verifique o console do servidor.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 #Rota para login
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
