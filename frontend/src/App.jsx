@@ -1,12 +1,12 @@
 import {Routes, Route} from 'react-router-dom';
 import Login from './pages/login/Login';
-import Botao from "./components/Botao/index.jsx";
-import TituloPagina from './components/TituloPagina/index.jsx';
+import AdmDashboard from './pages/adm/admDashboard';
+
 
 function Home() {
   return (
     <div>
-      <Login></Login>
+      <AdmDashboard></AdmDashboard>
     </div>
   );
 }
