@@ -7,10 +7,10 @@ export default function Botao({
 }) {
 
   const estilos = {
-  novo: "bg-[#10B981] text-white hover:bg-[#059669]",
-  registrar: "bg-[#1A6B74] text-white hover:bg-[#155A61]",
-  salvar: "bg-[#1A6B74] text-white hover:bg-[#155A61]",
-  concluir: "bg-[#1A6B74] text-white hover:bg-[#155A61]",
+  novo: "bg-[#1E3A8A] text-white hover:bg-[#1a9716]",
+  registrar: "bg-[#1E3A8A] text-white hover:bg-[#1a9716]",
+  salvar: "bg-[#1E3A8A] text-white hover:bg-[#1a9716]",
+  concluir: "bg-[#479910] text-white hover:bg-[#1a9716]",
   cancelar: "bg-[#F3F4F6] text-[#111827] border border-[#D1D5DB] hover:bg-[#E5E7EB]",
   excluir: "bg-[#EF4444] text-white hover:bg-red-700"
   };
