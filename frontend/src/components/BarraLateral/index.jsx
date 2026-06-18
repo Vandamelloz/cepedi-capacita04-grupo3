@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { menuByRole } from '../../config/menuItems';
 import { BotaoBarraLateral } from '../BotaoBarraLateral';
 import { Menu } from 'lucide-react';
-import logo from '../../assets/imagens/GIPAR-LOGO.jpg';
+import Logo from '../ui/Logo';
 
 export default function Sidebar({ userRole }) {
   const location = useLocation();
@@ -26,7 +26,7 @@ export default function Sidebar({ userRole }) {
         <Menu className="w-13 h-13" />
       </button>
       <div className="w-full h-full flex flex-col gap-2">
-        <img src={logo} alt="Logo" className={`${isCollapsed ? 'w-[55px] h-[55px] rounded-full':'hidden' }`} />
+        {isCollapsed && <Logo tamanho={55} className="rounded-full" />}
         <div className={`px-4 py-6 text-white font-bold text-xl border-b border-white/10 mb-4
         ${isCollapsed ? 'hidden' : ''}`}>
           GIPAR Sistema

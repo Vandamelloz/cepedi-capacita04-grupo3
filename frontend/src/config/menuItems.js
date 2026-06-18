@@ -11,7 +11,7 @@ import {
 
 export const menuByRole = {
   adm: [
-    { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Equipamentos', path: '/equipamentos', icon: PackageOpen },
     { label: 'Empréstimos', path: '/emprestimos', icon: ArrowRightLeft },
     { label: 'Manutenção', path: '/manutencao', icon: Wrench },
@@ -23,7 +23,7 @@ export const menuByRole = {
     { label: 'Catálogo', path: '/catalogo', icon: BookOpen }
   ],
   estagiario: [
-    { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Equipamentos', path: '/equipamentos', icon: PackageOpen },
     { label: 'Empréstimos', path: '/emprestimos', icon: ArrowRightLeft }
   ]
