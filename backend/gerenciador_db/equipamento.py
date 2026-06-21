@@ -20,8 +20,8 @@ class EquipamentoRepositorio:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
 
-            sql = "INSERT INTO equipamento (codigo_patrimonio, nome, modelo, id_categoria) VALUES (%s, %s, %s, %s)"
-            cur.execute(sql, (equipamento.codigo_patrimonio, equipamento.nome, equipamento.modelo, equipamento.id_categoria))
+            sql = "INSERT INTO equipamento (codigo_patrimonio, nome, modelo, id_categoria, quantidade) VALUES (%s, %s, %s, %s, %s)"
+            cur.execute(sql, (equipamento.codigo_patrimonio, equipamento.nome, equipamento.modelo, equipamento.id_categoria, equipamento.quantidade))
             con.commit()
 
             return {
@@ -47,8 +47,14 @@ class EquipamentoRepositorio:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
 
-            # SELECT com o filtro de Soft Delete
-            sql = "SELECT id, codigo_patrimonio, nome, modelo, id_categoria, ativo FROM equipamento WHERE ativo = True"
+            # SELECT com o filtro de Soft Delete e nome da categoria
+            sql = (
+                "SELECT e.id, e.codigo_patrimonio, e.nome, e.modelo, e.id_categoria, "
+                "c.nome AS categoria, e.quantidade, e.ativo "
+                "FROM equipamento e "
+                "LEFT JOIN categoria c ON e.id_categoria = c.id "
+                "WHERE e.ativo = True"
+            )
             cur.execute(sql)
             equipamentos = cur.fetchall()
 
@@ -74,8 +80,8 @@ class EquipamentoRepositorio:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
 
-            sql = "UPDATE equipamento SET codigo_patrimonio = %s, nome = %s, modelo = %s, id_categoria = %s WHERE id = %s"
-            cur.execute(sql, (equipamento.codigo_patrimonio, equipamento.nome, equipamento.modelo, equipamento.id_categoria, equipamento_id))
+            sql = "UPDATE equipamento SET codigo_patrimonio = %s, nome = %s, modelo = %s, id_categoria = %s, quantidade = %s WHERE id = %s"
+            cur.execute(sql, (equipamento.codigo_patrimonio, equipamento.nome, equipamento.modelo, equipamento.id_categoria, equipamento.quantidade, equipamento_id))
             con.commit()
 
             return {
