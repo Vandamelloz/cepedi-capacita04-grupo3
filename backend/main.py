@@ -23,13 +23,15 @@ from dotenv import load_dotenv
 import os
 
 """importações de models"""
-from models.models import Categoria, Usuario, Equipamento, Manutencao
+from models.models import Categoria, Usuario, Equipamento, Manutencao, Reserva, Emprestimo
 
 """importações de repositórios"""
 from gerenciador_db.categoria import CategoriaRepositorio
 from gerenciador_db.usuario import UsuarioRepositorio
 from gerenciador_db.equipamento import EquipamentoRepositorio
 from gerenciador_db.manutencao import ManutencaoRepositorio
+from gerenciador_db.reserva import ReservaRepositorio
+from gerenciador_db.emprestimo import EmprestimoRepositorio
 from servicos.email_service import enviar_email
 
 
@@ -59,6 +61,8 @@ categoria_repositorio = CategoriaRepositorio(config_db)
 usuario_repositorio = UsuarioRepositorio(config_db)
 equipamento_repositorio = EquipamentoRepositorio(config_db)
 manutencao_repositorio = ManutencaoRepositorio(config_db)
+reserva_repositorio = ReservaRepositorio(config_db)
+emprestimo_repositorio = EmprestimoRepositorio(config_db)
 
 @app.get("/")
 async def home():
@@ -85,6 +89,15 @@ async def home():
             "PATCH / reativar_equipamento/{equipamento_id}": "Reativar equipamento",
             "POSR /criar_manutencao": "Criar manutenção",
             "GET /listar_manutencoes": "Listar manuteções",
+            "PUT /atualizar_manutencao/{manutencao_id}": "Atualizar manutenção",
+            "DELETE /excluir_manutecao/{manutencao_id}": "Excluir manutenção",
+            "POST /criar_reserva": "Criar reserva",
+            "GET /listar_reservas": "Listar reservas",
+            "PUT /atualizar_reserva/{reserva_id}": "Atualizar reserva",
+            "DELETE /excluir_reserva/{reserva_id}": "Excluir reserva",
+            "POST /criar_emprestimo": "Criar empréstimo",
+            "GET /listar_emprestimos": "Listar empréstimos",
+            "PUT /atualizar_emprestimo/{emprestimo_id}": "Atualizar empréstimo",
 
         }
     }
@@ -203,75 +216,76 @@ async def criar_manutencao(manutencao: Manutencao):
 @app.get("/listar_manutencoes")
 async def listar_manutencoes():
     """Endpoint para listar todas as manutenções"""
-
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        sql = "SELECT * FROM manutencao"
-        cur.execute(sql)
-        manutencoes = cur.fetchall()
-
-        return {
-            "sucesso": True,
-            "manutencoes": manutencoes
-        }
-    except Exception as e:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+    return await manutencao_repositorio.listar_manutencoes()
 
 """UPDATE (atualizar)"""
 @app.put("/atualizar_manutencao/{manutencao_id}")
 async def atualizar_manutencao(manutencao_id: int, manutencao: Manutencao):
     """Endpoint para atualizar uma manutenção existente"""
-
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-
-    try:
-        sql = "UPDATE manutencao SET id_equipamento = %s, descricao_defeito = %s, data_conclusao = %s WHERE id = %s"
-        cur.execute(sql, (manutencao.id_equipamento, manutencao.descricao_defeito, manutencao.data_conclusao, manutencao_id))
-        con.commit()
-
-        return {
-            "sucesso": True,
-            "mensagem": "Manutenção atualizada com sucesso"
-        }
-    except Exception as e:
-        con.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+    return await manutencao_repositorio.atualizar_manutencao(manutencao_id, manutencao)
 
 """DELETE (apagar)"""
 @app.delete("/excluir_manutencao/{manutencao_id}")
 async def excluir_manutencao(manutencao_id: int):
     """Endpoint para excluir uma manutenção existente"""
+    return await manutencao_repositorio.excluir_manutencao(manutencao_id)
 
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
 
-    try:
-        sql = "DELETE FROM manutencao WHERE id = %s"
-        cur.execute(sql, (manutencao_id,))
-        con.commit()
+#===============================================================================================
+#                               CRUD - RESERVA
+#===============================================================================================
 
-        return {
-            "sucesso": True,
-            "mensagem": "Manutenção excluída com sucesso"
-        }
-    except Exception as e:
-        con.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cur.close()
-        con.close()
+"""CREATE (criar)"""
+@app.post("/criar_reserva")
+async def criar_reserva(reserva: Reserva):
+    """Endpoint para criar uma nova reserva"""
+    return await reserva_repositorio.criar_reserva(reserva)
+
+"""READ (listar)"""
+@app.get("/listar_reservas")
+async def listar_reservas():
+    """Endpoint para listar todas as reservas"""
+    return await reserva_repositorio.listar_reservas()
+
+"""UPDATE (atualizar)"""
+@app.put("/atualizar_reserva/{reserva_id}")
+async def atualizar_reserva(reserva_id: int, reserva: Reserva):
+    """Endpoint para atualizar uma reserva existente"""
+    return await reserva_repositorio.atualizar_reserva(reserva_id, reserva)
+
+"""DELETE (apagar)"""
+@app.delete("/excluir_reserva/{reserva_id}")
+async def excluir_reserva(reserva_id: int):
+    """Endpoint para excluir uma reserva existente"""
+    return await reserva_repositorio.excluir_reserva(reserva_id)
+
+
+#===============================================================================================
+#                               CRUD - EMPRÉSTIMO
+#===============================================================================================
+
+"""CREATE (criar)"""
+@app.post("/criar_emprestimo")
+async def criar_emprestimo(emprestimo: Emprestimo):
+    """Endpoint para criar um novo empréstimo"""
+    return await emprestimo_repositorio.criar_emprestimo(emprestimo)
+
+"""READ (listar)"""
+@app.get("/listar_emprestimos")
+async def listar_emprestimos():
+    """Endpoint para listar todos os empréstimos"""
+    return await emprestimo_repositorio.listar_emprestimos()
+
+"""UPDATE (atualizar)"""
+@app.put("/atualizar_emprestimo/{emprestimo_id}")
+async def atualizar_emprestimo(emprestimo_id: int, emprestimo: Emprestimo):
+    """Endpoint para atualizar um empréstimo existente"""
+    return await emprestimo_repositorio.atualizar_emprestimo(emprestimo_id, emprestimo)
+
+"""ESSE CRUD NÃO POSSUI A FUNÇÃO DELETE, POIS O REGISTRO DE EMPRÉSTIMO DEVE SER MANTIDO
+PARA FINS DE HISTÓRICO, LOGS E RELATÓRIOS."""
+
+
 #===============================================================================================
 #                               SERVIÇOS EXTRAS
 #===============================================================================================
