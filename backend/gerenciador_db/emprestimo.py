@@ -50,7 +50,7 @@ class EmprestimoRepositorio:
             cur = con.cursor()
 
             # Modificar para fazer o join com a tabela de usuários e equipamentos para retornar os nomes ao invés dos IDs
-            """sql = "SELECT e.id_equipamento, u.id_usuario, e.data_retirada, e.data_previsao_devolucao FROM emprestimo e JOIN usuario u ON e.id_usuario = u.id WHERE e.data_devolucao_real IS NULL""""
+            # sql = "SELECT e.id_equipamento, u.id_usuario, e.data_retirada, e.data_previsao_devolucao FROM emprestimo e JOIN usuario u ON e.id_usuario = u.id WHERE e.data_devolucao_real IS NULL"
             sql = "SELECT * FROM emprestimo"
             cur.execute(sql)
             emprestimos = cur.fetchall()
