@@ -39,7 +39,8 @@ class Emprestimo(BaseModel):
     data_devolucao_real: Optional[datetime] = None
     observacoes: Optional[str] = None
 
-class HistoricoMovimentacao(BaseModel):
+# ESTUDAR AS REGRAS DE NEGÓCIO
+"""class HistoricoMovimentacao(BaseModel):
     id_equipamento: int
     id_usuario_acao: int
-    descricao_motivo: str
+    descricao_motivo: str"""
