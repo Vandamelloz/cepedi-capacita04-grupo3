@@ -26,7 +26,7 @@ export default function Sidebar({ userRole }) {
         <Menu className="w-13 h-13" />
       </button>
       <div className="w-full h-full flex flex-col gap-2">
-        {isCollapsed && <Logo tamanho={55} className="rounded-full" />}
+        {isCollapsed && <Logo tamanho={100} className="rounded-full" />}
         <div className={`px-4 py-6 text-white font-bold text-xl border-b border-white/10 mb-4
         ${isCollapsed ? 'hidden' : ''}`}>
           GIPAR Sistema
