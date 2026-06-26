@@ -1,6 +1,6 @@
 from typing import Optional
 from datetime import date, datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class Categoria(BaseModel):
     nome: str
@@ -17,6 +17,7 @@ class Equipamento(BaseModel):
     nome: str
     modelo: Optional[str] = None
     id_categoria: int
+    quantidade: int = Field(default=1, ge=1)
     ativo: Optional[bool] = True
 
 class Manutencao(BaseModel):
@@ -38,7 +39,14 @@ class Emprestimo(BaseModel):
     data_devolucao_real: Optional[datetime] = None
     observacoes: Optional[str] = None
 
-class HistoricoMovimentacao(BaseModel):
-    id_equipamento: int
-    id_usuario_acao: int
-    descricao_motivo: str
+class LogAuditoria(BaseModel):
+    id: Optional[int] = None
+    id_usuario: Optional[int] = None
+    acao: str
+    tabela_afetada: str
+    id_registro_afetado: Optional[int] = None
+    detalhes: Optional[str] = None
+    data_acao: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

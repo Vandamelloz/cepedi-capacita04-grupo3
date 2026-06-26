@@ -6,7 +6,7 @@ export default function Botao({
   icone = false,
 }) {
 
-  const estilos = {
+const estilos = {
   novo: "bg-[#10B981] text-white hover:bg-[#059669]",
   registrar: "bg-[#1A6B74] text-white hover:bg-[#155A61]",
   salvar: "bg-[#1A6B74] text-white hover:bg-[#155A61]",

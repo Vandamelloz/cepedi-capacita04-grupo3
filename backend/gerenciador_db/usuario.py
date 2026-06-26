@@ -13,7 +13,6 @@ class UsuarioRepositorio:
         self.config_db["cursorclass"] = DictCursor
     
     # Método assíncrono para criar um novo usuário
-    # Método assíncrono para criar um novo usuário
     async def criar_usuario(self, usuario: Usuario):
         con = None
         cur = None

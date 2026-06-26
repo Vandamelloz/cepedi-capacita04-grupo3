@@ -1,0 +1,701 @@
+Código,Material de Consumo,Quantidade Disponivel,Imagem
+,,,
+0001,jumper femea x femea,~950,
+0002,jumper macho x femea ,0,
+0003,jumper macho x macho ,~165,
+0004,Conector jumper maacho preto + anel de cabo vermelho,4,
+0005,Fio 2.5mm cabo flexível rolo com 100 metros elétrico (azul / vermelho / verde),3,
+0006,Cabo arduino,83,
+0007,Cabo Mini USB,5,
+0008,Placa perfurada,13,
+0009,Placa de fenolite,,
+0010,Ponte H L298N,23,
+0011,"Arduino mega2560
+Usados ; Novos",42,
+0012,Arduino uno,6,
+0013,Shield esp8266 esp 12e wifi,5,
+0014,Modulo relé 8,10,
+0015,Modulo relé 4,1,
+0016,Módulo relé 1,1,
+0017,Modulo relé 2,14,
+0018,Display oled,34,
+0019,Sensor ultrassônico,58,
+0020,Cristal ultrasonico 4MHz,7,
+0021,Cristal ultrasonico 10MHz,15,
+0022,Cristal ultrasonico 20MHz,11,
+0023,Módulo Display LCD 16x2,22,
+0024,Sensor de tensão AC 0v 250v,7,
+0025,Sensor de corrente 20A acs712,7,
+0026,Voltimetro 0 - 100 vdc lcd,1,
+0027,Módulo Buzzer low level trigger,17,
+0028,Sensor de temperatura ds18b20,16,
+0029,Display Sensor de temperatura °C/°F e SET,1,
+0030,Relógio de precisão HW-084,11,
+0031,Sensor de umidade DMT-11,2,
+0032,sensor capacitivo,1,
+0033,sensor indutivo,0,
+0034,Sensor de Presença e Movimento - PIR,15,
+0035,Sensor de umidade DmT-22,2,
+0036,Termômetro Higrometro digital,4,
+0037,Servo motor tower pro mg995,23,
+0038,Stepper motor nema + Cabo,7,
+0039,Servo motor sg90 HS 55,3,
+0040,Servo  motor MG996R,1,
+0041,Servo motor FUTABA S3003,2,
+0042,Servo motor HITEC HS-422,1,
+0043,Micro motor dc,50,
+0044,Módulo adaptador para Arduino Nano,12,
+0045,Esp 32,16,
+0046,Arduino nano,28,
+0047,Ponta de prova do multimetro (estoque),26,
+0048,Regulador de tensão step up mt3608,142,
+0049,Módulo relé estado sólido 4 canais 5V 2A,10,
+0050,Módulo relé estado sólido 8 canais 5V 2A,1,
+0051,Shield arduino multifunções,10,
+0052,Motor drive modulo L298p,14,
+0053,GBK IOT Shield,3,
+0054,"Shield Ethernet Arduino W5100
+",4,
+0055,Drive Monster moto shield,6,
+0056,RFID com cartões Tag,1,
+0057,Mini Módulo GSM GPRS SIM900A com Antena IOT,5,
+0058,Módulo Bluetooth BLE HM-10,9,
+0059,Modulo Matriz de Led - 8x8,19,
+0060,HW-105 Conversor DC-DC Boost com saída de 5V 600mA,13,
+0061,Fonte AC/DC 110-240v/7.5v,5,
+0062,Módulo de Joystick de eixo duplo KY-023.,3,
+0063,arduino digispark attiny85,4,
+0064,Kit Robotica Educacional P30 dimmer,4,
+0065,Kit Robotica Educacional Franzininho V2 - Kit DIY com Attiny85 e USB,3,
+0066,Kit Robotica Educacional P19 Power PWM,1,
+0067,Kit Robotica Educacional P16 Sensor Hall,2,
+0068,Kit Robotica Educacional P21 Semáforo,1,
+0069,Kit Robotica Educacional P10 - Gbk Modulo Sensor De Temperatura Com Ntc 10k,1,
+0070,Kit Robotica Educaciona P11 - Gbk Módulo Display Anodo Comum 1 Digito,1,
+0071,Kit Robotica Educacional P7 Módulo Sensor de Luz com LDR + Sequencial de Leds - GBK,4,
+0072,Shield V2 Stud Terminal Expansion Board,7,
+0073,Controle Remoto Infravermelho ,2,
+0074,Módulo Led Rgb Para Arduino - Ky-016,2,
+0075,MODULO SENSOR LIGHT CUP ARDUINO,1,
+0076,transceptor sem fio para arduino PORTA SERIAL,1,
+0077,Módulo Wireless NRF24L01,4,
+0078,Módulo Seguidor de Linha - TCRT5000,5,
+0079,Indicador Carga Baterías Litio 1s (3.7- 4.2v),3,
+0080,Sensor de Umidade E Temperatura Dht11,0,
+0081,Sensor de tensão DC 0 a 25v ,10,
+0082,Módulo Sensor De Som Sensor De Palmas Microfone - Arduino,3,
+0083,Módulo Mp3 Som Micro Sd Wtv020sd Wtv020-sd Robótica,5,
+0084,Shield para Arduino - CNC V3,0,
+0085,Emissor led infravermelho ,85,
+0086,Raspberry pi 1,4,
+0087,Raspberry pi 2,1,
+0088,Raspberry pi 3,2,
+0089,Raspberry pi 4,3,
+0090,Câmera Raspberry pi 4,1,
+0091,encoder MH-Sensor-Series,16,
+0092,Chave Botão 7x7mm com Trava Azul 6 Terminais,9,
+0093,conversor DC-DC step up mt308,9,
+0094,Modulo RF lora 5x1278,9,
+0095,Sensor distância laser VL53LOX,23,
+0096,Placa de Extensão T PI GPIO Plus V2.2 para Raspberry Pi,3,
+0097,ponte H HW-39,1,
+0098,"bateria lipo 11,1v 2200mah",7,
+0099,"bateria lipo 22,2v 2200mah",0,
+0100,"bateria lipo 7,4v 2200mah",3,
+0101,"bateria lipo 7,4v 450mah",3,
+0102,bateria lipo 36v 4400mah,2,
+0103, kit jetson nano,2,
+0104,Módulo Sensor De Corrente - Zmct103c com AmpOp,11,
+0105,Módulo Sensor De Corrente - Zmct103c sem AmpOp,6,
+0106,motor KV:3215,4,
+0107,Motores diversos,14,
+0108,protoboards variadas,9,
+0109,sensor de temperatura Lm35dz,393,
+0110,Sensor de Temperatura Lm35dz SMD,11,
+0111,Porta Fusível,61,
+0112,plug P4 macho,149,
+0113,"fusivel 0,5A",800,
+0114, ,920,
+0115,plug P4 femea,344,
+0116,BBC micro bit,3,
+0117,sensor de cor,3,
+0118,"Motor MHT-510A-F / 48/24V , 13A",1,
+0119,Expansion Board - Arduino UNO,12,
+0120,Microswitch Push Button 4 Pinos 5mm,37,
+0121,adaptador USB,14,
+0122,BT151,25,
+0123,Microswitch Push Button 4 Pinos 10mm,17,
+0124,multiplexador,2,
+0125,Voltimetro DC,11,
+0126,Buzzer,65,
+0127,fusivel 1A,96,
+0128,fusivel 3A,400,
+0129,fusivel 5A,98,
+0130,fusivel 10A,94,
+0131,leitor RFID-RC522,4,
+0132,Receptor Infravermelho Metálico 3 Terminais com Suporte 180 graus ,30,
+0133,Receptor Infravermelho Metálico 3 Terminais,3,
+0134,Receptor Infravermelho 3 Terminais,5,
+0135,"Módulo transmissor RF de 433 MHz, modelo FS1000A",3 (2),
+0136,modulo transistor,5 (0),
+0137,Seguidor de linha infravermelho - Sensor de Refletância Analógico com 8 Sensores Infravermelhos de Linha + 1x40 barra de Pinos macho,16,
+0138,Driver Duplo Ponte H de Motor DC ou Passo - DRV8833 - 2 Canais 2A cada,15,
+0139,motor bosch f006g20 12v,2,
+0140,motor bosch fpg 12v,3,
+0141,fonte 9V 1.2A,34,
+0142,"fonte 12v
+ 1 A (necessita adaptador)
+500 mA (sem plug)
+1000 mA (com plug jack)
+2 A (com plug jack)
+300 mA (necessita adaptador)",5,
+0143,fonte 13V 1000mA,1,
+0144,"fonte 7,5V 0.8A (com plug jack)",5,
+0145,fonte 6v 2A sem plug jack (necessita adaptador),1,
+0146,fonte 5v,1,
+0147,STM32 ROS,1,
+0148,modulo motor de passo easyDriver ,1,
+0149,Cabo Flat,4,
+0150,Led vermelho 5 mm difuso,31,
+0151,Led vermelho 3 mm difuso,40,
+0152,Led vermelho 5 mm alto brilho,5,
+0153,Led verde 5 mm difuso,25,
+0154,Led verde 5 mm alto brilho,10,
+0155,Led verde 3 mm difuso,40,
+0156,Led amarelo 5 mm difuso ,44,
+0157,Led amarelo 5 mm alto brilho,0,
+0158,Led amarelo 3 mm difuso ,39,
+0159,Led branco 5 mm alto brilho,38,
+0160,Led branco 3 mm alto brilho,40,
+0161,Led azul 5 mm difuso,1,
+0162,Led azul 5 mm alto brilho,4,
+0163,Led azul 3 mm difuso,40,
+0164,RGB,8,
+0165,"Capacitor Eletrolítico 6,3 V 9uF",1,
+0166,Capacitor Eletrolítico 10 V 220uF,2,
+0167,Capacitor Eletrolítico 10 V 1000uF,1,
+0168,Capacitor Eletrolítico 16 V 22uF,2,
+0169,Capacitor Eletrolítico 16 V 100uF,10,
+0170,Capacitor Eletrolítico 16 V 220uF,1,
+0171,Capacitor Eletrolítico 16 V 1500uF,3,
+0172,Capacitor Eletrolítico 16 V 3300uF,1,
+0173,Capacitor Eletrolítico 16 V 4700uF,3,
+0174,Capacitor Eletrolítico 25 V 10uF,21,
+0175,Capacitor Eletrolítico 25 V 22uF,14,
+0176,Capacitor Eletrolítico 25 V 47uF,18,
+0177,Capacitor Eletrolítico 25 V 470uF,6,
+0178,Capacitor Eletrolítico 25 V 1000uF,3,
+0179,Capacitor Eletrolítico 25 V 2200uF,16,
+0180,Capacitor Eletrolítico 25 V 3300uF,2,
+0181,Capacitor Eletrolítico 25 V 4700uF,4,
+0182,Capacitor Eletrolítico 35 V 1000uF,5,
+0183,"Capacitor Eletrolítico 50 V 0,1 uF",15,
+0184,Capacitor Eletrolítico 50 V 1 uF,24,
+0185,Capacitor Eletrolítico 50 V 10 uF,5,
+0186,Capacitor Eletrolítico 50 V 22 uF,6,
+0187,Capacitor Eletrolítico 50 V 68 uF,1,
+0188,Capacitor Eletrolítico 50 V 100 uF,2,
+0189,Capacitor Eletrolítico 50 V 470 uF,1,
+0190,Capacitor Eletrolítico 50 V 3300 uF,2,
+0191,Capacitor Eletrolítico 50 V 2200 uF,1,
+0192,"Capacitor Eletrolítico 63 V 2,2 uF",2,
+0193,Capacitor Eletrolítico 63 V 10 uF,1,
+0194,Capacitor Eletrolítico 63 V 22 uF,1,
+0195,Capacitor Eletrolítico 63 V 220 uF,2,
+0196,Capacitor Eletrolítico 100 V 150 uF,1,
+0197,Capacitor Eletrolítico 160 V 270 uF,4,
+0198,Capacitor Eletrolítico 250 V 33 uF,1,
+0199,"Transistor 
+BC548",5,
+0200,Controlador de carga pwm ls1024,,
+0201,Transdutor Ultrassônico,2,
+0202,Conector de Engate Rápido,20,
+0203,Analisador de Testador de Capacidade da Bateria 1.2-12V LEDs Micro USB Fonte de Alimentação Verificação de Corrente de Tensão,1,
+0204,2x1 Regulador Tensão Display 5a Dc Dc Voltímetro Amperímetro,1,
+0205,Módulo Display 8 Dígitos Max7219 Led 7 Segmentos,1,
+0206,Date logging shield,1,
+0207,Date logging shield V1.0,1,
+0208,Motor Shield Arduino L293D,1,
+0209,Shield Servo / Sensor Nano V3.0 Placa de Expansão,1,
+0210,Protoshield para Arduino,1,
+0211,BMS (Placa de Proteção para Bateria de Lítio),1,
+0212,Sensor detector de gás propano,1,
+0213,Matriz de pinos i2c,1,
+0214,Soquete 8 pinos,2,
+0215,Soquete 6 pinos,1,
+0216,Soquete 14 pinos,6,
+0217,Soquete 16 pinos,5,
+0218,Soquete 18 pinos,3,
+0219,Resistor,Especifique o valor e a quantidade nas respectivas seções do formulário.,
+0220,Borne (Tamanhos Diversos),Disponível,
+0221,,43,
+0222,"74AC00PC
+Porta NAND Quad de 2 entradas",5,
+0223,"74F151APC
+Multiplexador de 8 entradas
+",5,
+0224,"74HC390N
+Contador de ondulações de duas décadas",5,
+0225,"BC327
+Transistor",Disponível,
+0226,"BC337
+Transistor",Disponível,
+0227,"BC546
+Transistor",3,
+0228,"BC547B
+Transistor",37,
+0229,"BC547C
+Transistor",20,
+0230,"BC548
+Transistor",14,
+0231,"BC548B
+Transistor",16,
+0232,"BC548C
+Transistor",5,
+0233,"BC549C
+Transistor",1,
+0234,"BC556
+Transistor",1,
+0235,"BC558
+Transistor",2,
+0236,"CD4007UBE
+CMOS com inversor",8,
+0237,"CD4518BE
+CMOS - contadores duplos",5,
+0238,"HD74HC04P
+Inversor Hex",3,
+0239,"L293D
+Ponte H",28,
+0240,"LF351N
+Amplificadores operacionais JFET únicos de ampla largura de banda",14,
+0241,,,
+0242,"LM3251N
+Regulador de tensão",12,
+0243,"LM725
+Amplificador Operacional",9,
+0244,"MM74HC04N / MC74HCD4N
+Inversor Hex",4,
+0245,"TDA2040
+Amplificador de Potência de áudio",8,
+0246,"CD4046BE
+CMOS",5,
+0247,"CD4049AE
+CMOS Hex",1,
+0248,"CD4052BCN
+Multiplexador/Demultiplexador Analógico de 8 Canais Únicos
+",1,
+0249,"CD4011BE
+ 4Portas NAND CMOS
+",5,
+0250,"CD4511BE
+ CI decodificador BCD para display de 7 segmentos",5,
+0251,"UA741
+Amplificador Operacional",16,
+0252,"TL084CN
+Amplificador Operacional de entrada JFET",20,
+0253,"TL071
+Amplificador Operacional de entrada JFET",13,
+0254,,,
+0255,MSM4029,1,
+0256,"IRF3205
+MOSFET de Potência",15,
+0257,"IRF540N
+MOSFET de Potência",1,
+0258,"IRF640N
+MOSFET de Potência",6,
+0259,"IRF640
+MOSFET de Potência",3,
+0260,"BD330
+Transistor PNP",5,
+0261,"CPN2907
+Transistor PNP",5,
+0262,"VN10KM
+MOSFET de canal N",20,
+0263,"BD139
+Transistor NPN",1,
+0264,"2222A
+Transistor NPN",12,
+0265,"PN2907A
+Transistor PNP",1,
+0266,"BT137
+Triac",30,
+0267,"BT136
+Triac",2,
+0268,"BTA16
+Triac",5,
+0269,"TIP122
+Transistor Bipolar de Potência NPN do tipo Darlington",5,
+0270,"TIC263
+Triac",14,
+0271,CI7905 ,21,
+0272,CI7806,1,
+0273,CI7812,23,
+0274,CI7809,25,
+0275,LM7912(CI7912),23,
+0276,CI7915,20,
+0277,"D304X
+Transistor de Potência NPN",1,
+0278,DIAC DB3,31,
+0279,DIAC NTE6408,1,
+0280,"PIC18F4550
+Microcontrolador de 8 bits",7,
+0281,"PIC18F4520
+Microcontrolador de 8 bits",1,
+0282,"PIC18F2550
+Microcontrolador de 8 bits",25,
+0283,,,
+0284,F16C20C,1,
+0285,"NE555
+Timer / Temporizador",19,
+0286,"NE566
+Timer / Temporizador Duplo",9,
+0287,"MJE3055T
+Transistores de Potência",5,
+0288,MM74HC10N/MC74HC10N,2,
+0289,"D235S
+Conversores CC/CC miniatura SIP de 2 W com saída simples e dupla
+",3,
+0290,"BD235
+Transistor de Potência",1,
+0291,CT2N 3906,3,
+0292,"MOC3021
+Optoacoplador",6,
+0293,"4N25
+Optoacoplador",3,
+0294,"4N26
+Optoacoplador",3,
+0295,"TIL111
+Optoacoplador",33,
+0296,"2N3904
+Transistor",25,
+0297,"2N3906
+Transistor",9,
+0298,"IR2117
+Driver de canal único",2,
+0299,"48APVVM
+0P07CP",1,
+0300,"D13009K
+Transistor de Potência",3,
+0301,"DFF2N60
+Mosfet de canal N",2,
+0302,"HBR2045
+Diodo de Barreira Schottky",1,
+0303,"S30D40C
+Reitificador de Barreira Schottky",1,
+0304,"SN74HC595N
+Registrador de deslocamento de 8 bits com registradores de saída de 3 estados
+",58,
+0305,"LM324N
+Amplificador Operacional
+",25,
+0306,"LM350
+Regulador de Tensão ajustável",1,
+0307,"HD74LS138P
+Decodificadores/Demultiplexadores de 3 para 8 linhas
+",2,
+0308,CI SG3524N,30,
+0309,"AD623AN
+Amplificador de instrumentação de baixo custo, com alimentação única e conexão rail-to-rail
+",2,
+0310,"L4973V5.1
+Regulador de comutação abaixador de 3,5 A
+",3,
+0311,"IR2127
+Driver de canal único com detecção de corrente
+",2,
+0312,"IR2102
+Driver de alta e baixa potência",1,
+0313,"DM74LS153N
+Seletores/Multiplexadores de Dados de Linha Duplos 1 de 4
+",2,
+0314,,,
+0315,"ULN2003AN
+Matriz de transistores Darlington de alta tensão e alta corrente
+",1,
+0316,"HD74LS04P
+Inversor Hex (com saídas de coletor aberto)
+",3,
+0317,"SN74LS138N
+SCHOTTKY DE BAIXA POTÊNCIA
+",1,
+0318,"SN74LS08N
+SCHOTTKY DE BAIXA POTÊNCIA
+",1,
+0319,"SN74LS173AN
+Registradores tipo D de 4 bits com saídas de três estados
+",3,
+0320,Interruptor 2 terminais 6A 250VAC / 10A 125VAC,21,
+0321,Interruptor deslizante pequeno,18,
+0322,Interruptor QY603 3 Terminais 15 A 250 VAC / 20 A 125 VAC ,1,
+0323,Interruptor KCD1-5 2 Terminais 6 A 250 VAC / 10 A 125 VAC ,1,
+0324,Módulo Regulador de Tensão Step Down Buck DC-DC Mini 360 3A,18,
+0325,Adaptador / Conversor Usb para TTL RS232 Serial,4,
+0326,Adaptador / Conversor Mini Usb Serial para TTL,7,
+0327,Adaptador / Conversor USB Serial para ESP8266,1,
+0328,Termostato Digital W1209,2,
+0329,LDR 5mm,4,
+0330,LDR 10mm,22,
+0331,Termistor NTC 20 K,24,
+0332,Termistor PTC 0111,20,
+0333,Fototransistor L14G1,14,
+0334,Módulo GSM GPRS serial RS232 TTL UART 5V com antena IOT-GA6-B,1,
+0335,Mini Driver Ponte H Dupla L9110S Motor DC ou Passo (sem borne e sem pinos),1,
+0336,Módulo Regulador de Tensão de 5V para 3.3V AMS1117,1,
+0337,Módulo Conversor HX711 para Sensor de Peso,1,
+0338,Módulo sensor de raios ultravioleta UV UVM-30A,1,
+0339,"Itens de robótica (estrutura: roda, suporte)",,
+0340,"Capacitor Cerâmico
+15pF",13,
+0341,"Capacitor Cerâmico
+33pF",24,
+0342,"Capacitor Cerâmico 101
+100pF",8,
+0343,"Capacitor Cerâmico 102
+1nF",37,
+0344,"Capacitor Cerâmico 103
+10nF",28,
+0345,"Capacitor Cerâmico 104
+0.1uF",12,
+0346,"Capacitor Cerâmico 152
+1.5nF",1,
+0347,"Capacitor Cerâmico 153
+15nF",5,
+0348,"Capacitor Cerâmico 221
+220pF",16,
+0349,"Capacitor Cerâmico 222
+2.2nF",15,
+0350,"Capacitor Cerâmico 223
+22nF",27,
+0351,"Capacitor Cerâmico 272
+2.7nF",24,
+0352,"Capacitor Cerâmico 333
+33nF",21,
+0353,"Capacitor Cerâmico 471
+470pF",34,
+0354,"Capacitor Cerâmico 472
+4.7nF",14,
+0355,"Capacitor Cerâmico 473
+47nF",14,
+0356,"Capacitor Cerâmico
+2pF",1,
+0357,"Capacitor Cerâmico
+10pF",1,
+0358,"Capacitor Cerâmico
+100nF",1,
+0359,"Capacitor Cerâmico
+22pF",2,
+0360,"Capacitor Cerâmico
+2.2nF",4,
+0361,"Capacitor Cerâmico
+82pF",1,
+0362,"Capacitor Cerâmico
+2.2pF",1,
+0363,"Potenciômetro 2.2k a 220 Ohm
+",1,
+0364,"Potenciômetro 5 kOhm
+",1,
+0365,"Potenciômetro 20 kOhm
+",1,
+0366,"Potenciômetro 100 kOhm
+",2,
+0367,Potenciômetro 250 kOhm,0,
+0368,Potenciômetro 500 kOhm,1,
+0369,Potenciômetro 1 MOhm,1,
+0370,Módulo Sensor Rotary Encoder Rotativo Decoder Ky-040 Arduino,1,
+0371,"Capacitor Poliéster 104
+100nF (0.1uF) 250V",8,
+0372,"Capacitor Poliéster 104
+100nF (0.1uF) 400V",1,
+0373,"Capacitor Poliéster 0.01
+1nF 400V
+PHILIPS",1,
+0374,"Capacitor Poliéster 0.022
+22nF 400V
+PHILIPS",3,
+0375,"Capacitor Poliéster 0.027
+27nF 250v
+PHILIPS",1,
+0376,"Capacitor Poliéster 0.033
+33nF 250V
+PHILIPS",1,
+0377,"Núcleo Toroidal
+NT-7/3/5 - 1500 IP6
+(sem pintura)",5,
+0378,"Núcleo Toroidal
+NT-10/5/3,2 - 1000 IP6
+(com pintura)",5,
+0379,"Núcleo Toroidal
+NT-10/5/6,5 - 2000 IP6
+(com pintura)",10,
+0380,"Núcleo Toroidal
+NT-12,5/7,5/10 - 2400-IP12R
+(com pintura)",5,
+0381,"Núcleo Toroidal
+NT-15/9,5/25-6000 - TH50
+(sem pintura)",4,
+0382,"Núcleo Toroidal
+NT-19/11/6-1300-IP12R
+(com pintura)",4,
+0383,"Núcleo Toroidal
+NT-19/11/12-2600-IP12R
+(com pintura)",2,
+0384,"Núcleo Toroidal
+NT-23/14/11 - 4400 TH50
+(com pintura verde)",,
+0385,Indutor 10uH,19,
+0386,Indutor 150mH,41,
+0387,"Botão trava e destrava Gol G5
+(sem capa para botão)",1,
+0388,"Rele reed
+9091-05-00",10,
+0389,Trimpot 10kOhm,2,
+0390,Trimpot 1kOhm,16,
+0391,Trimpot 100kOhm,25,
+0392,Trimpot 100Ohm,2,
+0393,"Capacitor poliéster 
+18n K(10%) 250V",5,
+0394,"Capacitor poliéster 
+18n K(10%) 250V",5,
+0395,"Resistor Dale-M
+30kOhm",3,
+0396,"Transistor de Potência
+NPN 2N3055 TO-3
+Toshiba",20,
+0397,CI LM3886T,1,
+0398,"CI Darlington Power Pack STK-0105
+10 terminais",1,
+0399,Conectores de emenda,2,
+0400,"Disco Encoder 20 furos
+(plástico)",8,
+0401,"Disco Encoder 20 furos
+(MDF)",5,
+0402,Pilha Recarregável GoldHill 3.7V 2200mAh,1,
+0403,Pilha Recarregável 3.7V 6800mAh,2,
+0404,Pilha Recarregável 4V,1,
+0405,Pilha Recarregável 3.7V,2,
+0406,Suportes pilha 9 V jack com clip,2,
+0407,Suporte 4 pilhas AA 2 lados,7,
+0408,Suporte AA 4 pilhas,3,
+0409,Suporte 6 pilhas AA + saída tipo clip,1,
+0410,Suporte 4 pilhas AA com tampa,1,
+0411,Suporte 2 pilhas AA,1,
+0412,Suporte 4 pilhas recarregáveis 3.7V 18650X2,1,
+0413,Suporte 2 pilhas recarregáveis 3.7V 18650X2,1,
+0414,Indutor 15uF,19,
+0415,Potenciômetro 1 MOhm,1,
+0416,Módulo controlador de motor DC sem escova 12 V - 36 V 500 W,3,
+0417,Porca martelo T Deslizante 3030 - M6 ,50,
+0418,"Fios (cores diversas, consultar)",14,
+0419,Fios banana/banana (estoque),36,
+0420,Fonte sharktech ACADAPTER.84W 42V 2A,1,
+0421,,,
+0422,,,
+0423,Módulo de sensor de temperatura infravermelho GY-906 MLX90614,1,
+0424,Interruptor 2 terminais XCD11 3A 250V 6A125V,3,
+0425,"HALL 3144
+Sensor de Efeito Hall",14,
+0426,"EL 817
+Optoacoplador",1,
+0427,LM358SN,12,
+0428,SD74LS155E,5,
+0429,SD74508E,3,
+0430,SN74HC86N,5,
+0431,SN74ALS32N,5,
+0432,ULN2803APG,2,
+0433,UN2003AN,1,
+0434,D2355,3,
+0435,PIC16F528A,37,
+0436,Suporte PIC 240-3345,1,
+0437,Módulo ESP8266 - 01,4,
+0438,Enconder incremental rotativo,,
+0439,Bastão de cola quente,19,
+0440,Interruptor de 6 terminais 16A - 250V AC / 20A - 125V AC,1,
+0441,Corante ,"Azul (1), Laranja (1), Violeta(1), Preto (1)",
+0442,Conversor Dc-dc Buck 300W 20a Step Down ajustável fonte 6V 40 V,2,
+0443,Motor DC 6V / 24V RS550 de Alta Rotação,1,
+0444,Suportes pilha 9 V com clip,8,
+0445,Bateria VRLA - 12V e 18Ah ,0,
+0446,Microventiladores Coller,2,
+0447,Motor DC,0,
+0447,Modulo de conversão USB paralelo 8 Bits FT245R,1,
+0448,Cabo Micro HDTV 4K,1,
+0449,Hotend Bico de aço Bambu Lab A1 Mini,1,
+0450,Chave Alavanca,0,
+0451,Kit com 4 Motores DC 3-6V Caixa de Redução e Rodas para Robôs Arduino,0,
+0452,Alicate de corte diagonal para mil e uma utilidades no mundo da impressão 3D.,2,
+0453,Desengripante,1,
+0454,,,
+0455,,,
+0456,,,
+0457,,,
+0458,,,
+0459,,,
+0460,,,
+0461,,,
+0462,,,
+0463,,,
+0464,,,
+0465,,,
+0466,,,
+0467,,,
+0468,,,
+0469,,,
+0470,,,
+0471,,,
+0472,,,
+0473,,,
+0474,,,
+0475,,,
+0476,,,
+0477,,,
+0478,,,
+0479,,,
+0480,,,
+0481,,,
+0482,,,
+0483,,,
+0484,,,
+0485,,,
+0486,,,
+0487,,,
+0488,,,
+0489,,,
+0490,,,
+0491,,,
+0492,,,
+0493,,,
+0494,,,
+0495,,,
+0496,,,
+0497,,,
+0498,,,
+0499,,,
+0500,,,
+0501,,,
+0502,,,
+0503,,,
+0504,,,
+0505,,,
+0506,,,
+0507,,,
+0508,,,
+0509,,,
+0510,,,
+0511,,,
+0512,,,
+0513,,,
+0514,,,
+0515,,,
+0516,,,
+0517,,,
+0518,,,
+0519,,,
+0520,,,
+0521,,,
+0522,,,
+0523,,,
+0524,,,
+0525,,,
+0526,,,
+0527,,,
+0528,,,
