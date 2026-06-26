@@ -231,6 +231,11 @@ async def criar_equipamento(equipamento: Equipamento):
         id_usuario=1, acao="INSERT", tabela_afetada="equipamento",
         id_registro_afetado=id_registro, detalhes="Equipamento criado no sistema"
     ))
+    await historico_repositorio.registrar_movimentacao(HistoricoMovimentacao(
+    id_equipamento=id_registro,
+    id_usuario_acao=1,   # ou o id do usuário logado, se disponível
+    descricao_motivo="Equipamento cadastrado no sistema"
+    ))
     return resultado
 
 """READ (listar)"""
@@ -286,6 +291,11 @@ async def criar_manutencao(manutencao: Manutencao):
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=1, acao="INSERT", tabela_afetada="manutencao",
         id_registro_afetado=id_registro, detalhes="Manutenção criada no sistema"
+    ))
+    await historico_repositorio.registrar_movimentacao(HistoricoMovimentacao(
+    id_equipamento=manutencao.id_equipamento,
+    id_usuario_acao=1,
+    descricao_motivo=f"Manutenção registrada (ID {id_registro})"
     ))
     return resultado
 
@@ -377,6 +387,11 @@ async def criar_emprestimo(emprestimo: Emprestimo):
         id_usuario=1, acao="INSERT", tabela_afetada="emprestimo",
         id_registro_afetado=id_registro, detalhes="Empréstimo criado no sistema"
     ))
+    await historico_repositorio.registrar_movimentacao(HistoricoMovimentacao(
+    id_equipamento=emprestimo.id_equipamento,
+    id_usuario_acao=emprestimo.id_usuario,
+    descricao_motivo=f"Empréstimo criado (ID {id_registro})"
+    ))
     return resultado
 
 """READ (listar)"""
@@ -446,4 +461,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 async def listar_logs(tabela: str = None, id_usuario: int = None):
     """Endpoint para listar os logs de auditoria"""
     return await auditoria_repositorio.listar_logs(tabela, id_usuario)
+
+@app.get("/listar_historico")
+async def listar_historico(id_equipamento: int = None):
+    """Endpoint para listar o histórico de movimentações (com filtro opcional por equipamento)"""
+    return await historico_repositorio.listar_historico(id_equipamento)
 
