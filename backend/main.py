@@ -33,7 +33,7 @@ from gerenciador_db.manutencao import ManutencaoRepositorio
 from gerenciador_db.reserva import ReservaRepositorio
 from gerenciador_db.emprestimo import EmprestimoRepositorio
 from servicos.email_service import enviar_email
-from auditoria import AuditoriaRepositorio
+from gerenciador_db.auditoria import AuditoriaRepositorio
 from models.models import LogAuditoria
 
 
