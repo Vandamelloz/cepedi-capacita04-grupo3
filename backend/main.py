@@ -35,6 +35,8 @@ from gerenciador_db.emprestimo import EmprestimoRepositorio
 from servicos.email_service import enviar_email
 from gerenciador_db.auditoria import AuditoriaRepositorio
 from models.models import LogAuditoria
+from gerenciador_db.historico import HistoricoRepositorio
+from models.models import HistoricoMovimentacao
 
 
 load_dotenv() # Carrega as variáveis de ambiente do arquivo .env
@@ -66,6 +68,7 @@ manutencao_repositorio = ManutencaoRepositorio(config_db)
 reserva_repositorio = ReservaRepositorio(config_db)
 emprestimo_repositorio = EmprestimoRepositorio(config_db)
 auditoria_repositorio = AuditoriaRepositorio(config_db)
+historico_repositorio = HistoricoRepositorio(config_db)
 
 @app.get("/")
 async def home():

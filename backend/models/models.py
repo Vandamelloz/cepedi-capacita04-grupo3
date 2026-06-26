@@ -50,3 +50,13 @@ class LogAuditoria(BaseModel):
 
     class Config:
         from_attributes = True
+
+class HistoricoMovimentacao(BaseModel):
+    id: Optional[int] = None
+    id_equipamento: int
+    id_usuario_acao: int                
+    descricao_motivo: str               
+    data_movimentacao: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
