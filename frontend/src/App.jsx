@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Login from './pages/login/Login';
 import AdmDashboard from './pages/adm/admDashboard';
 import Equipamentos from './pages/Equipamentos/Equipamentos.jsx';
+import Manutencoes from './pages/Manutencao/Manutencoes.jsx';
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
       <Route path="/dashboard" element={<AdmDashboard />} />
       <Route path="/equipamento" element={<Equipamentos />} />
       <Route path="/equipamentos" element={<Equipamentos />} />
+      <Route path="/manutencoes" element={<Manutencoes userRole="adm" cargo="Admin" nome="Sistema" />} />
     </Routes>
   );
 }
