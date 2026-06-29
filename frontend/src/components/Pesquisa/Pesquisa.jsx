@@ -15,7 +15,6 @@ export default function CampoPesquisa({
   placeholderTexto = "Buscar por nome ou patrimônio...",
   placeholderStatus = "Todos Status",       
   placeholderCategoria = "Todas Categorias",
-  children, 
   extras
 }) {
   
@@ -83,7 +82,6 @@ export default function CampoPesquisa({
         </div>
       )}
       {extras}
-      {children}
     </div>
   )
 }
