@@ -4,14 +4,16 @@ export default function Botao({
   type = "button",
   estilo = "salvar",
   icone = false,
+  disabled = false,
 }) {
 
-  const estilos = {
-  novo: "bg-[#1E3A8A] text-white hover:bg-[#1a9716]",
-  registrar: "bg-[#1E3A8A] text-white hover:bg-[#1a9716]",
-  salvar: "bg-[#1E3A8A] text-white hover:bg-[#1a9716]",
-  concluir: "bg-[#479910] text-white hover:bg-[#1a9716]",
+const estilos = {
+  novo: "bg-[#10B981] text-white hover:bg-[#059669]",
+  registrar: "bg-[#1A6B74] text-white hover:bg-[#155A61]",
+  salvar: "bg-[#1A6B74] text-white hover:bg-[#155A61]",
+  concluir: "bg-[#1A6B74] text-white hover:bg-[#155A61]",
   cancelar: "bg-[#F3F4F6] text-[#111827] border border-[#D1D5DB] hover:bg-[#E5E7EB]",
+  concluida: "bg-[#848487] text-white cursor-not-allowed",
   excluir: "bg-[#EF4444] text-white hover:bg-red-700"
   };
 
@@ -19,7 +21,11 @@ export default function Botao({
     <button
       type={type}
       onClick={onClick}
-      className={`inline-flex items-center gap-2 h-[38px] px-[12px] rounded-[8px] outline-none text-[14px] font-medium font-inter transition-colors ${estilos[estilo]}`}
+      disabled={disabled}
+      className={`inline-flex items-center justify-center gap-2 h-[38px] px-[12px] rounded-[8px] outline-none text-[14px] font-medium font-inter transition-colors
+        ${estilos[estilo]}
+        ${disabled ? "cursor-not-allowed" : ""}
+      `}
     >
       {icone && (
         <span className="w-4 h-4 flex items-center justify-center text-[16px] leading-none">

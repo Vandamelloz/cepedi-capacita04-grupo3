@@ -15,15 +15,15 @@ export default function CampoPesquisa({
   placeholderTexto = "Buscar por nome ou patrimônio...",
   placeholderStatus = "Todos Status",       
   placeholderCategoria = "Todas Categorias",
-  children
+  extras
 }) {
   
   const exibirStatus = listaStatus.length > 0
   const exibirCategorias = listaCategorias.length > 0
 
   return (
-    <div className="p-4 bg-white border border-gray-200/80 rounded-xl shadow-xs flex flex-wrap items-center gap-3 w-full">
-      
+   <div className="py-7 px-6 bg-white border border-gray-200/80 rounded-xl shadow-xs flex items-center gap-6 w-full">
+
       {/* 1. Input de Texto */}
       <div className="relative w-full max-w-xs">
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -81,7 +81,7 @@ export default function CampoPesquisa({
           </div>
         </div>
       )}
-      {children}
+      {extras}
     </div>
   )
 }

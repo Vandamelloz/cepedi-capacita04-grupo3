@@ -3,16 +3,16 @@ import pymysql
 from pymysql.cursors import DictCursor
 import traceback
 
-# gerenciador_db/manutencao.py
-from models.models import Manutencao
+# gerenciador_db/reserva.py
+from models.models import Reserva
 
-class ManutencaoRepositorio:
+class ReservaRepositorio:
     def __init__(self, db_config: dict):
         self.config_db = db_config
         self.config_db["cursorclass"] = DictCursor
-    
-    # Método assíncrono para criar uma nova manutenção
-    async def criar_manutencao(self, manutencao: Manutencao):
+
+    # Método assíncrono para criar um novo reserva
+    async def criar_reserva(self, reserva: Reserva):
         con = None
         cur = None
 
@@ -20,13 +20,13 @@ class ManutencaoRepositorio:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
 
-            sql = "INSERT INTO manutencao (id_equipamento, descricao_defeito, data_conclusao) VALUES (%s, %s, %s)"
-            cur.execute(sql, (manutencao.id_equipamento, manutencao.descricao_defeito, manutencao.data_conclusao))
+            sql = "INSERT INTO reserva (id_usuario, id_equipamento, data_reserva, data_solicitacao) VALUES (%s, %s, %s, %s)"
+            cur.execute(sql, (reserva.id_usuario, reserva.id_equipamento, reserva.data_reserva, reserva.data_solicitacao))
             con.commit()
 
             return {
                 "sucesso": True,
-                "mensagem": "Manutenção criada com sucesso"
+                "mensagem": "Reserva criada com sucesso"
             }
         except Exception as e:
             con.rollback()
@@ -38,23 +38,21 @@ class ManutencaoRepositorio:
             if con:
                 con.close()
 
-    #Método assíncrono para listar manuntenções ativas
-    async def listar_manutencoes(self,):
-
+    # Método assícrono para listar reservas ativas
+    async def listar_reservas(self,):
         con = None
         cur = None
-
         try:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
 
-            sql = "SELECT * FROM manutencao"
+            sql = "SELECT id, id_usuario, id_equipamento, data_reserva, data_solicitacao FROM reserva"
             cur.execute(sql)
-            manutencoes = cur.fetchall()
+            reservas = cur.fetchall()
 
             return {
-                "sucesso": True,
-                "manutencoes": manutencoes
+                "sucesso":True,
+                "reservas": reservas
             }
         except Exception as e:
             traceback.print_exc()
@@ -65,23 +63,22 @@ class ManutencaoRepositorio:
             if con:
                 con.close()
 
-    # Método assíncrono para listar manutenções ativas
-    async def atualizar_manutencao(self, manutencao_id: int, manutencao: Manutencao):
-
+    # Método assíncrono para atualizar uma reserva
+    async def atualizar_reserva(self, reserva_id: int, reserva: Reserva):
         con = None
         cur = None
 
         try:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
-            
-            sql = "UPDATE manutencao SET id_equipamento = %s, descricao_defeito = %s, data_conclusao = %s WHERE id = %s"
-            cur.execute(sql, (manutencao.id_equipamento, manutencao.descricao_defeito, manutencao.data_conclusao, manutencao_id))
+
+            sql = "UPDATE reserva SET data_reserva = %s WHERE id = %s"
+            cur.execute(sql, (reserva.data_reserva, reserva_id))
             con.commit()
 
             return {
                 "sucesso": True,
-                "mensagem": "Manutenção atualizada com sucesso"
+                "mensagem": "Reserva atualizada com sucesso"
             }
         except Exception as e:
             con.rollback()
@@ -92,10 +89,9 @@ class ManutencaoRepositorio:
                 cur.close()
             if con:
                 con.close()
-
-    #Método assíncrono para deletar uma manutenção (Soft Delete)
-    async def excluir_manutencao(self,manutencao_id: int):
-
+    
+    # Método assíncrono para excluir uma reserva
+    async def excluir_reserva(self, reserva_id: int):
         con = None
         cur = None
 
@@ -103,13 +99,13 @@ class ManutencaoRepositorio:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
 
-            sql = "DELETE FROM manutencao WHERE id = %s"
-            cur.execute(sql, (manutencao_id,))
+            sql = "DELETE FROM reserva WHERE id = %s"
+            cur.execute(sql, (reserva_id,))
             con.commit()
 
             return {
                 "sucesso": True,
-                "mensagem": "Manutenção excluída com sucesso"
+                "mensagem": "Reserva excluída com sucesso"
             }
         except Exception as e:
             con.rollback()
