@@ -2,9 +2,9 @@ import TituloPagina from "../TituloPagina"
 import SubTitulo from "../SubTitulo"
 import Botao from "../Botao"
 
-export default function PopUpExclusao({titulo, subtitulo, objeto}) {
+export default function PopUpExclusao({titulo, subtitulo, objeto, confirmarExclusao, cancelarExclusao}) {
     return (
-        <div className="bg-white flex flex-col fixed top-[200px] w-[400px] items-center justify-around rounded-xl shadow-sm p-5">
+        <div className="bg-white flex flex-col fixed top-[300px] w-[400px] items-center justify-around rounded-xl shadow-sm p-5 border border-gray-300 gap-4 z-50">
             <TituloPagina >{titulo}</TituloPagina>
             <SubTitulo >{subtitulo}</SubTitulo>
             <p className="mb-4">O {objeto} sera excluido, tem certeza?</p>
@@ -12,12 +12,12 @@ export default function PopUpExclusao({titulo, subtitulo, objeto}) {
                 <Botao
                     estilo="cancelar"
                     children="Cancelar"
-                    onClick={() => console.log("Ação cancelada!")}
+                    onClick={cancelarExclusao}
                     />
                 <Botao
                     estilo="excluir"
                     children="Excluir"
-                    onClick={() => console.log("Ação confirmada!")}
+                    onClick={confirmarExclusao}
                     />
             </div>
         </div>

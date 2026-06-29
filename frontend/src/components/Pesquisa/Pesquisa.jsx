@@ -14,7 +14,8 @@ export default function CampoPesquisa({
   listaStatus = [],
   placeholderTexto = "Buscar por nome ou patrimônio...",
   placeholderStatus = "Todos Status",       
-  placeholderCategoria = "Todas Categorias"   
+  placeholderCategoria = "Todas Categorias",
+  children
 }) {
   
   const exibirStatus = listaStatus.length > 0
@@ -80,7 +81,7 @@ export default function CampoPesquisa({
           </div>
         </div>
       )}
-
+      {children}
     </div>
   )
 }

@@ -13,8 +13,6 @@ export default function AdmDashboard() {
         <section className="h-screen w-full flex row ">
             <LayoutUsuario tipoUsuario="adm" titulo="Dashboard" cargo="Administrador" nome="John Doe">
 
-                
-                
             </LayoutUsuario>
         </section>  
     );
