@@ -1,55 +1,114 @@
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { LogOut, Menu, X } from "lucide-react";
+import { menuByRole } from "../../config/menuItems";
+import { BotaoBarraLateral } from "../BotaoBarraLateral";
+import LogoClaro from "../ui/LogoClaro";
+import Avatar from "../ui/Avatar";
 
-import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { menuByRole } from '../../config/menuItems';
-import { BotaoBarraLateral } from '../BotaoBarraLateral';
-import { Menu } from 'lucide-react';
-import Logo from '../ui/Logo';
-
-export default function Sidebar({ userRole }) {
+export default function Sidebar({
+  userRole,
+  nomeUsuario = "Usuário",
+  cargoUsuario = "",
+  onLogout,
+  mobileAberto = false,
+  onFecharMobile,
+}) {
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Busca a lista de botões permitida para o cargo atual (padrão para aluno se não achar)
-  const currentMenu = menuByRole[userRole] || menuByRole['aluno'];
+  const currentMenu = menuByRole[userRole] || menuByRole.aluno;
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  return (
-    <aside
-      className={`h-screen bg-[#1E3A8A] p-3 flex flex-col gap-2 relative transition-all duration-300
-        ${isCollapsed ? 'w-20' : 'w-64'}`}>
-      {/* Botão de Encolher/Expandir */}
-      <button 
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-10 top-4 w-[30px] h-[30px] flex align-items justify-center bg-blue-600 text-white pt-[4px] rounded hover:bg-blue-700 transition-colors"
-      >
-        <Menu className="w-13 h-13" />
-      </button>
-      <div className="w-full h-full flex flex-col gap-2">
-        {isCollapsed && <Logo tamanho={100} className="rounded-full" />}
-        <div className={`px-4 py-6 text-white font-bold text-xl border-b border-white/10 mb-4
-        ${isCollapsed ? 'hidden' : ''}`}>
-          GIPAR Sistema
-        </div>
-        
-        <nav className="flex flex-col gap-2">
-          {currentMenu.map((item) => {
-            // Verifica se a rota do botão é a mesma que o usuário está navegando agora
-            const isActive = location.pathname === item.path;
+  const menuExpandido = !isCollapsed || mobileAberto;
 
-            return (
-              <BotaoBarraLateral
-                key={item.path}
-                label={item.label}
-                icon={item.icon}
-                isActive={isActive}
-                onClick={() => navigate(item.path)}
-                labelClass={isCollapsed ? "hidden" : ""}
-              />
-            );
-          })}
+  function handleNavegacao(path) {
+    navigate(path);
+    onFecharMobile?.();
+  }
+
+  return (
+    <>
+      {mobileAberto && (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          aria-label="Fechar menu"
+          onClick={onFecharMobile}
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex h-full shrink-0 flex-col bg-[#1E3A8A] p-3 transition-all duration-300 md:relative md:z-auto md:translate-x-0 ${
+          mobileAberto ? "translate-x-0" : "-translate-x-full"
+        } ${isCollapsed ? "md:w-[72px]" : "md:w-56"} w-64 max-w-[85vw]`}
+      >
+        <div className="mb-3 flex shrink-0 items-center justify-end gap-1">
+          <button
+            type="button"
+            onClick={onFecharMobile}
+            className="flex h-8 w-8 items-center justify-center rounded-md text-white/80 transition-colors hover:bg-white/10 hover:text-white md:hidden"
+            aria-label="Fechar menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-md text-white/80 transition-colors hover:bg-white/10 hover:text-white md:flex"
+            aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="mb-4 flex justify-center border-b border-white/10 px-1 pb-4">
+          {menuExpandido ? (
+            <LogoClaro largura={180} className="max-w-full" />
+          ) : (
+            <LogoClaro altura={28} />
+          )}
+        </div>
+
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+          {currentMenu.map((item) => (
+            <BotaoBarraLateral
+              key={item.path}
+              label={item.label}
+              icon={item.icon}
+              isActive={location.pathname === item.path}
+              onClick={() => handleNavegacao(item.path)}
+              labelClass={menuExpandido ? "" : "sr-only"}
+              compact={!menuExpandido}
+            />
+          ))}
         </nav>
-      </div>
-    </aside>
+
+        <div
+          className={`mt-3 flex items-center gap-2 border-t border-white/10 pt-3 ${
+            menuExpandido ? "" : "justify-center"
+          }`}
+        >
+          <Avatar nome={nomeUsuario} tamanho={menuExpandido ? 36 : 32} />
+          {menuExpandido && (
+            <>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-white">{nomeUsuario}</p>
+                {cargoUsuario && (
+                  <p className="truncate text-xs text-white/70">{cargoUsuario}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={onLogout}
+                className="rounded-md p-1.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                aria-label="Sair"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </>
+          )}
+        </div>
+      </aside>
+    </>
   );
 }
