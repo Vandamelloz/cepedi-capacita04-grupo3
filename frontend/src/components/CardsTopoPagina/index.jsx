@@ -56,30 +56,38 @@ export default function CardsTopoPagina({
   count,
   color = "orange",
   highlight = false,
+  onClick,
+  ativo = false,
 }) {
   const colors = corQuadradoIcone[color] ?? corQuadradoIcone.orange;
+  const interativo = typeof onClick === "function";
+  const Componente = interativo ? "button" : "div";
 
   return (
-    <div
+    <Componente
+      type={interativo ? "button" : undefined}
+      onClick={onClick}
       className={`
-        flex items-center gap-4
-        bg-white rounded-xl px-6
+        flex items-center gap-3 sm:gap-4
+        bg-white rounded-xl px-4 sm:px-6
         shadow-sm 
-        flex-1 min-w-[200px] h-[130px]
-        ${highlight ? "border-2 border-orange-500" : "border border-gray-200"}
+        min-h-[88px] sm:min-h-[96px] min-w-0 flex-1 py-3 sm:py-4
+        text-left
+        ${highlight && !ativo ? "border-2 border-orange-500" : "border border-gray-200"}
+        ${ativo ? "border-2 border-[#2563EB] ring-1 ring-[#2563EB]/30" : ""}
+        ${interativo ? "cursor-pointer transition-shadow hover:shadow-md" : ""}
       `}
-      style={highlight ? { borderColor: "#FF9900" } : {}}
+      style={highlight && !ativo ? { borderColor: "#FF9900" } : {}}
     >
       {/* Quadrado colorido com o ícone */}
-      <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${colors.bg} ${colors.icon}`}>
+      <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-lg flex items-center justify-center shrink-0 ${colors.bg} ${colors.icon}`}>
         {icon}
       </div>
 
-      {/* Label em cima, número em baixo */}
-      <div className="flex flex-col gap-1">
-        <span className="text-sm text-gray-500 font-medium">{label}</span>
-        <span className="text-2xl font-bold text-gray-900 leading-none">{count}</span>
+      <div className="flex min-w-0 flex-col gap-0.5 sm:gap-1">
+        <span className="truncate text-xs font-medium text-gray-500 sm:text-sm">{label}</span>
+        <span className="text-xl font-bold leading-none text-gray-900 sm:text-2xl">{count}</span>
       </div>
-    </div>
+    </Componente>
   );
 }

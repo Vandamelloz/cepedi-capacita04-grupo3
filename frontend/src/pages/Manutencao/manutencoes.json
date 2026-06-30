@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "name": "Notebook Dell Latitude",
+    "pat": "PAT-00123",
+    "type": "Corretiva",
+    "defect": "Teclado com teclas travando",
+    "sentAt": "2024-05-10",
+    "concluida": false
+  },
+  {
+    "id": 2,
+    "name": "Projetor Epson X41",
+    "pat": "PAT-00456",
+    "type": "Preventiva",
+    "defect": "Limpeza e revisão periódica",
+    "sentAt": "2024-05-15",
+    "concluida": false
+  },
+  {
+    "id": 3,
+    "name": "Impressora HP LaserJet",
+    "pat": "PAT-00789",
+    "type": "Corretiva",
+    "defect": "Atolamento de papel",
+    "sentAt": "2024-04-28",
+    "concluida": true
+  }
+]
