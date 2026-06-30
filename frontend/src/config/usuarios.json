@@ -1,0 +1,50 @@
+{
+  "usuarios": [
+    {
+      "id": "1",
+      "nome": "Ana Costa",
+      "senha": "senha123",
+      "email": "ana.costa@instituicao.edu.br",
+      "login": "ana.costa",
+      "perfil": "Administrador",
+      "status": "Ativo"
+    },
+    {
+      "id": "2",
+      "nome": "Carlos Mendes",
+      "senha": "senha456",
+      "email": "carlos.mendes@instituicao.edu.br",
+      "login": "carlos.m",
+      "perfil": "Professor",
+      "status": "Ativo"
+    },
+    {
+      "id": "3",
+      "nome": "Beatriz Souza",
+      "senha": "senha789",
+      "email": "beatriz.souza@aluno.instituicao.edu.br",
+      "login": "beatriz.s",
+      "perfil": "Aluno",
+      "status": "Ativo"
+    },
+    {
+      "id": "4",
+      "nome": "Fernando Lima",
+      "senha": "senha012",
+      "email": "fernando.lima@estagio.instituicao.edu.br",
+      "login": "fernando.l",
+      "perfil": "Estagiário",
+      "status": "Ativo"
+    },
+    {
+      "id": "5",
+      "nome": "Juliana Ribeiro",
+      "senha": "senha345",
+      "email": "juliana.ribeiro@instituicao.edu.br",
+      "login": "juliana.r",
+      "perfil": "Professor",
+      "status": "Inativo"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

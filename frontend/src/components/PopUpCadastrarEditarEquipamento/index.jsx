@@ -1,7 +1,7 @@
 import TituloPagina from "../TituloPagina";
 import SubTitulo from "../SubTitulo";
-import CaixaTexto from "../CaixaTexto"
-import CaixaSelecao from "../CaixadeSelecao"
+import CaixaTexto from "../CaixaTexto/CaixaTexto"
+import CaixaSelecao from "../CaixadeSelecao/CaixadeSelecao"
 import Botao from "../Botao"
 
 const categoriasDisponiveis = [

@@ -4,8 +4,9 @@ import Botao from "../Botao";
 // Tag colorida de tipo da manutenção
 const Badge = ({ type }) => {
   const estilos = {
-    Corretiva:  "bg-orange-50 text-orange-500 border border-orange-200",
+    Corretiva:  "bg-red-50 text-red-500 border border-red-200",
     Preventiva: "bg-blue-50 text-blue-500 border border-blue-200",
+    Urgente:    "bg-red-50 text-red-500 border border-red-200",
   };
 
   return (
@@ -22,7 +23,7 @@ const CheckIcon = () => (
   </svg>
 );
 
-export default function CardManutencao({ name, pat, type, defect, sentAt, onComplete }) {
+export default function CardManutencao({ name, pat, type, defect, sentAt,concluida, onComplete }) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl px-6 pt-5 pb-9 shadow-sm flex flex-col gap-4 w-[336px]">
         
@@ -48,13 +49,14 @@ export default function CardManutencao({ name, pat, type, defect, sentAt, onComp
       </div>
 
       {/* Botão concluir */}
-      <button
-        onClick={onComplete}
-        className="w-full flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white text-sm font-semibold py-1.5 rounded-lg transition-colors"
-    >
-        <CheckIcon />
-        Concluir Manutenção
-    </button>
+      <Botao
+        estilo={concluida ? "concluida" : "novo"}
+        onClick={!concluida ? onComplete : undefined}
+        disabled={concluida}
+>
+  <CheckIcon />
+  {concluida ? "Manutenção Concluída" : "Concluir Manutenção"}
+</Botao>
     </div>
   );
 }
