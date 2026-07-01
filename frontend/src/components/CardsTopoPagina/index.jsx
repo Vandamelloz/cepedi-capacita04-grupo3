@@ -71,7 +71,7 @@ export default function CardsTopoPagina({
         flex items-center gap-3 sm:gap-4
         bg-white rounded-xl px-4 sm:px-6
         shadow-sm 
-        min-h-[88px] sm:min-h-[96px] min-w-0 flex-1 py-3 sm:py-4
+        min-h-[140px] sm:min-h-[140px] min-w-0 flex-1 py-3 sm:py-4
         text-left
         ${highlight && !ativo ? "border-2 border-orange-500" : "border border-gray-200"}
         ${ativo ? "border-2 border-[#2563EB] ring-1 ring-[#2563EB]/30" : ""}
