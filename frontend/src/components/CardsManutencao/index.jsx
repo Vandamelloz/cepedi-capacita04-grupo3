@@ -6,7 +6,6 @@ const Badge = ({ type }) => {
   const estilos = {
     Corretiva:  "bg-red-50 text-red-500 border border-red-200",
     Preventiva: "bg-blue-50 text-blue-500 border border-blue-200",
-    Urgente:    "bg-red-50 text-red-500 border border-red-200",
   };
 
   return (
@@ -23,10 +22,17 @@ const CheckIcon = () => (
   </svg>
 );
 
-export default function CardManutencao({ name, pat, type, defect, sentAt,concluida, onComplete }) {
+export default function CardManutencao({ name, pat, type, defect, sentAt, finishedAt, concluida, onComplete, onClick}) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl px-6 pt-5 pb-9 shadow-sm flex flex-col gap-4 w-[336px]">
-        
+    <div
+  onClick={!concluida ? onClick : undefined}
+  className={`bg-white border border-gray-200 rounded-xl px-6 pt-8 pb-8 shadow-sm flex flex-col gap-5 w-full h-full ${
+    !concluida
+      ? "cursor-pointer hover:shadow-md transition"
+      : ""
+  }`}
+>
+
       {/* Cabeçalho: nome + badge */}
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -44,19 +50,34 @@ export default function CardManutencao({ name, pat, type, defect, sentAt,conclui
             </p>
         <div className="flex justify-between gap-2">
           <span className="text-gray-500">Enviado em:</span>
-          <span className="text-gray-900 font-semibold">{sentAt}</span>
+          <span className="text-gray-900">{new Date(sentAt).toLocaleDateString("pt-BR",{ timeZone: "UTC" })}</span>
         </div>
-      </div>
+
+        {concluida && finishedAt && (
+          <div className="flex justify-between gap-2">
+          <span className="text-gray-500">Concluída em:</span>
+          <span className="text-gray-900">{new Date(finishedAt).toLocaleDateString("pt-BR",{ timeZone: "UTC" })}</span>
+          </div>
+      )}
+  </div>
 
       {/* Botão concluir */}
       <Botao
         estilo={concluida ? "concluida" : "novo"}
-        onClick={!concluida ? onComplete : undefined}
         disabled={concluida}
+        onClick={(e) => {
+        e.stopPropagation();
+
+      if (!concluida && onComplete) {
+      onComplete();
+    }
+  }}
 >
   <CheckIcon />
-  {concluida ? "Manutenção Concluída" : "Concluir Manutenção"}
-</Botao>
-    </div>
+  {concluida
+    ? "Manutenção Concluída"
+    : "Concluir Manutenção"}
+    </Botao>
+  </div>
   );
 }

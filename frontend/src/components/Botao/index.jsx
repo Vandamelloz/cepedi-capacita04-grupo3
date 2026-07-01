@@ -22,7 +22,12 @@ const estilos = {
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-2 h-[38px] px-[12px] rounded-[8px] outline-none text-[14px] font-medium font-inter transition-colors
+      className={`flex items-center justify-center gap-2 h-[38px] px-[12px] rounded-[8px] outline-none text-[14px] font-medium font-inter transition-colors
+        ${
+          ["registrar", "salvar", "cancelar"].includes(estilo)
+            ? "min-w-[110px]"
+            : ""
+        }
         ${estilos[estilo]}
         ${disabled ? "cursor-not-allowed" : ""}
       `}

@@ -14,7 +14,7 @@ export const menuByRole = {
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Equipamentos', path: '/equipamentos', icon: PackageOpen },
     { label: 'Empréstimos', path: '/emprestimos', icon: ArrowRightLeft },
-    { label: 'Manutenções', path: '/manutencao', icon: Wrench },
+    { label: 'Manutenções', path: '/manutencoes', icon: Wrench },
     { label: 'Usuários', path: '/usuarios', icon: Users },
     { label: 'Relatórios', path: '/relatorios', icon: ClipboardMinus },
   ],
