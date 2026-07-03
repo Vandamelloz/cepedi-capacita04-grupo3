@@ -4,6 +4,7 @@ export default function Botao({
   type = "button",
   estilo = "salvar",
   icone = false,
+  disabled = false,
 }) {
 
 const estilos = {
@@ -12,6 +13,7 @@ const estilos = {
   salvar: "bg-[#1A6B74] text-white hover:bg-[#155A61]",
   concluir: "bg-[#1A6B74] text-white hover:bg-[#155A61]",
   cancelar: "bg-[#F3F4F6] text-[#111827] border border-[#D1D5DB] hover:bg-[#E5E7EB]",
+  concluida: "bg-[#848487] text-white cursor-not-allowed",
   excluir: "bg-[#EF4444] text-white hover:bg-red-700"
   };
 
@@ -19,7 +21,16 @@ const estilos = {
     <button
       type={type}
       onClick={onClick}
-      className={`inline-flex items-center gap-2 h-[38px] px-[12px] rounded-[8px] outline-none text-[14px] font-medium font-inter transition-colors ${estilos[estilo]}`}
+      disabled={disabled}
+      className={`flex items-center justify-center gap-2 h-[38px] px-[12px] rounded-[8px] outline-none text-[14px] font-medium font-inter transition-colors
+        ${
+          ["registrar", "salvar", "cancelar"].includes(estilo)
+            ? "min-w-[110px]"
+            : ""
+        }
+        ${estilos[estilo]}
+        ${disabled ? "cursor-not-allowed" : ""}
+      `}
     >
       {icone && (
         <span className="w-4 h-4 flex items-center justify-center text-[16px] leading-none">

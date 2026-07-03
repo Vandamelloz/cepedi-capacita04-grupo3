@@ -1,16 +1,26 @@
 
-export function BotaoBarraLateral({ label, labelClass, icon: Icon, isActive, onClick }) {
+export function BotaoBarraLateral({
+  label,
+  labelClass,
+  icon: Icon,
+  isActive,
+  onClick,
+  compact = false,
+}) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`bg-[#1E3A8A] w-full flex items-center gap-10 px-5 py-3 rounded-md transition-colors font-medium text-left
-        ${isActive 
-          ? 'bg-[#2563EB] text-white' 
-          : 'text-white/70 hover:bg-white/10 hover:text-white' 
-        }`}
+      className={`flex w-full items-center rounded-lg font-medium transition-colors ${
+        compact ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2.5 text-left"
+      } ${
+        isActive
+          ? "bg-[#2563EB] text-white"
+          : "text-white/70 hover:bg-white/10 hover:text-white"
+      }`}
     >
-      {Icon && <Icon className="w-5 h-5" />}
-      <span className={labelClass}>{label}</span>
+      {Icon && <Icon className="h-5 w-5 shrink-0" />}
+      <span className={`text-sm ${labelClass}`}>{label}</span>
     </button>
   );
 }

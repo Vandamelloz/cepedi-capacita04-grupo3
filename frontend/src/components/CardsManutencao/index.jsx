@@ -4,7 +4,7 @@ import Botao from "../Botao";
 // Tag colorida de tipo da manutenção
 const Badge = ({ type }) => {
   const estilos = {
-    Corretiva:  "bg-orange-50 text-orange-500 border border-orange-200",
+    Corretiva:  "bg-red-50 text-red-500 border border-red-200",
     Preventiva: "bg-blue-50 text-blue-500 border border-blue-200",
   };
 
@@ -22,10 +22,17 @@ const CheckIcon = () => (
   </svg>
 );
 
-export default function CardManutencao({ name, pat, type, defect, sentAt, onComplete }) {
+export default function CardManutencao({ name, pat, type, defect, sentAt, finishedAt, concluida, onComplete, onClick}) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl px-6 pt-5 pb-9 shadow-sm flex flex-col gap-4 w-[336px]">
-        
+    <div
+  onClick={!concluida ? onClick : undefined}
+  className={`bg-white border border-gray-200 rounded-xl px-6 pt-8 pb-8 shadow-sm flex flex-col gap-5 w-full h-full ${
+    !concluida
+      ? "cursor-pointer hover:shadow-md transition"
+      : ""
+  }`}
+>
+
       {/* Cabeçalho: nome + badge */}
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -43,18 +50,34 @@ export default function CardManutencao({ name, pat, type, defect, sentAt, onComp
             </p>
         <div className="flex justify-between gap-2">
           <span className="text-gray-500">Enviado em:</span>
-          <span className="text-gray-900 font-semibold">{sentAt}</span>
+          <span className="text-gray-900">{new Date(sentAt).toLocaleDateString("pt-BR",{ timeZone: "UTC" })}</span>
         </div>
-      </div>
+
+        {concluida && finishedAt && (
+          <div className="flex justify-between gap-2">
+          <span className="text-gray-500">Concluída em:</span>
+          <span className="text-gray-900">{new Date(finishedAt).toLocaleDateString("pt-BR",{ timeZone: "UTC" })}</span>
+          </div>
+      )}
+  </div>
 
       {/* Botão concluir */}
-      <button
-        onClick={onComplete}
-        className="w-full flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#059669] text-white text-sm font-semibold py-1.5 rounded-lg transition-colors"
-    >
-        <CheckIcon />
-        Concluir Manutenção
-    </button>
-    </div>
+      <Botao
+        estilo={concluida ? "concluida" : "novo"}
+        disabled={concluida}
+        onClick={(e) => {
+        e.stopPropagation();
+
+      if (!concluida && onComplete) {
+      onComplete();
+    }
+  }}
+>
+  <CheckIcon />
+  {concluida
+    ? "Manutenção Concluída"
+    : "Concluir Manutenção"}
+    </Botao>
+  </div>
   );
 }
