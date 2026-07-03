@@ -92,8 +92,8 @@ async def home():
             "GET /listar_equipamentos": "Listar equioamentos",
             "PUT /atualizar_equipamento/{equipamento_id}": "Atualizar equipamento",
             "PATCH /inativar_equipamento/{equipamento_id}": "Inativar equipamento",
-            "PATCH / reativar_equipamento/{equipamento_id}": "Reativar equipamento",
-            "POSR /criar_manutencao": "Criar manutenção",
+            "PATCH /reativar_equipamento/{equipamento_id}": "Reativar equipamento",
+            "POST /criar_manutencao": "Criar manutenção",
             "GET /listar_manutencoes": "Listar manuteções",
             "PUT /atualizar_manutencao/{manutencao_id}": "Atualizar manutenção",
             "DELETE /excluir_manutecao/{manutencao_id}": "Excluir manutenção",
@@ -408,6 +408,17 @@ async def atualizar_emprestimo(emprestimo_id: int, emprestimo: Emprestimo):
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=1, acao="UPDATE", tabela_afetada="emprestimo",
         id_registro_afetado=emprestimo_id, detalhes="Empréstimo atualizado no sistema"
+    ))
+    return resultado
+
+"""UPDATE (devolver)"""
+@app.put("/devolver_emprestimo/{emprestimo_id}")
+async def devolver_emprestimo(emprestimo_id: int, id_tecnico_retorno: int):
+    resultado = await emprestimo_repositorio.registrar_devolucao(emprestimo_id, id_tecnico_retorno)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=id_tecnico_retorno, acao="UPDATE", tabela_afetada="emprestimo",
+        id_registro_afetado=emprestimo_id, detalhes="Devolução de equipamento registrada"
     ))
     return resultado
 
