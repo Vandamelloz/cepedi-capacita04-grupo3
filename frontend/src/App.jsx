@@ -3,7 +3,7 @@ import Login from './pages/login/Login';
 import Usuarios from './pages/adm/Usuarios.jsx';
 import AdmDashboard from './pages/adm/admDashboard';
 import Equipamentos from './pages/Equipamentos/Equipamentos.jsx';
-import Manutencoes from './pages/Manutencao/Manutencoes.jsx';
+import Manutencoes from './pages/adm/Manutencoes.jsx';
 
 export default function App() {
   return (
