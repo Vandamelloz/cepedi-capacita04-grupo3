@@ -25,7 +25,7 @@ const CheckIcon = () => (
 export default function CardManutencao({ name, pat, type, defect, sentAt, finishedAt, concluida, onComplete, onClick}) {
   return (
     <div
-  onClick={!concluida ? onClick : undefined}
+  onClick={onClick}
   className={`bg-white border border-gray-200 rounded-xl px-6 pt-8 pb-8 shadow-sm flex flex-col gap-5 w-full h-full ${
     !concluida
       ? "cursor-pointer hover:shadow-md transition"
@@ -43,7 +43,7 @@ export default function CardManutencao({ name, pat, type, defect, sentAt, finish
       </div>
 
       {/* Corpo: defeito + data */}
-      <div className="flex flex-col gap-2 text-sm">
+      <div className="flex flex-col gap-2 text-sm flex-1">
         <p className="text-sm text-gray-900">
           <span className="text-gray-500">Defeito: </span>
             {defect}
@@ -62,7 +62,8 @@ export default function CardManutencao({ name, pat, type, defect, sentAt, finish
   </div>
 
       {/* Botão concluir */}
-      <Botao
+      <Botao 
+        className="mt-auto pt-6"
         estilo={concluida ? "concluida" : "novo"}
         disabled={concluida}
         onClick={(e) => {
