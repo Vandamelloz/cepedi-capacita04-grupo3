@@ -38,7 +38,7 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-full shrink-0 flex-col bg-[#1E3A8A] p-3 transition-all duration-300 md:relative md:z-auto md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-full shrink-0 flex-col bg-[#1A6B74] p-3 transition-all duration-300 md:relative md:z-auto md:translate-x-0 ${
           mobileAberto ? "translate-x-0" : "-translate-x-full"
         } ${isCollapsed ? "md:w-[72px]" : "md:w-56"} w-64 max-w-[85vw]`}
       >
@@ -78,7 +78,7 @@ export default function Sidebar({
               isActive={location.pathname === item.path}
               onClick={() => handleNavegacao(item.path)}
               labelClass={menuExpandido ? "" : "sr-only"}
-              compact={!menuExpandido}
+              isCollapsed={!menuExpandido}
             />
           ))}
         </nav>

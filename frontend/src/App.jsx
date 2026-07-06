@@ -4,6 +4,7 @@ import Usuarios from './pages/adm/Usuarios.jsx';
 import AdmDashboard from './pages/adm/admDashboard';
 import Equipamentos from './pages/Equipamentos/Equipamentos.jsx';
 import Manutencoes from './pages/Manutencao/Manutencoes.jsx';
+import MeusEmprestimos from './pages/aluno/MeusEmprestimos.jsx';
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
       <Route path="/equipamentos" element={<Equipamentos />} />
       <Route path="/manutencoes" element={<Manutencoes />} />
       <Route path="/usuarios" element={<Usuarios />} />
+      <Route path="/alunoEmprestimos" element={<MeusEmprestimos/>}/>
     </Routes>
   );
 }
