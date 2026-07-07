@@ -1,4 +1,4 @@
-import LayoutUsuario from "../../layouts/usuario";
+import LayoutUsuario from "../../layouts/usuario/LayoutUsuario";
 import SummaryCard, {WrenchIcon, AlertIcon, CheckCircleIcon,} from "../../components/CardsTopoPagina";
 import { MOCK_USUARIO_ADM } from "../../mocks/usuarioAdm.mocks";
 import CardManutencao from "../../components/CardsManutencao";

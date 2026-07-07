@@ -1,0 +1,132 @@
+{
+  "usuarios": [
+    {
+      "id": "1",
+      "nome": "Ana Costa",
+      "senha": "senha123",
+      "email": "ana.costa@instituicao.edu.br",
+      "login": "ana.costa",
+      "perfil": "Administrador",
+      "status": "Ativo"
+    },
+    {
+      "id": "2",
+      "nome": "Carlos Mendes",
+      "senha": "senha456",
+      "email": "carlos.mendes@instituicao.edu.br",
+      "login": "carlos.m",
+      "perfil": "Professor",
+      "status": "Ativo"
+    },
+    {
+      "id": "3",
+      "nome": "Beatriz Souza",
+      "senha": "senha789",
+      "email": "beatriz.souza@aluno.instituicao.edu.br",
+      "login": "beatriz.s",
+      "perfil": "Aluno",
+      "status": "Ativo"
+    },
+    {
+      "id": "4",
+      "nome": "Fernando Lima",
+      "senha": "senha012",
+      "email": "fernando.lima@estagio.instituicao.edu.br",
+      "login": "fernando.l",
+      "perfil": "Estagiário",
+      "status": "Ativo"
+    },
+    {
+      "id": "5",
+      "nome": "Juliana Ribeiro",
+      "senha": "senha345",
+      "email": "juliana.ribeiro@instituicao.edu.br",
+      "login": "juliana.r",
+      "perfil": "Professor",
+      "status": "Inativo"
+    }
+  ],
+  "equipamentos": [
+    {
+      "id": "1",
+      "nome": "Notebook Dell Latitude",
+      "categoria": "Informática",
+      "patrimonio": "PAT-001",
+      "descricao": "Notebook Dell Latitude 7490, Intel Core i7, 16GB RAM, 512GB SSD",
+      "status": "Disponível"
+    },
+    {
+      "id": "2",
+      "nome": "Projetor Epson X41",
+      "categoria": "Audiovisual",
+      "patrimonio": "PAT-002",
+      "descricao": "Projetor Epson X41, 3000 Lumen, HDMI, VGA",
+      "status": "Emprestado"
+    },
+    {
+      "id": "3",
+      "nome": "Câmera Canon EOS",
+      "categoria": "Audiovisual",
+      "patrimonio": "PAT-003",
+      "descricao": "Câmera Canon EOS 80D, lente 18-135mm, Full HD",
+      "status": "Em Manutenção"
+    },
+    {
+      "id": "4",
+      "nome": "Microscópio Binocular",
+      "categoria": "Laboratório",
+      "patrimonio": "PAT-004",
+      "descricao": "Microscópio Binocular com aumento de 40x a 1000x, iluminação LED",
+      "status": "Disponível"
+    },
+    {
+      "id": "5",
+      "nome": "Kit Arduino Completo",
+      "categoria": "Laboratório",
+      "patrimonio": "PAT-005",
+      "descricao": "Kit Arduino Completo com sensores e módulos",
+      "status": "Emprestado"
+    },
+    {
+      "id": "6",
+      "nome": "Impressora HP LaserJet",
+      "categoria": "Informática",
+      "patrimonio": "PAT-006",
+      "descricao": "Impressora HP LaserJet Pro M404dn, Monocromática, Duplex",
+      "status": "Disponível"
+    },
+    {
+      "id": "7",
+      "nome": "Tablet Samsung Tab S8",
+      "categoria": "Informática",
+      "patrimonio": "PAT-007",
+      "descricao": "Tablet Samsung Tab S8, 11 polegadas, 128GB, Wi-Fi",
+      "status": "Disponível"
+    },
+    {
+      "id": "8",
+      "nome": "Caixa de Som JBL",
+      "categoria": "Audiovisual",
+      "patrimonio": "PAT-008",
+      "descricao": "Caixa de Som JBL Flip 5, Bluetooth, à prova d'água",
+      "status": "Inativo"
+    },
+    {
+      "id": "9",
+      "nome": "Monitor LG 24\"",
+      "categoria": "Informática",
+      "patrimonio": "PAT-009",
+      "descricao": "Monitor LG 24 polegadas, Full HD, IPS",
+      "status": "Disponível"
+    },
+    {
+      "id": "10",
+      "nome": "Furadeira Bosch",
+      "categoria": "Ferramentas",
+      "patrimonio": "PAT-010",
+      "descricao": "Furadeira Bosch GSB 13 RE, 650W, com maleta",
+      "status": "Em Manutenção"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
