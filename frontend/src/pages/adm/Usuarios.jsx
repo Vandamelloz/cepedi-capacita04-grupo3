@@ -5,10 +5,14 @@ import TabelaGipar from "../../components/tabelaGipar/TabelaGipar";
 import Botao from "../../components/Botao";
 import PopUpConclusao from "../../components/PopupConclusao";
 import PopUpExclusao from "../../components/PopUpExclusao";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 import { useState, useEffect } from "react";
 
 export default function Usuario() {
+    const navigate = useNavigate();
+    const { usuario: usuarioLogado, logout } = useAuth();
     const [popUpEditarUsuario, setPopUpEditarUsuario] = useState(false);
     const [popUpCadastrarUsuario, setPopUpCadastrarUsuario] = useState(false);
     const [popUpExclusao, setPopUpExclusao] = useState(false);
@@ -99,14 +103,23 @@ export default function Usuario() {
 
     return (
         <section className="h-screen w-full flex flex-row">
-            <LayoutUsuario tipoUsuario="adm" titulo="Usuários" cargo="Administrador" nome="John Doe">
+            <LayoutUsuario
+                tipoUsuario={usuarioLogado.role}
+                titulo="Usuários"
+                cargo={usuarioLogado.perfil}
+                nome={usuarioLogado.nome}
+                onLogout={() => {
+                    logout();
+                    navigate("/login");
+                }}
+            >
                 
                 <Pesquisa
                     termo={termo}
                     setTermo={setTermo}
                     categoria={categoria}
                     setCategoria={setCategoria}
-                    listaCategorias={["Administrador", "Estagiário", "Aluno"]}
+                    listaCategorias={["Administrador", "Professor", "Estagiário", "Aluno"]}
                     placeholderTexto="Buscar por nome do usuário..."
                     placeholderCategoria="Todos os Perfis" 
                 >

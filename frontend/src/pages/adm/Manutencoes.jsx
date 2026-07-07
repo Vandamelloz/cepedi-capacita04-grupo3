@@ -1,14 +1,17 @@
+import { useNavigate } from "react-router-dom";
 import LayoutUsuario from "../../layouts/usuario";
 import SummaryCard, {WrenchIcon, AlertIcon, CheckCircleIcon,} from "../../components/CardsTopoPagina";
-import { MOCK_USUARIO_ADM } from "../../mocks/usuarioAdm.mocks";
 import CardManutencao from "../../components/CardsManutencao";
 import CampoPesquisa from "../../components/Pesquisa/Pesquisa";
 import Botao from "../../components/Botao";
 import PopUpConclusao from "../../components/PopupConclusao";
 import PopUpCadastrarEditarManutenção from "../../components/PopUpCadastrarEditarManutenção";
 import useManutencoes from "../../hooks/useManutencoes";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Manutencoes() {
+  const navigate = useNavigate();
+  const { usuario: usuarioLogado, logout } = useAuth();
 
 const {
 
@@ -52,24 +55,17 @@ marcarTodasNotificacoesLidas,
 return (
 
 <LayoutUsuario
-  {...MOCK_USUARIO_ADM}
-
+  tipoUsuario={usuarioLogado.role}
   titulo="Manutenções"
-
+  cargo={usuarioLogado.perfil}
+  nome={usuarioLogado.nome}
   notificacoes={notificacoes}
-
-  onMarcarNotificacaoLida={
-    marcarNotificacaoLida
-  }
-
-  onMarcarTodasNotificacoesLidas={
-    marcarTodasNotificacoesLidas
-  }
-
-  onLogout={() =>
-    console.log("logout")
-  }
-
+  onMarcarNotificacaoLida={marcarNotificacaoLida}
+  onMarcarTodasNotificacoesLidas={marcarTodasNotificacoesLidas}
+  onLogout={() => {
+    logout();
+    navigate("/login");
+  }}
 >
 
   <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">

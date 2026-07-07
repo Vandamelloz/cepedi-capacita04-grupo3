@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import LayoutUsuario from "../../layouts/usuario";
 import ModalDetalheEmprestimo from "../../components/ModalDetalheEmprestimo";
 import useDashboard from "../../hooks/useDashboard";
+import { useAuth } from "../../contexts/AuthContext";
 import DashboardEstadoPainel from "./components/DashboardEstadoPainel";
 import DashboardMetricas from "./components/DashboardMetricas";
 import DashboardEmprestimos from "./components/DashboardEmprestimos";
@@ -9,8 +10,8 @@ import DashboardItensMaisUsados from "./components/DashboardItensMaisUsados";
 
 export default function AdmDashboard() {
   const navigate = useNavigate();
+  const { usuario: usuarioLogado, logout } = useAuth();
   const {
-    usuario,
     metricas,
     emprestimosPaginados,
     itensMaisUsados,
@@ -40,15 +41,16 @@ export default function AdmDashboard() {
   } = useDashboard();
 
   function handleLogout() {
+    logout();
     navigate("/login");
   }
 
   return (
     <LayoutUsuario
-      tipoUsuario={usuario.tipoUsuario}
-      titulo={usuario.titulo}
-      cargo={usuario.cargo}
-      nome={usuario.nome}
+      tipoUsuario={usuarioLogado.role}
+      titulo="Dashboard"
+      cargo={usuarioLogado.perfil}
+      nome={usuarioLogado.nome}
       notificacoes={notificacoes}
       onMarcarNotificacaoLida={marcarNotificacaoLida}
       onMarcarTodasNotificacoesLidas={marcarTodasNotificacoesLidas}
