@@ -4,7 +4,7 @@ import Botao from "../Botao"
 
 export default function PopUpExclusao({titulo, subtitulo, objeto, confirmarExclusao, cancelarExclusao}) {
     return (
-        <div className="bg-white flex flex-col fixed top-[300px] w-[400px] items-center justify-around rounded-xl shadow-sm p-5 border border-gray-300 gap-4 z-50">
+        <div className="bg-white flex flex-col fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] items-center justify-around rounded-xl shadow-sm p-5 border border-gray-300 gap-4 z-50">
             <TituloPagina >{titulo}</TituloPagina>
             <SubTitulo >{subtitulo}</SubTitulo>
             <p className="mb-4">O {objeto} sera excluido, tem certeza?</p>

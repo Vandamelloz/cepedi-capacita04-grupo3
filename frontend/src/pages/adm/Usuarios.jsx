@@ -3,26 +3,21 @@ import PopUpCadastrarEditarUsuario from "../../components/PopUpCadastrarEditarUs
 import Pesquisa from "../../components/Pesquisa/Pesquisa";
 import TabelaGipar from "../../components/tabelaGipar/TabelaGipar";
 import Botao from "../../components/Botao";
-import PopUpConclusao from "../../components/PopupConclusao";
 import PopUpExclusao from "../../components/PopUpExclusao";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export default function Usuario() {
     const [popUpEditarUsuario, setPopUpEditarUsuario] = useState(false);
     const [popUpCadastrarUsuario, setPopUpCadastrarUsuario] = useState(false);
     const [popUpExclusao, setPopUpExclusao] = useState(false);
 
-
-    const [popUpConclusao, setPopUpConclusao] = useState(false);
-    const [mensagemConclusao, setMensagemConclusao] = useState("");
-
     const [termo, setTermo] = useState("");
     const [categoria, setCategoria] = useState("");
     const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
     const [usuarios, setUsuarios] = useState([]);
 
-    const carregarUsuarios = async () => {
+    const carregarUsuarios = useCallback(async () => {
         try {
             const resposta = await fetch("http://localhost:3001/usuarios");
             const dados = await resposta.json();
@@ -30,7 +25,7 @@ export default function Usuario() {
         } catch (erro) {
             console.error("Erro ao buscar usuários:", erro);
         }
-    };
+    }, []);
 
     useEffect(() => {
         carregarUsuarios();
@@ -45,7 +40,7 @@ export default function Usuario() {
                 body: JSON.stringify({ ...usuarioSelecionado, ...dadosDoFormulario })
             });
             
-            setMensagemConclusao("O usuário foi editado com sucesso.");
+            fecharPopUp();
         } else {
             
             const novoUsuario = {
@@ -59,16 +54,28 @@ export default function Usuario() {
                 body: JSON.stringify(novoUsuario)
             });
             
-            setMensagemConclusao("Novo usuário cadastrado com sucesso.");
+            fecharPopUp();
+
         }
 
         carregarUsuarios();
-        
-        
         setPopUpEditarUsuario(false);
         setPopUpCadastrarUsuario(false);
-        setPopUpConclusao(true);
+        
     };
+
+    const usuariosFiltrados = usuarios.filter((usuario) => {
+        const termoMinusculo = termo.toLowerCase();
+
+        const bateTexto = 
+            usuario.nome?.toLowerCase().includes(termoMinusculo) ||
+            usuario.email?.toLowerCase().includes(termoMinusculo);
+
+        const bateCategoria = categoria === "" || usuario.perfil === categoria;
+
+
+        return bateTexto && bateCategoria;
+    });
 
     
     const excluirUsuario = async () => {
@@ -79,9 +86,8 @@ export default function Usuario() {
                 });
 
                 carregarUsuarios();
-                setMensagemConclusao("O usuário foi excluído com sucesso.");
-                setPopUpExclusao(false);
-                setPopUpConclusao(true); 
+                fecharPopUp();
+
 
             } catch (erro) {
                 console.error("Erro ao excluir usuário:", erro);
@@ -93,7 +99,6 @@ export default function Usuario() {
         setPopUpExclusao(false);
         setPopUpEditarUsuario(false);
         setPopUpCadastrarUsuario(false);
-        setPopUpConclusao(false); 
         setUsuarioSelecionado(null);
     };
 
@@ -109,15 +114,20 @@ export default function Usuario() {
                     listaCategorias={["Administrador", "Estagiário", "Aluno"]}
                     placeholderTexto="Buscar por nome do usuário..."
                     placeholderCategoria="Todos os Perfis" 
-                >
-                    <Botao 
-                        onClick={() => setPopUpCadastrarUsuario(true)}
-                        type="button"
-                        estilo="salvar"
-                    >
-                        Cadastrar Usuário
-                    </Botao>
-                </Pesquisa>
+                    
+
+                    extras={
+                        <div className="ml-auto">
+                            <Botao 
+                                onClick={() => setPopUpCadastrarUsuario(true)}
+                                type="button"
+                                estilo="salvar"
+                            >
+                                Cadastrar Usuário
+                            </Botao>
+                        </div>
+                    }
+                />
 
                 <TabelaGipar
                     colunas={[
@@ -126,7 +136,7 @@ export default function Usuario() {
                         { titulo: "Perfil", chave: "perfil" },
                         { titulo: "Status", chave: "status" },
                     ]}
-                    dados={usuarios} 
+                    dados={usuariosFiltrados} 
                     onEditar={(usuario) => {
                         setUsuarioSelecionado(usuario);
                         setPopUpEditarUsuario(true);
@@ -154,14 +164,6 @@ export default function Usuario() {
                     />
                 )}
 
-                {popUpConclusao && (
-                    <PopUpConclusao 
-                        titulo="Sucesso!"
-                        subtitulo={mensagemConclusao}
-                        fechar={fecharPopUp} 
-                    />
-                )}
-                
             </LayoutUsuario>
         </section>  
     );
