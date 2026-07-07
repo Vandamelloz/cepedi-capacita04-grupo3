@@ -4,9 +4,11 @@ import Pesquisa from "../../components/Pesquisa/Pesquisa";
 import TabelaGipar from "../../components/tabelaGipar/TabelaGipar";
 import Botao from "../../components/Botao";
 import PopUpExclusao from "../../components/PopUpExclusao";
+import StatusBadge from "../../components/ui/StatusBadge";
 
 import { useState, useEffect, useCallback } from "react";
 import { buscarEquipamentos, criarEquipamento, atualizarEquipamento, deletarEquipamento } from "../../services/Equipamentos/equipamentos.service";
+
 
 export default function Equipamentos() {
     const [popUpEditarEquipamento, setPopUpEditarEquipamento] = useState(false);
@@ -124,7 +126,7 @@ export default function Equipamentos() {
                                 { titulo: "Nome", chave: "nome" },
                                 { titulo: "Patrimônio", chave: "patrimonio" },
                                 { titulo: "Categoria", chave: "categoria" },
-                                { titulo: "Status", chave: "status" },
+                                { titulo: "Status", chave: "status", render: (valor) => <StatusBadge status={valor} /> },
                             ]}
                             dados={equipamentosFiltrados} 
                             onEditar={(equipamento) => {

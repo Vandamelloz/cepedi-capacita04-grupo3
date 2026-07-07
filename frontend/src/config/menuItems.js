@@ -1,4 +1,4 @@
-// Note que as primeiras letras agora são maiúsculas! (PascalCase)
+
 import { 
   LayoutDashboard, 
   PackageOpen, 
@@ -24,7 +24,7 @@ export const menuByRole = {
   ],
   estagiario: [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { label: 'Equipamentos', path: '/equipamentos', icon: PackageOpen },
+    { label: 'Equipamentos', path: '/EstagEquipamentos', icon: PackageOpen },
     { label: 'Empréstimos', path: '/emprestimos', icon: ArrowRightLeft }
   ]
 };

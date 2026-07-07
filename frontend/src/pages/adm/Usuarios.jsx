@@ -4,6 +4,7 @@ import Pesquisa from "../../components/Pesquisa/Pesquisa";
 import TabelaGipar from "../../components/tabelaGipar/TabelaGipar";
 import Botao from "../../components/Botao";
 import PopUpExclusao from "../../components/PopUpExclusao";
+import StatusBadge from "../../components/ui/StatusBadge";
 
 import { useState, useEffect, useCallback } from "react";
 import { buscarUsuarios, criarUsuario, atualizarUsuario, deletarUsuario } from "../../services/usuarios/usuarios.service";
@@ -125,7 +126,7 @@ export default function Usuario() {
                                 { titulo: "Nome", chave: "nome" },
                                 { titulo: "Email", chave: "email" },
                                 { titulo: "Perfil", chave: "perfil" },
-                                { titulo: "Status", chave: "status" },
+                                { titulo: "Status", chave: "status", render: (valor) => <StatusBadge status={valor} /> },
                             ]}
                             dados={usuariosFiltrados} 
                             onEditar={(usuario) => {
