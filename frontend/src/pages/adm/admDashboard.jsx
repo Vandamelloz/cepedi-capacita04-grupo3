@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import LayoutUsuario from "../../layouts/usuario";
+import LayoutUsuario from "../../layouts/usuario/LayoutUsuario";
 import ModalDetalheEmprestimo from "../../components/ModalDetalheEmprestimo";
 import useDashboard from "../../hooks/useDashboard";
 import DashboardEstadoPainel from "./components/DashboardEstadoPainel";
