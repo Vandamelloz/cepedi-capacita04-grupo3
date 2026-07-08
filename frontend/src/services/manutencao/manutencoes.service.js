@@ -1,193 +1,196 @@
-import {
-  MANUTENCOES_CONFIG,
-  MOCK_MANUTENCOES,
-  MOCK_EQUIPAMENTOS,
-  MOCK_NOTIFICACOES_MANUTENCOES,
-} from "../../mocks/manutencoes.mock";
+const API_URL = "http://localhost:3001";
 
-function aguardar(ms) {
+export async function buscarManutencoes() {
+  const [manutencoesRes, equipamentosRes] =
+    await Promise.all([
+      fetch(`${API_URL}/manutencoes`),
+      fetch(`${API_URL}/equipamentos`),
+    ]);
 
-  if (!ms || ms <= 0) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-export function formatarData(dataIso) {
-
-  if (!dataIso) {
-    return "";
-  }
-
-  return new Date(dataIso)
-    .toLocaleDateString("pt-BR", {
-      timeZone: "UTC",
-    });
-}
-
-function prepararManutencoes(
-  manutencoes
-) {
-
-  return manutencoes.map(
-    (manutencao) => ({
-      ...manutencao,
-
-      dataAberturaFormatada:
-        formatarData(
-          manutencao.data_abertura
-        ),
-
-      dataConclusaoFormatada:
-        formatarData(
-          manutencao.data_conclusao
-        ),
-    })
-  );
-}
-
-/**
- * Camada de acesso às manutenções.
- * Hoje usa mocks.
- * Futuramente trocar por API.
- */
-
-export async function buscarManutencoes({
-  simularErro = false,
-  simularVazio = false,
-} = {}) {
-
-  await aguardar(
-    MANUTENCOES_CONFIG.simulateLoadingMs
-  );
-
-  if (simularErro) {
-
+  if (
+    !manutencoesRes.ok ||
+    !equipamentosRes.ok 
+  ) {
     throw new Error(
       "Não foi possível carregar as manutenções."
     );
   }
 
-  if (simularVazio) {
+  const manutencoes = await manutencoesRes.json();
+  const equipamentos = await equipamentosRes.json();
 
-    return {
-      manutencoes: [],
-      notificacoes: [],
-    };
-  }
+  const manutencoesComEquipamento =
+    manutencoes.map((manutencao) => {
+      const equipamento = equipamentos.find(
+        (equipamento) =>
+          Number(equipamento.id) ===
+          Number(manutencao.id_equipamento)
+      );
+
+      return {
+        ...manutencao,
+        nome: equipamento?.nome ?? "",
+        patrimonio: equipamento?.patrimonio ?? "",
+      };
+    });
 
   return {
-    manutencoes:
-      prepararManutencoes(
-        MOCK_MANUTENCOES
-      ),
-
-    notificacoes:
-      MOCK_NOTIFICACOES_MANUTENCOES.map(
-        (notificacao) => ({
-          ...notificacao,
-        })
-      ),
+    manutencoes: manutencoesComEquipamento,
   };
-}   
+}
 
 export async function buscarEquipamentos() {
-
-  await aguardar(
-    MANUTENCOES_CONFIG.simulateLoadingMs
+  const response = await fetch(
+    `${API_URL}/equipamentos`
   );
 
-  return MOCK_EQUIPAMENTOS.map(
-    (equipamento) => ({
-      ...equipamento,
-    })
-  );
-}
-
-export async function concluirManutencao(
-  id
-) {
-
-  await aguardar(300);
-
-  const manutencao =
-    MOCK_MANUTENCOES.find(
-      (item) => item.id === id
-    );
-
-  if (!manutencao) {
-
+  if (!response.ok) {
     throw new Error(
-      "Manutenção não encontrada."
+      "Não foi possível carregar os equipamentos."
     );
   }
 
-  manutencao.concluida = true;
-
-  manutencao.data_conclusao =
-    new Date().toISOString();
-
-  return {
-    ...manutencao,
-
-    dataConclusaoFormatada:
-      formatarData(
-        manutencao.data_conclusao
-      ),
-  };
+  return await response.json();
 }
 
-export async function salvarManutencao(
-  manutencao
-) {
-
-  await aguardar(300);
-
-  // edição
-  if (manutencao.id) {
-
-    const index =
-      MOCK_MANUTENCOES.findIndex(
-        (m) => m.id === manutencao.id
-      );
-
-    if (index === -1) {
-
-      throw new Error(
-        "Manutenção não encontrada."
-      );
-    }
-
-    MOCK_MANUTENCOES[index] = {
-      ...MOCK_MANUTENCOES[index],
-      ...manutencao,
-    };
-
-    return prepararManutencoes([
-      MOCK_MANUTENCOES[index],
-    ])[0];
-  }
-
-  // cadastro
-  const novaManutencao = {
-    ...manutencao,
-
-    id:
-      MOCK_MANUTENCOES.length + 1,
-
-    concluida: false,
-
-    data_conclusao: null,
-  };
-
-  MOCK_MANUTENCOES.push(
-    novaManutencao
+export async function concluirManutencao(id, statusFinal) {
+  // Busca manutenção
+  const manutencaoRes = await fetch(
+    `${API_URL}/manutencoes/${id}`
   );
 
-  return prepararManutencoes([
-    novaManutencao,
-  ])[0];
+  if (!manutencaoRes.ok) {
+    throw new Error("Manutenção não encontrada.");
+  }
+
+  const manutencao = await manutencaoRes.json();
+
+  const dataConclusao = new Date().toISOString();
+
+  // Atualiza manutenção
+const response = await fetch(
+  `${API_URL}/manutencoes/${id}`,
+  {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      concluida: true,
+      data_conclusao: dataConclusao,
+    }),
+  }
+);
+
+if (!response.ok) {
+  throw new Error("Erro ao concluir manutenção.");
+}
+
+  // Atualiza objeto em memória
+  manutencao.concluida = true;
+  manutencao.data_conclusao = dataConclusao;
+
+  // Atualiza status do equipamento
+  await fetch(
+    `${API_URL}/equipamentos/${manutencao.id_equipamento}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+      status: statusFinal,
+      })
+    }
+  );
+
+  return manutencao;
+}
+
+export async function excluirManutencao(id) {
+  // Buscar manutenção
+  const manutencaoRes = await fetch(
+    `${API_URL}/manutencoes/${id}`
+  );
+
+  if (!manutencaoRes.ok) {
+    throw new Error("Manutenção não encontrada.");
+  }
+
+  const manutencao = await manutencaoRes.json();
+
+  // Equipamento volta para disponível
+  await fetch(
+    `${API_URL}/equipamentos/${manutencao.id_equipamento}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status: "Disponível",
+      }),
+    }
+  );
+
+  // Excluir manutenção
+  const response = await fetch(
+    `${API_URL}/manutencoes/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Erro ao excluir manutenção.");
+  }
+}
+
+export async function salvarManutencao(manutencao) {
+  const editar = !!manutencao.id;
+
+  const body = editar
+    ? manutencao
+    : {
+        ...manutencao,
+        concluida: false,
+        data_conclusao: null,
+      };
+
+  const response = await fetch(
+    editar
+      ? `${API_URL}/manutencoes/${manutencao.id}`
+      : `${API_URL}/manutencoes`,
+    {
+      method: editar ? "PATCH" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Erro ao salvar manutenção.");
+  }
+
+  const dados = await response.json();
+
+  // Atualiza o status do equipamento
+  if (!editar || !dados.concluida) {
+    await fetch(
+      `${API_URL}/equipamentos/${dados.id_equipamento}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "Em Manutenção",
+        }),
+      }
+    );
+  }
+
+  return dados;
 }

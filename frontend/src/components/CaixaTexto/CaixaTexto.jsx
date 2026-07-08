@@ -19,7 +19,7 @@ function IconeOlho({ visivel }) {
   );
 }
 
-export default function CaixaTexto({ label, id, placeholder, type = "text", defaultValue, disabled = false }) {
+export default function CaixaTexto({ label, id, placeholder, type = "text", value, defaultValue, onChange, disabled = false }) {
   // Estado para controlar se a senha aparece ou não
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
@@ -38,8 +38,10 @@ export default function CaixaTexto({ label, id, placeholder, type = "text", defa
           type={tipoInput}
           id={id}
           name={id}
+          value={value}
           defaultValue={defaultValue}
           disabled={disabled}
+          onChange={onChange}
           // Se for senha, adicionamos "pr-10" (padding-right) para o texto não encostar no olho
           className={`w-full h-10 bg-[#F3F4F6] border border-[#D1D5DB] rounded-md pl-3 ${type === "password" ? "pr-10" : "pr-3"} py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-[#6B7280]`}
           placeholder={placeholder}

@@ -128,5 +128,43 @@
       "status": "Em Manutenção"
     }
   ],
+  "manutencoes": [
+    {
+      "id": "1",
+      "id_equipamento": 3,
+      "tipo": "Corretiva",
+      "descricao_defeito": "Lente com problema de foco automático e imagens sem cor",
+      "data_abertura": "2026-06-18",
+      "data_conclusao": null,
+      "concluida": false
+    },
+    {
+      "id": "2",
+      "id_equipamento": 10,
+      "tipo": "Preventiva",
+      "descricao_defeito": "Troca de escovas e revisão do motor e revisão das demais peças",
+      "data_abertura": "2024-06-04",
+      "data_conclusao": null,
+      "concluida": false
+    },
+    {
+      "id": "3",
+      "id_equipamento": 1,
+      "tipo": "Preventiva",
+      "descricao_defeito": "Limpeza interna e troca de pasta térmica",
+      "data_abertura": "2026-05-10",
+      "data_conclusao": "2026-05-12",
+      "concluida": true
+    },
+    {
+      "id": "4",
+      "id_equipamento": 6,
+      "tipo": "Corretiva",
+      "descricao_defeito": "Substituição do cilindro de impressão",
+      "data_abertura": "2026-04-18",
+      "data_conclusao": "2026-04-20",
+      "concluida": true
+    }
+  ],
   "$schema": "./node_modules/json-server/schema.json"
 }
