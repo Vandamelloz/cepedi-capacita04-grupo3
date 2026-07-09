@@ -1,7 +1,7 @@
 export default function DataSelecao({
   id,
   label,
-  value,
+  defaultValue,
   onChange,
   disabled=false
 }) {
@@ -14,7 +14,8 @@ export default function DataSelecao({
       <input
         type="date"
         id={id}
-        value={value || ""}
+        name={id}
+        defaultValue={defaultValue || ""}
         onChange={onChange}
         disabled={disabled}
         className="w-full h-10 bg-[#F3F4F6] border border-[#D1D5DB] rounded-md px-3 py-2 text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-blue-500"
