@@ -6,33 +6,53 @@ import Botao from "../../components/Botao";
 import PopUpExclusao from "../../components/PopUpExclusao";
 import StatusBadge from "../../components/ui/StatusBadge";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { buscarEquipamentos, criarEquipamento, atualizarEquipamento, deletarEquipamento } from "../../services/Equipamentos/equipamentos.service";
 
+const gerarIdEquipamento = () => String(Date.now());
 
-export default function Equipamentos() {
+export default function Equipamentos () {
     const [popUpEditarEquipamento, setPopUpEditarEquipamento] = useState(false);
     const [popUpCadastrarEquipamento, setPopUpCadastrarEquipamento] = useState(false);
     const [popUpExclusao, setPopUpExclusao] = useState(false);
 
+
     const [termo, setTermo] = useState("");
     const [categoria, setCategoria] = useState("");
+    const [filtroStatus, setFiltroStatus] = useState(""); // Novo estado para status
+
     const [equipamentoSelecionado, setEquipamentoSelecionado] = useState(null);
     const [equipamentos, setEquipamentos] = useState([]);
 
-
-    const carregarEquipamentos = useCallback(async () => {
+    const carregarEquipamentos = async () => {
         try {
             const dados = await buscarEquipamentos();
             setEquipamentos(dados);
         } catch (erro) {
             console.error(erro);
         }
-    }, []);
+    };
 
     useEffect(() => {
-        carregarEquipamentos();
-    }, [carregarEquipamentos]);
+        let ativo = true;
+
+        const carregar = async () => {
+            try {
+                const dados = await buscarEquipamentos();
+                if (ativo) {
+                    setEquipamentos(dados);
+                }
+            } catch (erro) {
+                console.error(erro);
+            }
+        };
+
+        carregar();
+
+        return () => {
+            ativo = false;
+        };
+    }, []);
 
     const salvarEquipamento = async (dadosDoFormulario) => {
         try {
@@ -40,7 +60,7 @@ export default function Equipamentos() {
                 await atualizarEquipamento(equipamentoSelecionado.id, { ...equipamentoSelecionado, ...dadosDoFormulario });
             } else {
                 const novoEquipamento = {
-                    id: String(Date.now()), 
+                    id: gerarIdEquipamento(),
                     ...dadosDoFormulario
                 };
                 await criarEquipamento(novoEquipamento);
@@ -71,47 +91,59 @@ export default function Equipamentos() {
         setEquipamentoSelecionado(null);
     };
 
+
     const equipamentosFiltrados = equipamentos.filter((equipamento) => {
         const termoMinusculo = termo.toLowerCase();
+        
         const bateTexto = 
             equipamento.nome?.toLowerCase().includes(termoMinusculo) ||
             equipamento.patrimonio?.toLowerCase().includes(termoMinusculo);
+            
         const bateCategoria = categoria === "" || equipamento.categoria === categoria;
-        return bateTexto && bateCategoria;
+        
+        const bateStatus = filtroStatus === "" || equipamento.status === filtroStatus;
+
+        return bateTexto && bateCategoria && bateStatus;
     });
 
-
     return (
-
         <section className="h-screen w-full flex flex-row">
             <LayoutUsuario 
                 tipoUsuario="adm" 
                 titulo="Equipamentos" 
                 cargo="Administrador" 
-                nome="John Doe"
-                notificacoes={[]}cd 
+                nome="Paulo Victor"
+                notificacoes={[]} 
                 onMarcarNotificacaoLida={() => console.log("Notificação marcada como lida")}
                 onMarcarTodasNotificacoesLidas={() => console.log("Todas as notificações marcadas como lidas")}
                 onLogout={() => console.log("logout")}
             >
-
                 <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
                     <div className="w-full">
+                        
                         <Pesquisa
                             termo={termo}
                             setTermo={setTermo}
+                            
                             categoria={categoria}
                             setCategoria={setCategoria}
-                            listaCategorias={["Informática", "Audiovisual", "Laboratório"]}
+                            listaCategorias={["Informática", "Audiovisual", "Laboratório", "Ferramentas", "Redes", "Acessórios"]}
+                            
+                            status={filtroStatus}
+                            setStatus={setFiltroStatus}
+                            listaStatus={["Disponível", "Emprestado", "Em Manutenção", "Inativo"]}
+                            
                             placeholderTexto="Buscar por nome ou patrimônio..."
-                            placeholderCategoria="Todas as Categorias" 
+                            placeholderCategoria="Todas as Categorias"
+                            placeholderStatus="Todos os Status"
+                            
                             extras={
                                 <div className="ml-auto">
                                     <Botao 
                                         onClick={() => setPopUpCadastrarEquipamento(true)}
                                         type="button"
-                                        estilo="novo" // Mudado para "novo" para ficar verde igual aos botões dos seus colegas
-                                        icone={true}  // Adicionado o ícone de +
+                                        estilo="novo" 
+                                        icone={true}  
                                     >
                                         Cadastrar Equipamento
                                     </Botao>
@@ -140,7 +172,7 @@ export default function Equipamentos() {
                         />
                     </div>
 
-                    {/* MODAIS (mantidos exatamente como estavam, apenas com a película escura de fundo se você não tivesse colocado antes) */}
+                    {/* MODAIS */}
                     {popUpEditarEquipamento && (
                         <>
                             <div className="fixed inset-0 bg-black/40 z-40" onClick={fecharPopUp} />
