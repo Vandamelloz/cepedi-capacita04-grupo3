@@ -128,5 +128,146 @@
       "status": "Em Manutenção"
     }
   ],
+  "emprestimos": [
+    {
+      "id": "1",
+      "equipamento": "Projetor Epson X41",
+      "patrimonio": "PAT-002",
+      "usuario": "Carlos Mendes",
+      "data": "2026-06-01",
+      "dataDevolucao": "2026-06-05",
+      "dataDevolucaoReal": "2026-06-05",
+      "status": "Concluído",
+      "diasAtraso": 0,
+      "observacao": "Usado na apresentação de projetos."
+    },
+    {
+      "id": "2",
+      "equipamento": "Kit Arduino Completo",
+      "patrimonio": "PAT-005",
+      "usuario": "Beatriz Souza",
+      "data": "2026-06-10",
+      "dataDevolucao": "2026-06-17",
+      "dataDevolucaoReal": null,
+      "status": "Ativo",
+      "diasAtraso": 0,
+      "observacao": "Projeto de robótica."
+    },
+    {
+      "id": "3",
+      "equipamento": "Câmera Canon EOS",
+      "patrimonio": "PAT-003",
+      "usuario": "Fernando Lima",
+      "data": "2026-05-20",
+      "dataDevolucao": "2026-07-08",
+      "dataDevolucaoReal": "2026-06-20",
+      "status": "Concluído",
+      "diasAtraso": 12,
+      "observacao": "Aguardando devolução, o aluno relatou problema no cartão SD."
+    },
+    {
+      "id": "4",
+      "equipamento": "Notebook Dell Latitude",
+      "patrimonio": "PAT-001",
+      "usuario": "Ana Costa",
+      "data": "2026-06-08",
+      "dataDevolucao": "2026-06-15",
+      "status": "Ativo",
+      "diasAtraso": 0,
+      "observacao": "Uso para desenvolvimento do sistema GIPAR."
+    },
+    {
+      "id": "5",
+      "equipamento": "Tablet Samsung Tab S8",
+      "patrimonio": "PAT-007",
+      "usuario": "Juliana Ribeiro",
+      "data": "2026-06-05",
+      "dataDevolucao": "2026-06-07",
+      "dataDevolucaoReal": "2026-06-07",
+      "status": "Concluído",
+      "diasAtraso": 0,
+      "observacao": "Devolvido em perfeito estado."
+    },
+    {
+      "id": "6",
+      "equipamento": "Microscópio Binocular",
+      "patrimonio": "PAT-004",
+      "usuario": "Beatriz Souza",
+      "data": "2026-06-01",
+      "dataDevolucao": "2026-06-03",
+      "dataDevolucaoReal": "2026-06-03",
+      "status": "Concluído",
+      "diasAtraso": 0,
+      "observacao": "Aula prática no laboratório."
+    },
+    {
+      "id": "7",
+      "equipamento": "Monitor LG 24\"",
+      "patrimonio": "PAT-009",
+      "usuario": "Carlos Mendes",
+      "data": "2026-05-25",
+      "dataDevolucao": "2026-05-28",
+      "dataDevolucaoReal": "2026-05-28",
+      "status": "Concluído",
+      "diasAtraso": 0,
+      "observacao": ""
+    },
+    {
+      "id": "8",
+      "equipamento": "Furadeira Bosch",
+      "patrimonio": "PAT-010",
+      "usuario": "Fernando Lima",
+      "data": "2026-06-02",
+      "dataDevolucao": "2026-06-04",
+      "status": "Cancelado",
+      "diasAtraso": 4,
+      "observacao": "Usado na manutenção corretiva da sala 3."
+    },
+    {
+      "id": "9",
+      "equipamento": "Caixa de Som JBL",
+      "patrimonio": "PAT-008",
+      "usuario": "Ana Costa",
+      "data": "2026-06-12",
+      "dataDevolucao": "2026-06-14",
+      "status": "Concluído",
+      "diasAtraso": 0,
+      "observacao": "Evento no auditório principal.",
+      "dataDevolucaoReal": "2026-07-09"
+    },
+    {
+      "id": "10",
+      "equipamento": "Impressora HP LaserJet",
+      "patrimonio": "PAT-006",
+      "usuario": "Carlos Mendes",
+      "data": "2026-06-11",
+      "dataDevolucao": "2026-06-18",
+      "status": "Ativo",
+      "diasAtraso": 0,
+      "observacao": "Impressão de provas finais."
+    },
+    {
+      "id": "ev9TW5uv4Vc",
+      "equipamento": "Monitor LG 24\"",
+      "patrimonio": "PAT-009",
+      "usuario": "Carlos Mendes",
+      "data": "2026-07-09",
+      "dataDevolucao": "2026-08-06",
+      "status": "Ativo",
+      "diasAtraso": 0,
+      "observacao": ""
+    },
+    {
+      "id": "n2thXcXBMAQ",
+      "equipamento": "Notebook Dell Latitude",
+      "patrimonio": "PAT-001",
+      "usuario": "Ana Costa",
+      "data": "2026-07-09",
+      "dataDevolucao": "2026-07-23",
+      "status": "Ativo",
+      "diasAtraso": 0,
+      "observacao": ""
+    }
+  ],
   "$schema": "./node_modules/json-server/schema.json"
 }

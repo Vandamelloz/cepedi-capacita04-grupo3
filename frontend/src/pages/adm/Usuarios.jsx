@@ -9,16 +9,19 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import { useState, useEffect, useCallback } from "react";
 import { buscarUsuarios, criarUsuario, atualizarUsuario, deletarUsuario } from "../../services/usuarios/usuarios.service";
 
+const gerarIdUsuario = () => String(Date.now());
+
 export default function Usuario() {
     const [popUpEditarUsuario, setPopUpEditarUsuario] = useState(false);
     const [popUpCadastrarUsuario, setPopUpCadastrarUsuario] = useState(false);
     const [popUpExclusao, setPopUpExclusao] = useState(false);
 
     const [termo, setTermo] = useState("");
-    const [categoria, setCategoria] = useState("");
+    const [filtroPerfil, setFiltroPerfil] = useState(""); 
+    const [filtroStatus, setFiltroStatus] = useState(""); 
+
     const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
     const [usuarios, setUsuarios] = useState([]);
-
 
     const carregarUsuarios = useCallback(async () => {
         try {
@@ -30,8 +33,17 @@ export default function Usuario() {
     }, []);
 
     useEffect(() => {
-        carregarUsuarios();
-    }, [carregarUsuarios]);
+        let montado = true;
+        (async () => {
+            try {
+                const dados = await buscarUsuarios();
+                if (montado) setUsuarios(dados);
+            } catch (erro) {
+                console.error(erro);
+            }
+        })();
+        return () => { montado = false; };
+    }, []);
 
     const salvarUsuario = async (dadosDoFormulario) => {
         try {
@@ -39,7 +51,7 @@ export default function Usuario() {
                 await atualizarUsuario(usuarioSelecionado.id, { ...usuarioSelecionado, ...dadosDoFormulario });
             } else {
                 const novoUsuario = {
-                    id: String(Date.now()), 
+                    id: gerarIdUsuario(),
                     ...dadosDoFormulario
                 };
                 await criarUsuario(novoUsuario);
@@ -51,7 +63,6 @@ export default function Usuario() {
         }
     };
 
-    // 🌟 A EXCLUSÃO AGORA CHAMA APENAS UMA FUNÇÃO
     const excluirUsuario = async () => {
         if (usuarioSelecionado) {
             try {
@@ -71,25 +82,31 @@ export default function Usuario() {
         setUsuarioSelecionado(null);
     };
 
+
     const usuariosFiltrados = usuarios.filter((usuario) => {
         const termoMinusculo = termo.toLowerCase();
+        
         const bateTexto = 
             usuario.nome?.toLowerCase().includes(termoMinusculo) ||
             usuario.email?.toLowerCase().includes(termoMinusculo);
-        const bateCategoria = categoria === "" || usuario.perfil === categoria;
-        return bateTexto && bateCategoria;
+            
+        // Filtra pelo perfil (Administrador, Aluno, etc.)
+        const batePerfil = filtroPerfil === "" || usuario.perfil === filtroPerfil;
+        
+        // Filtra pelo status (Ativo, Inativo)
+        const bateStatus = filtroStatus === "" || usuario.status === filtroStatus;
+
+        return bateTexto && batePerfil && bateStatus;
     });
 
-
     return (
-
         <section className="h-screen w-full flex flex-row">
             <LayoutUsuario 
                 tipoUsuario="adm" 
                 titulo="Usuários" 
                 cargo="Administrador" 
-                nome="John Doe"
-                notificacoes={[]}cd 
+                nome="Paulo Victor"
+                notificacoes={[]} 
                 onMarcarNotificacaoLida={() => console.log("Notificação marcada como lida")}
                 onMarcarTodasNotificacoesLidas={() => console.log("Todas as notificações marcadas como lidas")}
                 onLogout={() => console.log("logout")}
@@ -97,21 +114,31 @@ export default function Usuario() {
 
                 <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
                     <div className="w-full">
+                       
                         <Pesquisa
                             termo={termo}
                             setTermo={setTermo}
-                            categoria={categoria}
-                            setCategoria={setCategoria}
+                            
+                            // Usamos a prop 'categoria' do componente genérico para passar os Perfis
+                            categoria={filtroPerfil}
+                            setCategoria={setFiltroPerfil}
                             listaCategorias={["Administrador", "Estagiário", "Aluno", "Professor"]}
-                            placeholderTexto="Buscar por nome ou email..."
                             placeholderCategoria="Todos os Perfis" 
+                            
+                            // Filtro de Status
+                            status={filtroStatus}
+                            setStatus={setFiltroStatus}
+                            listaStatus={["Ativo", "Inativo"]}
+                            placeholderStatus="Todos os Status"
+                            
+                            placeholderTexto="Buscar por nome ou email..."
                             extras={
                                 <div className="ml-auto">
                                     <Botao 
                                         onClick={() => setPopUpCadastrarUsuario(true)}
                                         type="button"
-                                        estilo="novo" // Mudado para "novo" para ficar verde igual aos botões dos seus colegas
-                                        icone={true}  // Adicionado o ícone de +
+                                        estilo="novo"
+                                        icone={true}
                                     >
                                         Cadastrar Usuário
                                     </Botao>
@@ -140,7 +167,7 @@ export default function Usuario() {
                         />
                     </div>
 
-                    {/* MODAIS (mantidos exatamente como estavam, apenas com a película escura de fundo se você não tivesse colocado antes) */}
+                    {/* MODAIS */}
                     {popUpEditarUsuario && (
                         <>
                             <div className="fixed inset-0 bg-black/40 z-40" onClick={fecharPopUp} />
