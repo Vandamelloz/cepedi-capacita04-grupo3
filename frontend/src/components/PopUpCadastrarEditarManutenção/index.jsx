@@ -1,4 +1,4 @@
-import {buscarEquipamentos, salvarManutencao} from "../../services/manutencao/manutencoes.service";
+import {buscarEquipamentos, salvarManutencao, excluirManutencao,} from "../../services/manutencao/manutencoes.service";
 import { useState, useEffect } from "react";
 import TituloPagina from "../TituloPagina";
 import SubTitulo from "../SubTitulo";
@@ -33,7 +33,16 @@ export default function PopUpCadastrarEditarManutenção({
       const dados =
         await buscarEquipamentos();
 
-      setEquipamentos(dados);
+        if (modoEdicao || modoVisualizacao) {
+            setEquipamentos(dados);
+        } else {
+          setEquipamentos(
+            dados.filter(
+              (equipamento) =>
+                equipamento.status === "Disponível"
+      )
+  );
+}
 
     } catch {
 
@@ -46,6 +55,16 @@ export default function PopUpCadastrarEditarManutenção({
   carregarEquipamentos();
 
 }, []);
+
+// Preenche os campos ao editar/visualizar
+useEffect(() => {
+  if (!manutencao) return;
+
+  setEquipamento(String(manutencao.id_equipamento));
+  setTipo(manutencao.tipo);
+  setDefeito(manutencao.descricao_defeito);
+  setData(manutencao.data_abertura);
+}, [manutencao]);
 
   const opcoesEquipamentos = equipamentos.map(
     (equipamento) => ({
@@ -93,31 +112,12 @@ export default function PopUpCadastrarEditarManutenção({
   }
 
   const payload = {
-
     id: manutencao?.id,
-
-    id_equipamento:
-      equipamentoSelecionado.id,
-
-    nome:
-      equipamentoSelecionado.nome,
-
-    patrimonio:
-      equipamentoSelecionado.patrimonio,
-
+    id_equipamento: Number(equipamento),
     tipo,
-
-    descricao_defeito:
-      defeito,
-
+    descricao_defeito: defeito,
     data_abertura: data,
-
-    data_conclusao:
-      manutencao?.data_conclusao || null,
-
-    concluida:
-      manutencao?.concluida || false,
-  };
+};
 
   try {
 

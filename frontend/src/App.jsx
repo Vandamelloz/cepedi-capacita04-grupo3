@@ -1,10 +1,16 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+
+// Importações das páginas
 import Login from './pages/login/Login';
 import Usuarios from './pages/adm/Usuarios.jsx';
 import AdmDashboard from './pages/adm/admDashboard';
-import Equipamentos from './pages/Equipamentos/Equipamentos.jsx';
+import AdmEquipamentos from './pages/adm/equipamentos.jsx';
+import EstagEquipamentos from './pages/estagiario/equipamentos.jsx';
 import Manutencoes from './pages/adm/Manutencoes.jsx';
 import MeusEmprestimos from './pages/aluno/MeusEmprestimos.jsx';
+import EmprestimosAdm from './pages/adm/Emprestimo.jsx';
+
+// Importações de autenticação
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './contexts/AuthContext';
 
@@ -16,55 +22,66 @@ function RotaInicial() {
 export default function App() {
   return (
     <Routes>
+      {/* Rotas Públicas */}
       <Route path="/" element={<RotaInicial />} />
       <Route path="/login" element={<Login />} />
-      <Route
-        path="/dashboard"
+
+      {/* Rotas Protegidas (Exigem Autenticação) */}
+      <Route 
+        path="/dashboard" 
         element={
           <ProtectedRoute>
             <AdmDashboard />
           </ProtectedRoute>
-        }
+        } 
       />
-      <Route
-        path="/equipamento"
+      <Route 
+        path="/EstagEquipamentos" 
         element={
           <ProtectedRoute>
-            <Equipamentos />
+            <EstagEquipamentos />
           </ProtectedRoute>
-        }
+        } 
       />
-      <Route
-        path="/equipamentos"
+      <Route 
+        path="/equipamentos" 
         element={
           <ProtectedRoute>
-            <Equipamentos />
+            <AdmEquipamentos />
           </ProtectedRoute>
-        }
+        } 
       />
-      <Route
-        path="/manutencoes"
+      <Route 
+        path="/manutencoes" 
         element={
           <ProtectedRoute>
             <Manutencoes />
           </ProtectedRoute>
-        }
+        } 
       />
-      <Route
-        path="/usuarios"
+      <Route 
+        path="/usuarios" 
         element={
           <ProtectedRoute>
             <Usuarios />
           </ProtectedRoute>
-        }
+        } 
       />
-      <Route
-        path="/alunoEmprestimos"
+      <Route 
+        path="/alunoEmprestimos" 
         element={
           <ProtectedRoute>
             <MeusEmprestimos />
           </ProtectedRoute>
-        }
+        } 
+      />
+      <Route 
+        path="/emprestimos" 
+        element={
+          <ProtectedRoute>
+            <EmprestimosAdm />
+          </ProtectedRoute>
+        } 
       />
     </Routes>
   );

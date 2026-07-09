@@ -1,25 +1,47 @@
-import TituloPagina from "../TituloPagina"
-import SubTitulo from "../SubTitulo"
-import Botao from "../Botao"
+import TituloPagina from "../TituloPagina";
+import SubTitulo from "../SubTitulo";
+import Botao from "../Botao";
 
-export default function PopUpExclusao({titulo, subtitulo, objeto, confirmarExclusao, cancelarExclusao}) {
+export default function PopUpExclusao({
+    titulo,
+    subtitulo,
+    confirmarExclusao,
+    cancelarExclusao,
+}) {
     return (
-        <div className="bg-white flex flex-col fixed top-[300px] w-[400px] items-center justify-around rounded-xl shadow-sm p-5 border border-gray-300 gap-4 z-50">
-            <TituloPagina >{titulo}</TituloPagina>
-            <SubTitulo >{subtitulo}</SubTitulo>
-            <p className="mb-4">O {objeto} sera excluido, tem certeza?</p>
-            <div className=" w-[400px] flex flex-row justify-around items-center gap-6">
-                <Botao
-                    estilo="cancelar"
-                    children="Cancelar"
-                    onClick={cancelarExclusao}
-                    />
-                <Botao
-                    estilo="excluir"
-                    children="Excluir"
-                    onClick={confirmarExclusao}
-                    />
-            </div>
+    <div className="relative bg-[#F3F4F6] w-[530px] rounded-2xl shadow-lg p-6">
+
+      {/* Botão X */}
+        <button
+        onClick={cancelarExclusao}
+        className="absolute top-4 right-4 text-gray-600 hover:text-gray-600 text-2xl font-light"
+        >
+        ×
+        </button>
+
+        <div className="mb-5 mt-1">
+        <TituloPagina>{titulo}</TituloPagina>
+
+        <p className="text-[18px] leading-[25px] text-[#6B7280] font-normal mb-4">
+            {subtitulo}
+        </p>
         </div>
-    )
+
+        <div className="flex justify-end gap-3">
+        <Botao
+            estilo="cancelar"
+            onClick={cancelarExclusao}
+        >
+            Cancelar
+        </Botao>
+
+        <Botao
+            estilo="excluir"
+            onClick={confirmarExclusao}
+        >
+            Excluir
+        </Botao>
+        </div>
+    </div>
+    );
 }

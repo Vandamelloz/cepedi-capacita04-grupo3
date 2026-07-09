@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import LayoutUsuario from "../../layouts/usuario";
+import LayoutUsuario from "../../layouts/usuario/LayoutUsuario";
 import SummaryCard, {WrenchIcon, AlertIcon, CheckCircleIcon,} from "../../components/CardsTopoPagina";
 import CardManutencao from "../../components/CardsManutencao";
 import CampoPesquisa from "../../components/Pesquisa/Pesquisa";
 import Botao from "../../components/Botao";
 import PopUpConclusao from "../../components/PopupConclusao";
+import PopUpExclusao from "../../components/PopUpExclusao";
 import PopUpCadastrarEditarManutenção from "../../components/PopUpCadastrarEditarManutenção";
 import useManutencoes from "../../hooks/useManutencoes";
 import { useAuth } from "../../contexts/AuthContext";
@@ -32,6 +33,7 @@ concluidas,
 
 popupConclusaoAberto,
 popupCadastroAberto,
+popupExclusaoAberto,
 
 manutencaoSelecionada,
 
@@ -41,14 +43,14 @@ fecharPopupConclusao,
 abrirPopupCadastro,
 fecharPopupCadastro,
 
+abrirPopupExclusao,
+fecharPopupExclusao,
+
+handleExcluir,
+
 handleConcluir,
 
 salvarManutencao,
-
-notificacoes,
-
-marcarNotificacaoLida,
-marcarTodasNotificacoesLidas,
 
 } = useManutencoes();
 
@@ -176,32 +178,17 @@ return (
 
           <CardManutencao
             key={m.id}
-
             name={m.nome}
             pat={m.patrimonio}
             type={m.tipo}
-
-            defect={
-              m.descricao_defeito
-            }
-
-            sentAt={
-              m.data_abertura
-            }
-
-            finishedAt={
-              m.data_conclusao
-            }
-
+            defect={m.descricao_defeito}
+            sentAt={m.data_abertura}
+            finishedAt={m.data_conclusao}
             concluida={m.concluida}
-
-            onComplete={() =>
-              abrirPopupConclusao(m)
-            }
-
-            onClick={() =>
-              abrirPopupCadastro(m)
-            }
+            onComplete={() => abrirPopupConclusao(m)}
+            onEditar={() => abrirPopupCadastro(m)}
+            onExcluir={() => abrirPopupExclusao(m)}
+            onVisualizar={() => abrirPopupCadastro(m)}
           />
 
         ))
@@ -280,6 +267,29 @@ return (
         </div>
       </>
     )}
+
+    {popupExclusaoAberto && (
+  <>
+    <div
+      className="fixed inset-0 bg-black/40 z-40"
+      onClick={fecharPopupExclusao}
+    />
+
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <PopUpExclusao
+        titulo="Confirmar Exclusão"
+        subtitulo={
+          <>
+            Tem certeza que deseja excluir a manutenção{" "}
+            <strong>{manutencaoSelecionada?.nome}</strong>? Esta ação não pode ser desfeita.
+          </>
+        }
+      confirmarExclusao={handleExcluir}
+      cancelarExclusao={fecharPopupExclusao}
+      />
+    </div>
+  </>
+)}
 
   </main>
 

@@ -1,19 +1,25 @@
-export default function CaixaSelecao({label, id, opcoes, placeholder, value, onChange, disabled = false}) {
+export default function CaixaSelecao({label, id, opcoes, value, defaultValue, placeholder, onChange, disabled = false, labelClassName = ""}) {
   return (
     <div className="flex flex-col gap-1 w-full text-left">
       {label && (
-        <label htmlFor={id}>
+        <label 
+        htmlFor={id}
+        className={labelClassName}
+        >
           {label}
         </label>
       )}
 
       <select
         id={id}
-        value={value || ""}
+        name={id}
+        value={value}
+        defaultValue={defaultValue || ""}
         onChange={onChange}
         disabled={disabled}
+        required
         className={`w-full h-10 bg-[#F3F4F6] border border-[#D1D5DB] rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-          !value
+          !(value ?? defaultValue)
             ? "text-[#6B7280]"
             : "text-gray-900"
         }`}
