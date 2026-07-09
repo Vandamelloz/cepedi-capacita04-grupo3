@@ -1,18 +1,10 @@
 import {useCallback, useEffect, useState,} from "react";
-import { useSearchParams } from "react-router-dom";
-import {buscarManutencoes, concluirManutencao,} from "../services/manutencao/manutencoes.service";
+import {buscarManutencoes, concluirManutencao, excluirManutencao,} from "../services/manutencao/manutencoes.service";
 
 export default function useManutencoes() {
 
-  const [searchParams] = useSearchParams();
-
-  // Simulações
-  const simularErro = searchParams.get("erro") === "1";
-  const simularVazio = searchParams.get("vazio") === "1";
-
   // Estados principais
   const [manutencoes, setManutencoes] = useState([]);
-  const [notificacoes, setNotificacoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
 
@@ -27,49 +19,24 @@ export default function useManutencoes() {
   // Manutenção selecionada
   const [manutencaoSelecionada,setManutencaoSelecionada] = useState(null);
 
+  const [popupExclusaoAberto, setPopupExclusaoAberto] = useState(false);
+
   // Carregar dados
-  const carregar = useCallback(
-    async () => {
+  const carregar = useCallback(async () => {
+  setCarregando(true);
+  setErro(null);
 
-      setCarregando(true);
+  try {
+    const dados = await buscarManutencoes();
 
-      setErro(null);
-
-      try {
-
-        const dados =
-          await buscarManutencoes({
-            simularErro,
-            simularVazio,
-          });
-
-        setManutencoes(
-          dados.manutencoes
-        );
-
-        setNotificacoes(
-          dados.notificacoes
-        );
-
-      } catch (err) {
-
-        setErro(
-          err.message ??
-          "Erro ao carregar manutenções."
-        );
-
-        setManutencoes([]);
-
-        setNotificacoes([]);
-
-      } finally {
-
-        setCarregando(false);
-      }
-    },
-
-    [simularErro, simularVazio]
-  );
+    setManutencoes(dados.manutencoes);
+  } catch (err) {
+    setErro(err.message ?? "Erro ao carregar manutenções.");
+    setManutencoes([]);
+  } finally {
+    setCarregando(false);
+  }
+}, []);
 
   useEffect(() => {
     carregar();
@@ -90,11 +57,11 @@ export default function useManutencoes() {
         .toLowerCase()
         .includes(termoBusca) ||
 
-      (m.dataAberturaFormatada || "")
+      (m.data_abertura || "")
         .toLowerCase()
         .includes(termoBusca) ||
 
-      (m.dataConclusaoFormatada || "")
+      (m.data_conclusao || "")
         .toLowerCase()
         .includes(termoBusca);
 
@@ -175,104 +142,89 @@ export default function useManutencoes() {
   }
 
   // Concluir manutenção
-  async function handleConcluir() {
+async function handleConcluir(statusFinal) {
 
-    if (!manutencaoSelecionada) {
-      return;
-    }
-
-    try {
-
-      const atualizada =
-        await concluirManutencao(
-          manutencaoSelecionada.id
-        );
-
-      setManutencoes((lista) =>
-        lista.map((m) =>
-          m.id === atualizada.id
-            ? atualizada
-            : m
-        )
-      );
-
-      fecharPopupConclusao();
-
-    } catch (err) {
-
-      setErro(
-        err.message ??
-        "Erro ao concluir manutenção."
-      );
-    }
+  if (!manutencaoSelecionada) {
+    return;
   }
+
+  try {
+
+    await concluirManutencao(
+      manutencaoSelecionada.id,
+      statusFinal
+    );
+
+    fecharPopupConclusao();
+
+    await carregar();
+
+  } catch (err) {
+
+    setErro(
+      err.message ??
+      "Erro ao concluir manutenção."
+    );
+  }
+}
+
+// Excluir manutenção
+async function handleExcluir() {
+
+  if (!manutencaoSelecionada) {
+    return;
+  }
+
+  try {
+
+    await excluirManutencao(
+      manutencaoSelecionada.id
+    );
+
+    fecharPopupExclusao();
+
+    await carregar();
+
+  } catch (err) {
+
+    setErro(
+      err.message ??
+      "Erro ao excluir manutenção."
+    );
+  }
+}
 
   // Salvar manutenção
-  function salvarManutencao(
-    manutencaoSalva
-  ) {
+async function salvarManutencao() {
 
-    const existe =
-      manutencoes.some(
-        (m) =>
-          m.id ===
-          manutencaoSalva.id
-      );
-
-    if (existe) {
-
-      setManutencoes((lista) =>
-        lista.map((m) =>
-          m.id ===
-          manutencaoSalva.id
-            ? manutencaoSalva
-            : m
-        )
-      );
-
-    } else {
-
-      setManutencoes((lista) => [
-        ...lista,
-        manutencaoSalva,
-      ]);
-    }
+  try {
 
     fecharPopupCadastro();
-  }
 
-  // Notificações
-  function marcarNotificacaoLida(
-    id
-  ) {
+    await carregar();
 
-    setNotificacoes((lista) =>
-      lista.map((n) =>
-        n.id === id
-          ? {
-              ...n,
-              lida: true,
-            }
-          : n
-      )
+  } catch (err) {
+
+    setErro(
+      err.message ??
+      "Erro ao atualizar a lista de manutenções."
     );
   }
+}
 
-  function marcarTodasNotificacoesLidas() {
+function abrirPopupExclusao(manutencao) {
+    setManutencaoSelecionada(manutencao);
+    setPopupExclusaoAberto(true);
+}
 
-    setNotificacoes((lista) =>
-      lista.map((n) => ({
-        ...n,
-        lida: true,
-      }))
-    );
-  }
+function fecharPopupExclusao() {
+    setPopupExclusaoAberto(false);
+    setManutencaoSelecionada(null);
+}
 
   return {
     manutencoes,
     manutencoesFiltradas,
-
-    notificacoes,
 
     carregando,
     erro,
@@ -290,6 +242,8 @@ export default function useManutencoes() {
     popupConclusaoAberto,
     popupCadastroAberto,
 
+    popupExclusaoAberto,
+
     manutencaoSelecionada,
 
     abrirPopupConclusao,
@@ -298,12 +252,14 @@ export default function useManutencoes() {
     abrirPopupCadastro,
     fecharPopupCadastro,
 
+    abrirPopupExclusao,
+    fecharPopupExclusao,
+
     handleConcluir,
 
-    salvarManutencao,
+    handleExcluir,
 
-    marcarNotificacaoLida,
-    marcarTodasNotificacoesLidas,
+    salvarManutencao,
 
     recarregar: carregar,
   };
