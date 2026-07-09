@@ -61,9 +61,9 @@ return (
   titulo="Manutenções"
   cargo={usuarioLogado.perfil}
   nome={usuarioLogado.nome}
-  notificacoes={notificacoes}
-  onMarcarNotificacaoLida={marcarNotificacaoLida}
-  onMarcarTodasNotificacoesLidas={marcarTodasNotificacoesLidas}
+  notificacoes={[]}
+  onMarcarNotificacaoLida={() => {}}
+  onMarcarTodasNotificacoesLidas={() => {}}
   onLogout={() => {
     logout();
     navigate("/login");
