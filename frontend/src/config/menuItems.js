@@ -19,12 +19,18 @@ export const menuByRole = {
     { label: 'Relatórios', path: '/relatorios', icon: ClipboardMinus },
   ],
   aluno: [
-    { label: 'Meus Empréstimos', path: '/', icon: ClipboardMinus },
+    { label: 'Meus Empréstimos', path: '/alunoEmprestimos', icon: ClipboardMinus },
     { label: 'Catálogo', path: '/catalogo', icon: BookOpen }
   ],
   estagiario: [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Equipamentos', path: '/EstagEquipamentos', icon: PackageOpen },
     { label: 'Empréstimos', path: '/emprestimos', icon: ArrowRightLeft }
+  ],
+  professor: [
+    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { label: 'Equipamentos', path: '/equipamentos', icon: PackageOpen },
+    { label: 'Empréstimos', path: '/emprestimos', icon: ArrowRightLeft },
+    { label: 'Manutenções', path: '/manutencoes', icon: Wrench },
   ]
 };
