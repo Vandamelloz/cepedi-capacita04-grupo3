@@ -25,7 +25,7 @@ export const menuByRole = {
   estagiario: [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Equipamentos', path: '/EstagEquipamentos', icon: PackageOpen },
-    { label: 'Empréstimos', path: '/emprestimos', icon: ArrowRightLeft }
+    { label: 'Empréstimos', path: '/EstagEmprestimos', icon: ArrowRightLeft }
   ],
   professor: [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
