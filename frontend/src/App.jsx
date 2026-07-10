@@ -7,6 +7,7 @@ import AdmDashboard from './pages/adm/admDashboard';
 import AdmEquipamentos from './pages/adm/equipamentos.jsx';
 import EstagEquipamentos from './pages/estagiario/equipamentos.jsx';
 import Manutencoes from './pages/adm/Manutencoes.jsx';
+import Relatorios from './pages/adm/Relatorios.jsx';
 import MeusEmprestimos from './pages/aluno/MeusEmprestimos.jsx';
 import EmprestimosAdm from './pages/adm/Emprestimo.jsx';
 
@@ -66,6 +67,14 @@ export default function App() {
             <Usuarios />
           </ProtectedRoute>
         } 
+      />
+      <Route
+        path="/relatorios"
+        element={
+          <ProtectedRoute>
+            <Relatorios />
+          </ProtectedRoute>
+        }
       />
       <Route 
         path="/alunoEmprestimos" 
