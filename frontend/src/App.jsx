@@ -10,6 +10,7 @@ import Manutencoes from './pages/adm/Manutencoes.jsx';
 import Relatorios from './pages/adm/Relatorios.jsx';
 import MeusEmprestimos from './pages/aluno/MeusEmprestimos.jsx';
 import EmprestimosAdm from './pages/adm/Emprestimo.jsx';
+import EstagEmprestimos from "./pages/estagiario/emprestimos.jsx";
 
 // Importações de autenticação
 import ProtectedRoute from './components/ProtectedRoute';
@@ -41,6 +42,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <EstagEquipamentos />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/EstagEmprestimos" 
+        element={
+          <ProtectedRoute>
+            <EstagEmprestimos />
           </ProtectedRoute>
         } 
       />

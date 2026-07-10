@@ -61,9 +61,9 @@ return (
   titulo="Manutenções"
   cargo={usuarioLogado.perfil}
   nome={usuarioLogado.nome}
-  notificacoes={notificacoes}
-  onMarcarNotificacaoLida={marcarNotificacaoLida}
-  onMarcarTodasNotificacoesLidas={marcarTodasNotificacoesLidas}
+  notificacoes={[]}
+  onMarcarNotificacaoLida={() => console.log("Notificação marcada como lida")}
+  onMarcarTodasNotificacoesLidas={() => console.log("Todas as notificações marcadas como lidas")}
   onLogout={() => {
     logout();
     navigate("/login");
