@@ -1,8 +1,19 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import BarraLateral from "../../components/BarraLateral";
 import Cabecalho from "../../components/Cabecalho";
+import { useAuth } from "../../contexts/AuthContext";
 
+/**
+ * Layout padrão das telas autenticadas.
+ *
+ * Modo auth (padrão): páginas admin passam apenas `titulo` e `children`.
+ * O layout resolve nome, perfil, role e logout via useAuth().
+ *
+ * Modo legado (TEMPORÁRIO): páginas de Estagiário e Aluno ainda passam
+ * nome, cargo, tipoUsuario e onLogout. Remover após migrar esses perfis.
+ * Ver docs/autenticacao.md
+ */
 export default function LayoutUsuario({
   tipoUsuario,
   titulo,
@@ -15,30 +26,58 @@ export default function LayoutUsuario({
   children,
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { usuario, logout } = useAuth();
   const [menuMobileAberto, setMenuMobileAberto] = useState(false);
+
+  // TODO(migracao): remover modo legado quando Estagiário e Aluno migrarem.
+  const modoLegado = nome !== undefined;
 
   useEffect(() => {
     setMenuMobileAberto(false);
   }, [location.pathname]);
 
+  function handleLogoutAuth() {
+    logout();
+    navigate("/login");
+  }
+
+  if (!modoLegado && !usuario) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const dadosSidebar = modoLegado
+    ? {
+        userRole: tipoUsuario,
+        nomeUsuario: nome,
+        cargoUsuario: cargo,
+        onLogoutHandler: onLogout,
+      }
+    : {
+        userRole: usuario.role,
+        nomeUsuario: usuario.nome,
+        cargoUsuario: usuario.perfil,
+        onLogoutHandler: handleLogoutAuth,
+      };
+
   return (
     <section className="flex h-[100dvh] w-full min-h-0 overflow-hidden">
       <BarraLateral
-        userRole={tipoUsuario}
-        nomeUsuario={nome}
-        cargoUsuario={cargo}
-        onLogout={onLogout}
+        userRole={dadosSidebar.userRole}
+        nomeUsuario={dadosSidebar.nomeUsuario}
+        cargoUsuario={dadosSidebar.cargoUsuario}
+        onLogout={dadosSidebar.onLogoutHandler}
         mobileAberto={menuMobileAberto}
         onFecharMobile={() => setMenuMobileAberto(false)}
       />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-gray-100">
         <Cabecalho
           titulo={titulo}
-          nome={nome}
+          nome={dadosSidebar.nomeUsuario}
           notificacoes={notificacoes}
           onMarcarNotificacaoLida={onMarcarNotificacaoLida}
           onMarcarTodasNotificacoesLidas={onMarcarTodasNotificacoesLidas}
-          onLogout={onLogout}
+          onLogout={dadosSidebar.onLogoutHandler}
           onAbrirMenuMobile={() => setMenuMobileAberto(true)}
         />
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden w-full">
