@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Download, Eye, FileText } from "lucide-react";
 import LayoutUsuario from "../../layouts/usuario/LayoutUsuario";
 import CaixaSelecao from "../../components/CaixadeSelecao/CaixadeSelecao";
@@ -8,7 +7,6 @@ import Botao from "../../components/Botao";
 import TabelaGipar from "../../components/tabelaGipar/TabelaGipar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import EstadoVazio from "../../components/EstadoVazio/EstadoVazio";
-import { useAuth } from "../../contexts/AuthContext";
 import { TIPOS_RELATORIO } from "../../constants/relatorios.constants";
 import {
   buscarDadosRelatorio,
@@ -31,9 +29,6 @@ const COLUNAS_RELATORIO = [
 ];
 
 export default function Relatorios() {
-  const navigate = useNavigate();
-  const { usuario: usuarioLogado, logout } = useAuth();
-
   const [tipoRelatorio, setTipoRelatorio] = useState("inventario-completo");
   const [dataInicial, setDataInicial] = useState("");
   const [dataFinal, setDataFinal] = useState("");
@@ -76,16 +71,7 @@ export default function Relatorios() {
   }, []);
 
   return (
-    <LayoutUsuario
-      tipoUsuario={usuarioLogado.role}
-      titulo="Relatórios"
-      cargo={usuarioLogado.perfil}
-      nome={usuarioLogado.nome}
-      onLogout={() => {
-        logout();
-        navigate("/login");
-      }}
-    >
+    <LayoutUsuario titulo="Relatórios">
       <main className="flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 xl:grid-cols-[minmax(280px,360px)_1fr] xl:gap-6">
           <article className="flex flex-col gap-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
