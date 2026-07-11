@@ -108,16 +108,7 @@ export default function Equipamentos () {
 
     return (
         <section className="h-screen w-full flex flex-row">
-            <LayoutUsuario 
-                tipoUsuario="adm" 
-                titulo="Equipamentos" 
-                cargo="Administrador" 
-                nome="Paulo Victor"
-                notificacoes={[]} 
-                onMarcarNotificacaoLida={() => console.log("Notificação marcada como lida")}
-                onMarcarTodasNotificacoesLidas={() => console.log("Todas as notificações marcadas como lidas")}
-                onLogout={() => console.log("logout")}
-            >
+            <LayoutUsuario titulo="Equipamentos">
                 <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
                     <div className="w-full">
                         

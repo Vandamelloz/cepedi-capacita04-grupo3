@@ -4,8 +4,6 @@ import Pesquisa from "../../components/Pesquisa/Pesquisa";
 import TabelaGipar from "../../components/tabelaGipar/TabelaGipar";
 import Botao from "../../components/Botao";
 import PopUpExclusao from "../../components/PopUpExclusao";
-import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 import StatusBadge from "../../components/ui/StatusBadge";
 
 import { useState, useEffect, useCallback } from "react";
@@ -14,8 +12,6 @@ import { buscarUsuarios, criarUsuario, atualizarUsuario, deletarUsuario } from "
 const gerarIdUsuario = () => String(Date.now());
 
 export default function Usuario() {
-    const navigate = useNavigate();
-    const { usuario: usuarioLogado, logout } = useAuth();
     const [popUpEditarUsuario, setPopUpEditarUsuario] = useState(false);
     const [popUpCadastrarUsuario, setPopUpCadastrarUsuario] = useState(false);
     const [popUpExclusao, setPopUpExclusao] = useState(false);
@@ -105,16 +101,7 @@ export default function Usuario() {
 
     return (
         <section className="h-screen w-full flex flex-row">
-            <LayoutUsuario 
-                tipoUsuario="adm" 
-                titulo="Usuários" 
-                cargo="Administrador" 
-                nome="Paulo Victor"
-                notificacoes={[]} 
-                onMarcarNotificacaoLida={() => console.log("Notificação marcada como lida")}
-                onMarcarTodasNotificacoesLidas={() => console.log("Todas as notificações marcadas como lidas")}
-                onLogout={() => console.log("logout")}
-            >
+            <LayoutUsuario titulo="Usuários">
 
                 <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
                     <div className="w-full">

@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import LayoutUsuario from "../../layouts/usuario/LayoutUsuario";
 import SummaryCard, {WrenchIcon, AlertIcon, CheckCircleIcon,} from "../../components/CardsTopoPagina";
 import CardManutencao from "../../components/CardsManutencao";
@@ -8,11 +7,8 @@ import PopUpConclusao from "../../components/PopupConclusao";
 import PopUpExclusao from "../../components/PopUpExclusao";
 import PopUpCadastrarEditarManutenção from "../../components/PopUpCadastrarEditarManutenção";
 import useManutencoes from "../../hooks/useManutencoes";
-import { useAuth } from "../../contexts/AuthContext";
 
 export default function Manutencoes() {
-  const navigate = useNavigate();
-  const { usuario: usuarioLogado, logout } = useAuth();
 
 const {
 
@@ -56,19 +52,7 @@ salvarManutencao,
 
 return (
 
-<LayoutUsuario
-  tipoUsuario={usuarioLogado.role}
-  titulo="Manutenções"
-  cargo={usuarioLogado.perfil}
-  nome={usuarioLogado.nome}
-  notificacoes={[]}
-  onMarcarNotificacaoLida={() => {}}
-  onMarcarTodasNotificacoesLidas={() => {}}
-  onLogout={() => {
-    logout();
-    navigate("/login");
-  }}
->
+<LayoutUsuario titulo="Manutenções">
 
   <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
 

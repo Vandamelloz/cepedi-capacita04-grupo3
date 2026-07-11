@@ -108,7 +108,7 @@ export default function EmprestimosAdm() {
     });
 
     return (
-        <LayoutUsuario tipoUsuario="adm" titulo="Gestão de Empréstimos" cargo="Administrador" nome="Paulo Victor">
+        <LayoutUsuario titulo="Gestão de Empréstimos">
             <main className="p-6">
                 
                 
