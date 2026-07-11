@@ -305,6 +305,15 @@
       "status": "Ativo",
       "diasAtraso": 0,
       "observacao": ""
+    },
+    {
+      "id": "LySgfMwt9TE",
+      "equipamento": "Impressora HP LaserJet",
+      "usuario": "Beatriz Souza",
+      "patrimonio": "PAT-006",
+      "data": "2026-07-11",
+      "dataDevolucao": "2026-07-02",
+      "status": "Concluído"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
