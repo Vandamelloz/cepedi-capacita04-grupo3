@@ -7,7 +7,8 @@ const ESTILOS_STATUS = {
 
   "Disponível": "bg-green-100 text-green-700",
   "Emprestado": "bg-blue-100 text-blue-700",
-  "Em Manutenção": "bg-amber-100 text-amber-700", 
+  "Em Manutenção": "bg-amber-100 text-amber-700",
+  Manutenção: "bg-orange-100 text-orange-700",
   "Inativo": "bg-gray-100 text-gray-500",
 };
 

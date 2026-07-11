@@ -1,18 +1,12 @@
-import { useNavigate } from "react-router-dom";
 import LayoutUsuario from "../../layouts/usuario/LayoutUsuario";
 import ModalDetalheEmprestimo from "../../components/ModalDetalheEmprestimo";
-import useDashboard from "../../hooks/useDashboard";
-import { useAuth } from "../../contexts/AuthContext";
-import DashboardEstadoPainel from "./components/DashboardEstadoPainel";
+import useDashboard from "../../hooks/useDashboard";import DashboardEstadoPainel from "./components/DashboardEstadoPainel";
 import DashboardMetricas from "./components/DashboardMetricas";
 import DashboardEmprestimos from "./components/DashboardEmprestimos";
 import DashboardItensMaisUsados from "./components/DashboardItensMaisUsados";
 
 export default function AdmDashboard() {
-  const navigate = useNavigate();
-  const { usuario: usuarioLogado, logout } = useAuth();
-  const {
-    metricas,
+  const {    metricas,
     emprestimosPaginados,
     itensMaisUsados,
     notificacoes,
@@ -40,23 +34,13 @@ export default function AdmDashboard() {
     marcarTodasNotificacoesLidas,
   } = useDashboard();
 
-  function handleLogout() {
-    logout();
-    navigate("/login");
-  }
-
   return (
     <LayoutUsuario
-      tipoUsuario={usuarioLogado.role}
       titulo="Dashboard"
-      cargo={usuarioLogado.perfil}
-      nome={usuarioLogado.nome}
       notificacoes={notificacoes}
       onMarcarNotificacaoLida={marcarNotificacaoLida}
       onMarcarTodasNotificacoesLidas={marcarTodasNotificacoesLidas}
-      onLogout={handleLogout}
-    >
-      {carregando && <DashboardEstadoPainel tipo="carregando" />}
+    >      {carregando && <DashboardEstadoPainel tipo="carregando" />}
 
       {!carregando && erro && (
         <DashboardEstadoPainel
