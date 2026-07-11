@@ -1,45 +1,52 @@
-import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { MOCK_USUARIO_ALUNO } from "../mocks/usuarioAluno.mock";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import { buscarMeusEmprestimos } from "../services/emprestimos/emprestimosAluno.service";
 
-export default function useMeusEmprestimos() {
-  const [searchParams] = useSearchParams();
-  const simularErro = searchParams.get("erro") === "1";
-  const simularVazio = searchParams.get("vazio") === "1";
+const STATUS_HISTORICO = ["Concluído", "Cancelado"];
 
-  const [emprestimosAtivos, setEmprestimosAtivos] = useState([]);
-  const [historico, setHistorico] = useState([]);
-  const [notificacoes, setNotificacoes] = useState([]);
+export default function useMeusEmprestimos() {
+  const { usuario } = useAuth();
+
+  const [emprestimos, setEmprestimos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
   const [emprestimoSelecionado, setEmprestimoSelecionado] = useState(null);
 
   const carregar = useCallback(async () => {
+    if (!usuario?.nome) return;
+
     setCarregando(true);
     setErro(null);
 
     try {
-      const dados = await buscarMeusEmprestimos({ simularErro, simularVazio });
-      setEmprestimosAtivos(dados.emprestimosAtivos);
-      setHistorico(dados.historico);
-      setNotificacoes(dados.notificacoes);
+      const dados = await buscarMeusEmprestimos(usuario.nome);
+      setEmprestimos(Array.isArray(dados) ? dados : []);
       setEmprestimoSelecionado(null);
     } catch (err) {
       setErro(err.message ?? "Erro ao carregar seus empréstimos.");
-      setEmprestimosAtivos([]);
-      setHistorico([]);
-      setNotificacoes([]);
+      setEmprestimos([]);
     } finally {
       setCarregando(false);
     }
-  }, [simularErro, simularVazio]);
+  }, [usuario?.nome]);
 
   useEffect(() => {
     carregar();
   }, [carregar]);
 
-  const possuiAtraso = emprestimosAtivos.some((e) => e.status === "Atrasado");
+  const emprestimosAtivos = useMemo(
+    () => emprestimos.filter((e) => !STATUS_HISTORICO.includes(e.status)),
+    [emprestimos]
+  );
+
+  const historico = useMemo(
+    () => emprestimos.filter((e) => STATUS_HISTORICO.includes(e.status)),
+    [emprestimos]
+  );
+
+  const possuiAtraso = emprestimosAtivos.some(
+    (e) => e.status === "Atrasado" || e.diasAtraso > 0
+  );
 
   const paginaVazia =
     !carregando && !erro && emprestimosAtivos.length === 0 && historico.length === 0;
@@ -52,23 +59,11 @@ export default function useMeusEmprestimos() {
     setEmprestimoSelecionado(null);
   }
 
-  function marcarNotificacaoLida(id) {
-    setNotificacoes((lista) =>
-      lista.map((notificacao) =>
-        notificacao.id === id ? { ...notificacao, lida: true } : notificacao
-      )
-    );
-  }
-
-  function marcarTodasNotificacoesLidas() {
-    setNotificacoes((lista) => lista.map((n) => ({ ...n, lida: true })));
-  }
-
   return {
-    usuario: MOCK_USUARIO_ALUNO,
+    usuario,
     emprestimosAtivos,
     historico,
-    notificacoes,
+    notificacoes: [],
     carregando,
     erro,
     paginaVazia,
@@ -77,7 +72,7 @@ export default function useMeusEmprestimos() {
     emprestimoSelecionado,
     abrirDetalheEmprestimo,
     fecharDetalheEmprestimo,
-    marcarNotificacaoLida,
-    marcarTodasNotificacoesLidas,
+    marcarNotificacaoLida: () => {},
+    marcarTodasNotificacoesLidas: () => {},
   };
 }
