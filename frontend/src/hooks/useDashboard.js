@@ -2,10 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   DASHBOARD_CONFIG,
-  FILTROS_POR_METRICA,
-  MOCK_METRICAS,
-  MOCK_USUARIO,
-} from "../mocks/dashboard.mock";
+  FILTROS_ESTATICOS_POR_METRICA,
+} from "../constants/dashboard.constants";
 import { buscarDadosDashboard } from "../services/dashboard/dashboard.service";
 
 const ORDEM_STATUS = {
@@ -42,6 +40,7 @@ export default function useDashboard() {
   const [emprestimos, setEmprestimos] = useState([]);
   const [itensMaisUsados, setItensMaisUsados] = useState([]);
   const [notificacoes, setNotificacoes] = useState([]);
+  const [equipamentosEmManutencao, setEquipamentosEmManutencao] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
 
@@ -61,6 +60,7 @@ export default function useDashboard() {
       setEmprestimos(dados.emprestimos);
       setItensMaisUsados(dados.itensMaisUsados);
       setNotificacoes(dados.notificacoes);
+      setEquipamentosEmManutencao(dados.equipamentosEmManutencao);
       setPaginaAtual(1);
       setFiltroMetricaId(null);
       setEmprestimoSelecionado(null);
@@ -71,6 +71,7 @@ export default function useDashboard() {
       setEmprestimos([]);
       setItensMaisUsados([]);
       setNotificacoes([]);
+      setEquipamentosEmManutencao([]);
     } finally {
       setCarregando(false);
     }
@@ -85,16 +86,27 @@ export default function useDashboard() {
       return null;
     }
 
-    return MOCK_METRICAS.find((metrica) => metrica.id === filtroMetricaId) ?? null;
-  }, [filtroMetricaId]);
+    return metricas.find((metrica) => metrica.id === filtroMetricaId) ?? null;
+  }, [filtroMetricaId, metricas]);
 
   const emprestimosFiltrados = useMemo(() => {
-    if (!filtroMetricaId || !FILTROS_POR_METRICA[filtroMetricaId]) {
+    if (!filtroMetricaId) {
       return emprestimos;
     }
 
-    return emprestimos.filter(FILTROS_POR_METRICA[filtroMetricaId]);
-  }, [emprestimos, filtroMetricaId]);
+    if (filtroMetricaId === "manutencao") {
+      return emprestimos.filter((emprestimo) =>
+        equipamentosEmManutencao.includes(emprestimo.equipamento)
+      );
+    }
+
+    const filtro = FILTROS_ESTATICOS_POR_METRICA[filtroMetricaId];
+    if (!filtro) {
+      return emprestimos;
+    }
+
+    return emprestimos.filter(filtro);
+  }, [emprestimos, filtroMetricaId, equipamentosEmManutencao]);
 
   const emprestimosOrdenados = useMemo(() => {
     const copia = [...emprestimosFiltrados];
@@ -179,7 +191,6 @@ export default function useDashboard() {
   }
 
   return {
-    usuario: MOCK_USUARIO,
     metricas,
     emprestimosPaginados,
     itensMaisUsados,

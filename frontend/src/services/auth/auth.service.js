@@ -9,8 +9,9 @@ export const HOME_POR_PERFIL = {
 };
 
 export const ROTAS_POR_PERFIL = {
-  adm: ["/dashboard", "/equipamentos", "/equipamento", "/manutencoes", "/usuarios"],
+  adm: ["/dashboard", "/equipamentos", "/equipamento", "/emprestimos", "/manutencoes", "/usuarios", "/relatorios"],
   estagiario: ["/dashboard", "/equipamentos", "/equipamento", "/EstagEquipamentos", "/EstagEmprestimos"],
+
   professor: ["/dashboard", "/equipamentos", "/equipamento", "/manutencoes"],
   aluno: ["/alunoEmprestimos", "/catalogo", "/equipamentos", "/equipamento"],
 };
