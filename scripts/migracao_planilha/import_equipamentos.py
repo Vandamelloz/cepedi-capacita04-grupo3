@@ -89,8 +89,11 @@ def setup_logging():
 
 
 def load_db_config():
-    # Procura o .env dentro da pasta backend
-    env_path = Path(__file__).resolve().parents[1] / "backend" / ".env"
+    # O caminho é construído de forma robusta a partir da localização do script,
+    # garantindo que funcione independentemente de onde o comando é executado.
+    project_root = Path(__file__).resolve().parents[2]
+    # Conforme informado, o arquivo .env está na raiz do projeto.
+    env_path = project_root / ".env"
     load_dotenv(dotenv_path=env_path)
 
     config = {
@@ -100,6 +103,10 @@ def load_db_config():
         "database": os.getenv("database"),
         "cursorclass": DictCursor,
     }
+
+    if not all(config.values()):
+        raise ConnectionError("As variáveis de ambiente do banco de dados não foram carregadas. Verifique o arquivo '.env' na raiz do projeto e suas permissões.")
+
     return config
 
 

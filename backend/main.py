@@ -1,9 +1,9 @@
 #==============================================
 # Projeto: GIPAR - Gerenciamento de Projetos Acadêmicos
 # Descrição: API para gerenciamento de projetos acadêmicos
-# Autores: [Francis, Helen e Yan]
+# Autores: [Francis, Helen, Yan e Pedro Paulo]
 # Data: [29/05/2026]
-# Versão beta teste 2.0 
+# Versão beta teste 2.0
 #==============================================
 
 """Importações de bibliotecas necessárias"""
@@ -34,6 +34,7 @@ from gerenciador_db.reserva import ReservaRepositorio
 from gerenciador_db.emprestimo import EmprestimoRepositorio
 from gerenciador_db.historico import HistoricoRepositorio
 from servicos.email_service import enviar_email
+from servicos.dashboard import DashboardService
 
 
 load_dotenv() # Carrega as variáveis de ambiente do arquivo .env
@@ -65,6 +66,7 @@ manutencao_repositorio = ManutencaoRepositorio(config_db)
 reserva_repositorio = ReservaRepositorio(config_db)
 emprestimo_repositorio = EmprestimoRepositorio(config_db)
 historico_repositorio = HistoricoRepositorio(config_db)
+dashboard_service = DashboardService(config_db)
 
 emprestimo_repositorio.set_historico_repositorio(historico_repositorio)
 manutencao_repositorio.set_historico_repositorio(historico_repositorio)
@@ -98,17 +100,17 @@ async def home():
             "POSR /criar_manutencao": "Criar manutenção",
             "GET /listar_manutencoes": "Listar manuteções",
             "PUT /atualizar_manutencao/{manutencao_id}": "Atualizar manutenção",
-            "DELETE /excluir_manutecao/{manutencao_id}": "Excluir manutenção",
+            "DELETE /excluir_manutencao/{manutencao_id}": "Excluir manutenção",
             "POST /criar_reserva": "Criar reserva",
             "GET /listar_reservas": "Listar reservas",
             "PUT /atualizar_reserva/{reserva_id}": "Atualizar reserva",
             "DELETE /excluir_reserva/{reserva_id}": "Excluir reserva",
             "POST /criar_emprestimo": "Criar empréstimo",
             "GET /listar_emprestimos": "Listar empréstimos",
-            "PUT /atualizar_emprestimo/{emprestimo_id}": "Atualizar empréstimo",
+            "PUT /atualizar_emprestimo/{emprestimo_id}": "Atualizar empréstimo (prazo, observações, atraso)",
             "PATCH /registrar_devolucao/{emprestimo_id}": "Registrar devolução",
             "GET /listar_historico": "Listar histórico",
-
+            "GET /dashboard/estatisticas": "Estatísticas do dashboard",
         }
     }
 
@@ -183,7 +185,7 @@ async def alterar_tipo_usuario(usuario_id: int, novo_tipo: str, admin_id: int):
     """Endpoint para alterar o tipo de usuário (apenas administradores)"""
     return await usuario_repositorio.alterar_tipo_usuario(usuario_id, novo_tipo, admin_id)
 
-"""INACTIVATE (inativar)"""
+"""INACTIVATE (inativar)""" #patch serve para atualizar apenas um campo específico, nesse caso o campo "ativo"
 @app.patch("/inativar_usuario/{usuario_id}")
 async def inativar_usuario(usuario_id: int):
     """Endpoint para inativar (Soft Delete) um usuário existente"""
@@ -251,6 +253,11 @@ async def atualizar_manutencao(manutencao_id: int, manutencao: Manutencao):
     """Endpoint para atualizar uma manutenção existente"""
     return await manutencao_repositorio.atualizar_manutencao(manutencao_id, manutencao)
 
+@app.delete("/excluir_manutencao/{manutencao_id}")
+async def excluir_manutencao(manutencao_id: int):
+    """Endpoint para excluir (Soft Delete) uma manutenção existente"""
+    return await manutencao_repositorio.excluir_manutencao(manutencao_id)
+
 
 #===============================================================================================
 #                               CRUD - RESERVA
@@ -290,6 +297,12 @@ async def criar_emprestimo(emprestimo: Emprestimo):
 async def listar_emprestimos(apenas_ativos: bool = False):
     """Endpoint para listar todos os empréstimos"""
     return await emprestimo_repositorio.listar_emprestimos(apenas_ativos)
+
+@app.put("/atualizar_emprestimo/{emprestimo_id}")
+async def atualizar_emprestimo(emprestimo_id: int, emprestimo: Emprestimo):
+    """Endpoint para atualizar prazo, observações ou marcar como ATRASADO.
+    Não é usado para devolução (ver /registrar_devolucao)."""
+    return await emprestimo_repositorio.atualizar_emprestimo(emprestimo_id, emprestimo)
 
 @app.patch("/registrar_devolucao/{emprestimo_id}")
 async def registrar_devolucao(emprestimo_id: int, id_tecnico_retorno: int):
@@ -351,3 +364,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     finally:
         cur.close()
         con.close()
+
+#===============================================================================================
+#                               DASHBOARD
+#===============================================================================================
+
+@app.get("/dashboard/estatisticas")
+async def obter_estatisticas_dashboard():
+    """
+    Endpoint para obter dados agrupados para o dashboard principal.
+    """
+    return await dashboard_service.obter_estatisticas()

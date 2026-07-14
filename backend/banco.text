@@ -1,8 +1,7 @@
 -- =====================================================================
--- SCRIPT DE CRIAÇÃO DO BANCO DE DE DADOS - PROJETO GIPAR
+-- SCRIPT DE CRIAÇÃO DO BANCO DE DADOS - PROJETO GIPAR
 -- Ambiente: Produção (Sintaxe Nativa MySQL)
-
--- Comandos SQL para criação do banco de dados e tabelas
+-- Atualizado para bater com o models.py da main (enums de status)
 -- =====================================================================
 
 CREATE DATABASE IF NOT EXISTS gipar_db
@@ -31,6 +30,7 @@ CREATE TABLE usuario (
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     senha VARCHAR(255) NOT NULL, -- Armazenará o hash da senha (Segurança)
+    tipo_usuario ENUM('ADMINISTRADOR', 'TECNICO', 'COMUM') NOT NULL DEFAULT 'COMUM',
     ativo BOOLEAN DEFAULT TRUE, -- Controle de Inativação
     data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -46,12 +46,10 @@ CREATE TABLE equipamento (
     modelo VARCHAR(100),
     id_categoria INT NOT NULL,
     quantidade INT NOT NULL DEFAULT 1,
+    status ENUM('DISPONIVEL', 'EM_USO', 'RESERVADO', 'EM_MANUTENCAO', 'INATIVO') NOT NULL DEFAULT 'DISPONIVEL',
     ativo BOOLEAN DEFAULT TRUE, -- Para Soft Delete [RF004]
     FOREIGN KEY (id_categoria) REFERENCES categoria(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
-
--- Para bancos ja criados antes da coluna quantidade:
--- ALTER TABLE equipamento ADD COLUMN quantidade INT NOT NULL DEFAULT 1 AFTER id_categoria;
 
 -- ---------------------------------------------------------------------
 -- 4. TABELA: manutencao
@@ -60,10 +58,14 @@ CREATE TABLE equipamento (
 CREATE TABLE manutencao (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_equipamento INT NOT NULL,
+    id_tecnico INT NOT NULL, -- Técnico responsável pela ação (abertura ou conclusão)
     descricao_defeito TEXT NOT NULL,
+    status ENUM('PENDENTE', 'EM_ANDAMENTO', 'CONCLUIDO', 'CANCELADO') NOT NULL DEFAULT 'PENDENTE',
     data_abertura DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     data_conclusao DATETIME NULL,
-    FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE RESTRICT
+    ativo BOOLEAN NOT NULL DEFAULT TRUE, -- Para Soft Delete (excluir_manutencao)
+    FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE RESTRICT,
+    FOREIGN KEY (id_tecnico) REFERENCES usuario(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -75,6 +77,7 @@ CREATE TABLE reserva (
     id_equipamento INT NOT NULL,
     id_usuario INT NOT NULL, -- Quem solicitou a reserva
     data_reserva DATE NOT NULL, -- Data para quando o equipamento foi reservado
+    status ENUM('PENDENTE', 'EFETIVADA', 'CANCELADA') NOT NULL DEFAULT 'PENDENTE',
     data_solicitacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE RESTRICT,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE RESTRICT
@@ -94,6 +97,7 @@ CREATE TABLE emprestimo (
     data_previsao_devolucao DATETIME NOT NULL,
     data_devolucao_real DATETIME NULL,
     observacoes TEXT,
+    status ENUM('ATIVO', 'DEVOLVIDO', 'ATRASADO') NOT NULL DEFAULT 'ATIVO',
     FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE RESTRICT,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE RESTRICT,
     FOREIGN KEY (id_tecnico_saida) REFERENCES usuario(id) ON DELETE RESTRICT,
@@ -104,12 +108,14 @@ CREATE TABLE emprestimo (
 -- 7. TABELA: historico_movimentacao (Auditoria / Logs)
 -- Descrição: Registo cronológico para o Relatório de Movimentações [RF017]
 -- ---------------------------------------------------------------------
---CREATE TABLE historico_movimentacao (
-    --id INT AUTO_INCREMENT PRIMARY KEY,
-    --id_equipamento INT NOT NULL,
-    --id_usuario_acao INT NOT NULL, -- Quem realizou a ação no sistema
-    --descricao_motivo VARCHAR(255) NOT NULL, -- Ex: "Início do empréstimo nº 12", "Entrada em manutenção"
-    --data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    --FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE CASCADE,
-    --FOREIGN KEY (id_usuario_acao) REFERENCES usuario(id) ON DELETE RESTRICT
---) --ENGINE=InnoDB;
+CREATE TABLE historico_movimentacao (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_equipamento INT NOT NULL,
+    id_usuario_acao INT NOT NULL, -- Quem realizou a ação no sistema
+    status_anterior ENUM('DISPONIVEL', 'EM_USO', 'RESERVADO', 'EM_MANUTENCAO', 'INATIVO') NULL,
+    status_novo ENUM('DISPONIVEL', 'EM_USO', 'RESERVADO', 'EM_MANUTENCAO', 'INATIVO') NOT NULL,
+    descricao_motivo VARCHAR(255) NOT NULL, -- Ex: "Início do empréstimo nº 12", "Entrada em manutenção"
+    data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario_acao) REFERENCES usuario(id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
