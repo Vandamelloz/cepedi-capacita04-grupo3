@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { buscarMeusEmprestimos } from "../services/emprestimos/emprestimosAluno.service";
+import { buscarMeusEmprestimos } from "../services/Emprestimos/emprestimosAluno.service";
 
 const STATUS_HISTORICO = ["Concluído", "Cancelado"];
 

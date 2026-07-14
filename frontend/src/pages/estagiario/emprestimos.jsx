@@ -7,7 +7,7 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import Botao from "../../components/Botao";
 import PopUpEmprestimoEstag from "../../components/PopUpEmprestimoEstag";
 import PopUpConclusaoEmprestimo from "../../components/PopUpConclusaoEmprestimo";
-import PopUpConclusao from "../../components/PopUpConclusao";
+import PopUpConclusao from "../../components/PopupConclusao";
 import TituloPagina from "../../components/TituloPagina";
 
 import { buscarEmprestimos, atualizarEmprestimo } from "../../services/Emprestimos/emprestimosEstag.service";
