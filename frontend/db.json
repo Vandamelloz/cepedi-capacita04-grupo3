@@ -187,8 +187,8 @@
       "data": "2026-06-10",
       "dataDevolucao": "2026-06-17",
       "dataDevolucaoReal": null,
-      "status": "Ativo",
-      "diasAtraso": 0,
+      "status": "Atrasado",
+      "diasAtraso": 27,
       "observacao": "Projeto de robótica."
     },
     {

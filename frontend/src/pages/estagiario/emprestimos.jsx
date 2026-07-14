@@ -100,7 +100,7 @@ export default function EstagEmprestimos() {
                 tipoUsuario="estagiario"
                 titulo="Empréstimos"
                 cargo="Estagiário"
-                nome="Paulo Victor"
+                nome="Fernando Lima"
                 notificacoes={[]}
                 onLogout={() => console.log("logout")}
             >
