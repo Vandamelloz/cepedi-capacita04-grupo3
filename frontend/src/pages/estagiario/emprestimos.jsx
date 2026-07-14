@@ -5,10 +5,12 @@ import Pesquisa from "../../components/Pesquisa/Pesquisa";
 import TabelaGipar from "../../components/tabelaGipar/TabelaGipar";
 import StatusBadge from "../../components/ui/StatusBadge";
 import Botao from "../../components/Botao";
-import PopUpEmprestimo from "../../components/PopUpEmprestimo/index";
+import PopUpEmprestimoEstag from "../../components/PopUpEmprestimoEstag";
+import PopUpConclusaoEmprestimo from "../../components/PopUpConclusaoEmprestimo";
+import PopUpConclusao from "../../components/PopUpConclusao";
 import TituloPagina from "../../components/TituloPagina";
 
-import { buscarEmprestimos } from "../../services/Emprestimos/emprestimosEstag.service";
+import { buscarEmprestimos, atualizarEmprestimo } from "../../services/Emprestimos/emprestimosEstag.service";
 
 export default function EstagEmprestimos() {
 
@@ -18,6 +20,17 @@ export default function EstagEmprestimos() {
     const [emprestimos, setEmprestimos] = useState([]);
 
     const [abrirPopup, setAbrirPopup] = useState(false);
+
+    const [abrirConclusao, setAbrirConclusao] = useState(false);
+    const [emprestimoSelecionado, setEmprestimoSelecionado] = useState(null);
+
+    const formatarData = (data) => {
+    if (!data) return "";
+
+    const [ano, mes, dia] = data.split("-");
+
+    return `${dia}/${mes}/${ano}`;
+};
 
     const carregarEmprestimos = useCallback(async () => {
         try {
@@ -32,13 +45,16 @@ export default function EstagEmprestimos() {
         carregarEmprestimos();
     }, [carregarEmprestimos]);
 
+
     const emprestimosFiltrados = emprestimos.filter((emprestimo) => {
 
         const busca = termo.toLowerCase();
 
         const bateTexto =
             emprestimo.equipamento?.toLowerCase().includes(busca) ||
-            emprestimo.usuario?.toLowerCase().includes(busca);
+            emprestimo.usuario?.toLowerCase().includes(busca)||
+            formatarData(emprestimo.data).includes(busca) ||
+            formatarData(emprestimo.dataDevolucao).includes(busca);
 
         const bateStatus =
             status === "" ||
@@ -47,6 +63,36 @@ export default function EstagEmprestimos() {
         return bateTexto && bateStatus;
     });
 
+    const onDevolver = (emprestimo) => {
+        setEmprestimoSelecionado(emprestimo);
+        setAbrirConclusao(true);
+    };
+
+    const handleConcluirEmprestimo = async (statusEquipamento) => {
+
+    try {
+
+        await atualizarEmprestimo(
+            emprestimoSelecionado.id,
+            {
+                ...emprestimoSelecionado,
+                status: "Concluído"
+            }
+        );
+
+        setAbrirConclusao(false);
+        setEmprestimoSelecionado(null);
+
+        carregarEmprestimos();
+
+    } catch (erro) {
+
+        console.error(erro);
+
+    }
+
+};
+
     return (
         <section className="h-screen w-full flex">
 
@@ -54,7 +100,7 @@ export default function EstagEmprestimos() {
                 tipoUsuario="estagiario"
                 titulo="Empréstimos"
                 cargo="Estagiário"
-                nome="Paulo Victor"
+                nome="Fernando Lima"
                 notificacoes={[]}
                 onLogout={() => console.log("logout")}
             >
@@ -96,8 +142,8 @@ export default function EstagEmprestimos() {
     colunas={[
         { titulo: "Equipamento", chave: "equipamento" },
         { titulo: "Usuário", chave: "usuario" },
-        { titulo: "Retirada", chave: "data" },
-        { titulo: "Devolução Prevista", chave: "dataDevolucao" },
+        { titulo: "Retirada", chave: "data", render: (valor) => formatarData(valor)},
+        { titulo: "Devolução Prevista", chave: "dataDevolucao", render: (valor) => formatarData(valor)},
         {
             titulo: "Status",
             chave: "status",
@@ -125,13 +171,29 @@ export default function EstagEmprestimos() {
 
             </LayoutUsuario>
 
-            {
-                abrirPopup &&
-                <PopUpEmprestimo
-                    fechar={() => setAbrirPopup(false)}
-                    aoSalvar={carregarEmprestimos}
-                />
-            }
+           {
+                abrirPopup && (
+                    <PopUpEmprestimoEstag
+                        fechar={() => setAbrirPopup(false)}
+                        aoSalvar={carregarEmprestimos}
+                    />
+        )
+    }
+
+    {
+    abrirConclusao && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <PopUpConclusaoEmprestimo
+                nomeEquipamento={emprestimoSelecionado?.equipamento}
+                onFechar={() => {
+                    setAbrirConclusao(false);
+                    setEmprestimoSelecionado(null);
+                }}
+                onConfirmar={handleConcluirEmprestimo}
+            />
+        </div>
+    )
+}
 
         </section>
     );
