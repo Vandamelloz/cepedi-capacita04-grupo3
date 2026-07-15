@@ -87,15 +87,6 @@ class Emprestimo(BaseModel):
     observacoes: Optional[str] = None
     status: StatusEmprestimo = StatusEmprestimo.ATIVO
 
-
-class HistoricoMovimentacao(BaseModel):
-    id_equipamento: int
-    id_usuario_acao: int
-    status_anterior: Optional[StatusEquipamento] = None
-    status_novo: StatusEquipamento
-    descricao_motivo: str
-
-
 class LogAuditoria(BaseModel):
     id: Optional[int] = None
     id_usuario: Optional[int] = None
@@ -106,17 +97,16 @@ class LogAuditoria(BaseModel):
     data_acao: Optional[datetime] = None
 
     class Config:
-<<<<<<< HEAD
         from_attributes = True
 
 class HistoricoMovimentacao(BaseModel):
     id: Optional[int] = None
     id_equipamento: int
-    id_usuario_acao: int                
-    descricao_motivo: str               
+    id_usuario_acao: int
+    status_anterior: Optional[StatusEquipamento] = None
+    status_novo: Optional[StatusEquipamento] = None
+    descricao_motivo: str
     data_movimentacao: Optional[datetime] = None
 
     class Config:
-=======
->>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
         from_attributes = True

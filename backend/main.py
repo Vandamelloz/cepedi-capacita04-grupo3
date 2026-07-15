@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 import os
 
 """importações de models"""
-from models.models import Categoria, Usuario, Equipamento, Manutencao, Reserva, Emprestimo
+from models.models import Categoria, Usuario, Equipamento, Manutencao, Reserva, Emprestimo, TipoUsuario
 
 """importações de repositórios"""
 from gerenciador_db.categoria import CategoriaRepositorio
@@ -68,10 +68,7 @@ equipamento_repositorio = EquipamentoRepositorio(config_db)
 manutencao_repositorio = ManutencaoRepositorio(config_db)
 reserva_repositorio = ReservaRepositorio(config_db)
 emprestimo_repositorio = EmprestimoRepositorio(config_db)
-<<<<<<< HEAD
 auditoria_repositorio = AuditoriaRepositorio(config_db)
-historico_repositorio = HistoricoRepositorio(config_db)
-=======
 historico_repositorio = HistoricoRepositorio(config_db)
 
 emprestimo_repositorio.set_historico_repositorio(historico_repositorio)
@@ -79,7 +76,6 @@ manutencao_repositorio.set_historico_repositorio(historico_repositorio)
 reserva_repositorio.set_historico_repositorio(historico_repositorio)
 
 emprestimo_repositorio.set_reserva_repositorio(reserva_repositorio)
->>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
 
 @app.get("/")
 async def home():
@@ -177,7 +173,6 @@ async def excluir_categoria(categoria_id: int):
 #                               CRUD - USUÁRIO
 #===============================================================================================
 
-from models.models import Usuario, TipoUsuario
 
 """CREATE (criar)"""
 @app.post("/criar_usuario")
@@ -240,7 +235,6 @@ async def inativar_usuario(usuario_id: int):
 """REACTIVATE (reativar)"""
 @app.patch("/reativar_usuario/{usuario_id}")
 async def reativar_usuario(usuario_id: int):
-<<<<<<< HEAD
     resultado = await usuario_repositorio.reativar_usuario(usuario_id)
     
     await auditoria_repositorio.registrar_log(LogAuditoria(
@@ -248,10 +242,6 @@ async def reativar_usuario(usuario_id: int):
         id_registro_afetado=usuario_id, detalhes="Usuário reativado no sistema"
     ))
     return resultado
-=======
-    """Endpoint para reativar um usuário existente"""
-    return await usuario_repositorio.reativar_usuario(usuario_id)
->>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
 
 
 #===============================================================================================
@@ -351,7 +341,6 @@ async def atualizar_manutencao(manutencao_id: int, manutencao: Manutencao):
     ))
     return resultado
 
-<<<<<<< HEAD
 """DELETE (apagar)"""
 @app.delete("/excluir_manutencao/{manutencao_id}")
 async def excluir_manutencao(manutencao_id: int):
@@ -363,8 +352,6 @@ async def excluir_manutencao(manutencao_id: int):
     ))
     return resultado
 
-=======
->>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
 
 #===============================================================================================
 #                               CRUD - RESERVA
@@ -398,7 +385,6 @@ async def atualizar_reserva(reserva_id: int, reserva: Reserva):
 
 @app.delete("/excluir_reserva/{reserva_id}")
 async def excluir_reserva(reserva_id: int):
-<<<<<<< HEAD
     resultado = await reserva_repositorio.excluir_reserva(reserva_id)
     
     await auditoria_repositorio.registrar_log(LogAuditoria(
@@ -406,10 +392,6 @@ async def excluir_reserva(reserva_id: int):
         id_registro_afetado=reserva_id, detalhes="Reserva excluída do sistema"
     ))
     return resultado
-=======
-    """Endpoint para cancelar uma reserva"""
-    return await reserva_repositorio.excluir_reserva(reserva_id)
->>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
 
 
 #===============================================================================================
@@ -437,7 +419,6 @@ async def listar_emprestimos(apenas_ativos: bool = False):
     """Endpoint para listar todos os empréstimos"""
     return await emprestimo_repositorio.listar_emprestimos(apenas_ativos)
 
-<<<<<<< HEAD
 """UPDATE (atualizar)"""
 @app.put("/atualizar_emprestimo/{emprestimo_id}")
 async def atualizar_emprestimo(emprestimo_id: int, emprestimo: Emprestimo):
@@ -459,12 +440,6 @@ async def devolver_emprestimo(emprestimo_id: int, id_tecnico_retorno: int):
         id_registro_afetado=emprestimo_id, detalhes="Devolução de equipamento registrada"
     ))
     return resultado
-=======
-@app.patch("/registrar_devolucao/{emprestimo_id}")
-async def registrar_devolucao(emprestimo_id: int, id_tecnico_retorno: int):
-    """Endpoint para registrar a devolução de um equipamento"""
-    return await emprestimo_repositorio.registrar_devolucao(emprestimo_id, id_tecnico_retorno)
->>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
 
 """ESSE CRUD NÃO POSSUI A FUNÇÃO DELETE, POIS O REGISTRO DE EMPRÉSTIMO DEVE SER MANTIDO
 PARA FINS DE HISTÓRICO, LOGS E RELATÓRIOS."""
@@ -527,8 +502,4 @@ async def listar_logs(tabela: str = None, id_usuario: int = None):
     """Endpoint para listar os logs de auditoria"""
     return await auditoria_repositorio.listar_logs(tabela, id_usuario)
 
-@app.get("/listar_historico")
-async def listar_historico(id_equipamento: int = None):
-    """Endpoint para listar o histórico de movimentações (com filtro opcional por equipamento)"""
-    return await historico_repositorio.listar_historico(id_equipamento)
 

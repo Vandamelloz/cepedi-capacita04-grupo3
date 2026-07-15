@@ -67,50 +67,16 @@ class EmprestimoRepositorio:
                 detail=f"Equipamento está reservado por outro usuário. Aguarde a reserva expirar."
             )
 
-<<<<<<< HEAD
-    # Método assíncrono para criar um novo empréstimo (SAÍDA)
-    async def criar_emprestimo(self, emprestimo: Emprestimo):
-        con = None
-        cur = None
-=======
     async def criar_emprestimo(self, emprestimo: Emprestimo):
         con = None
         cur = None
         reserva_id = None
         reserva_do_mesmo_usuario = False
 
->>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
         try:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
 
-<<<<<<< HEAD
-            # 1. Verifica se tem no estoque
-            cur.execute("SELECT quantidade FROM equipamento WHERE id = %s", (emprestimo.id_equipamento,))
-            estoque = cur.fetchone()
-            
-            if not estoque or estoque['quantidade'] <= 0:
-                raise HTTPException(status_code=400, detail="Equipamento indisponível ou sem saldo no estoque.")
-
-            # 2. Registra a saída
-            sql = """
-                INSERT INTO emprestimo 
-                (id_usuario, id_equipamento, id_tecnico_saida, data_retirada, data_previsao_devolucao, observacoes) 
-                VALUES (%s, %s, %s, NOW(), %s, %s)
-            """
-            cur.execute(sql, (
-                emprestimo.id_usuario, 
-                emprestimo.id_equipamento, 
-                emprestimo.id_tecnico_saida, 
-                emprestimo.data_previsao_devolucao, 
-                emprestimo.observacoes
-            ))
-            id_criado = cur.lastrowid
-            
-            # 3. Abate do estoque (-1)
-            cur.execute("UPDATE equipamento SET quantidade = quantidade - 1 WHERE id = %s", (emprestimo.id_equipamento,))
-            
-=======
             # ============================================================
             # 1. VERIFICAÇÕES INICIAIS
             # ============================================================
@@ -196,7 +162,6 @@ class EmprestimoRepositorio:
                 emprestimo.observacoes,
                 StatusEmprestimo.ATIVO.value
             ))
->>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
             con.commit()
 
             id_gerado = cur.lastrowid
@@ -240,20 +205,14 @@ class EmprestimoRepositorio:
 
             return {
                 "sucesso": True,
-<<<<<<< HEAD
-                "id": id_criado,
-                "mensagem": "Empréstimo registrado e estoque atualizado com sucesso"
-=======
                 "mensagem": f"Empréstimo criado com sucesso.{mensagem_reserva}",
                 "id": id_gerado,
                 "reserva_efetivada": bool(reserva_do_mesmo_usuario and reserva_id)
->>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
             }
 
         except HTTPException:
             raise
         except Exception as e:
-<<<<<<< HEAD
             if con: con.rollback()
             traceback.print_exc()
             raise HTTPException(status_code=500, detail=str(e))
@@ -261,19 +220,6 @@ class EmprestimoRepositorio:
             if cur: cur.close()
             if con: con.close()
     
-    # Método assíncrono para listar todos os empréstimos
-    async def listar_emprestimos(self,):
-=======
-            if con:
-                con.rollback()
-            traceback.print_exc()
-            raise HTTPException(status_code=500, detail=str(e))
-        finally:
-            if cur:
-                cur.close()
-            if con:
-                con.close()
->>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
 
     async def registrar_devolucao(self, emprestimo_id: int, id_tecnico_retorno: int):
         con = None
@@ -396,7 +342,6 @@ class EmprestimoRepositorio:
             if cur:
                 cur.close()
             if con:
-<<<<<<< HEAD
                 con.close()
 
     # Método para corrigir dados de um empréstimo que ainda está em andamento
@@ -424,42 +369,3 @@ class EmprestimoRepositorio:
             if cur: cur.close()
             if con: con.close()
 
-    # Método assíncrono para registrar a devolução (RETORNO)
-    async def registrar_devolucao(self, emprestimo_id: int, id_tecnico_retorno: int):
-        con = None
-        cur = None
-        try:
-            con = pymysql.connect(**self.config_db)
-            cur = con.cursor()
-            
-            # 1. Localiza o id do equipamento vinculado ao empréstimo
-            cur.execute("SELECT id_equipamento FROM emprestimo WHERE id = %s", (emprestimo_id,))
-            resultado = cur.fetchone()
-            if not resultado:
-                raise HTTPException(status_code=404, detail="Empréstimo não encontrado.")
-            
-            id_equipamento = resultado['id_equipamento']
-
-            # 2. Registra o retorno e o técnico responsável
-            sql = "UPDATE emprestimo SET data_devolucao_real = NOW(), id_tecnico_retorno = %s WHERE id = %s"
-            cur.execute(sql, (id_tecnico_retorno, emprestimo_id))
-            
-            # 3. Devolve para o estoque (+1)
-            cur.execute("UPDATE equipamento SET quantidade = quantidade + 1 WHERE id = %s", (id_equipamento,))
-            
-            con.commit()
-
-            return {
-                "sucesso": True,
-                "mensagem": "Devolução registrada e equipamento retornado ao estoque."
-            }
-        except Exception as e:
-            if con: con.rollback()
-            traceback.print_exc()
-            raise HTTPException(status_code=500, detail=str(e))
-        finally:
-            if cur: cur.close()
-            if con: con.close()
-=======
-                con.close()
->>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
