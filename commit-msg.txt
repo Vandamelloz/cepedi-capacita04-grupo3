@@ -1,0 +1,7 @@
+feat(frontend): autenticação via json-server com controle de acesso por perfil
+
+- Integra login com usuários do json-server (e-mail/login + senha)
+- Adiciona AuthContext, auth.service e ProtectedRoute
+- Protege rotas conforme perfil (adm, professor, estagiário, aluno)
+- Atualiza páginas admin para usar sessão do usuário logado
+- Ajusta menu e home do aluno para /alunoEmprestimos

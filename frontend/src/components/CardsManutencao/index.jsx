@@ -1,5 +1,6 @@
 import React from "react";
 import Botao from "../Botao";
+import { Pencil, Trash2, Eye } from "lucide-react";
 
 // Tag colorida de tipo da manutenção
 const Badge = ({ type }) => {
@@ -22,28 +23,82 @@ const CheckIcon = () => (
   </svg>
 );
 
-export default function CardManutencao({ name, pat, type, defect, sentAt, finishedAt, concluida, onComplete, onClick}) {
+export default function CardManutencao({ name, pat, type, defect, sentAt, finishedAt, concluida, onComplete, onEditar, onExcluir, onVisualizar}) {
   return (
     <div
-  onClick={!concluida ? onClick : undefined}
-  className={`bg-white border border-gray-200 rounded-xl px-6 pt-8 pb-8 shadow-sm flex flex-col gap-5 w-full h-full ${
-    !concluida
-      ? "cursor-pointer hover:shadow-md transition"
-      : ""
-  }`}
->
+  className= "bg-white border border-gray-200 rounded-xl px-6 pt-8 pb-8 shadow-sm flex flex-col gap-5 w-full h-full"
+    >
 
-      {/* Cabeçalho: nome + badge */}
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-sm font-bold text-gray-900">{name}</p>
-          <p className="text-sm text-gray-400 mt-0.5">{pat}</p>
-        </div>
-        <Badge type={type} />
-      </div>
+  {/* Cabeçalho: nome + badge */}
+  <div className="flex items-start justify-between gap-2">
+  <div>
+    <p className="text-sm font-bold text-gray-900">
+      {name}
+    </p>
+
+    <p className="text-sm text-gray-400 mt-0.5">
+      {pat}
+    </p>
+  </div>
+
+  <div className="flex items-center gap-2">
+
+  <Badge type={type} />
+
+  {concluida ? (
+    <>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onVisualizar?.();
+        }}
+        className="text-gray-400 hover:text-green-600 transition"
+        title="Visualizar manutenção"
+      >
+        <Eye size={16} />
+      </button>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onExcluir?.();
+        }}
+        className="text-gray-400 hover:text-red-600 transition"
+        title="Excluir manutenção"
+      >
+        <Trash2 size={16} />
+      </button>
+    </>
+  ) : (
+    <>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onEditar?.();
+        }}
+        className="text-gray-400 hover:text-blue-600 transition"
+        title="Editar manutenção"
+      >
+        <Pencil size={16} />
+      </button>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onExcluir?.();
+        }}
+        className="text-gray-400 hover:text-red-600 transition"
+        title="Excluir manutenção"
+      >
+        <Trash2 size={16} />
+      </button>
+    </>
+  )}
+  </div>
+</div>
 
       {/* Corpo: defeito + data */}
-      <div className="flex flex-col gap-2 text-sm">
+      <div className="flex flex-col gap-2 text-sm flex-1">
         <p className="text-sm text-gray-900">
           <span className="text-gray-500">Defeito: </span>
             {defect}
@@ -62,7 +117,8 @@ export default function CardManutencao({ name, pat, type, defect, sentAt, finish
   </div>
 
       {/* Botão concluir */}
-      <Botao
+      <Botao 
+        className="mt-auto pt-6"
         estilo={concluida ? "concluida" : "novo"}
         disabled={concluida}
         onClick={(e) => {

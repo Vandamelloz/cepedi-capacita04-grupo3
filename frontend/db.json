@@ -1,0 +1,320 @@
+{
+  "usuarios": [
+    {
+      "id": "1",
+      "nome": "Ana Costa",
+      "senha": "senha123",
+      "email": "ana.costa@instituicao.edu.br",
+      "login": "ana.costa",
+      "perfil": "Administrador",
+      "status": "Ativo"
+    },
+    {
+      "id": "2",
+      "nome": "Carlos Mendes",
+      "senha": "senha456",
+      "email": "carlos.mendes@instituicao.edu.br",
+      "login": "carlos.m",
+      "perfil": "Professor",
+      "status": "Ativo"
+    },
+    {
+      "id": "3",
+      "nome": "Beatriz Souza",
+      "senha": "senha789",
+      "email": "beatriz.souza@aluno.instituicao.edu.br",
+      "login": "beatriz.s",
+      "perfil": "Aluno",
+      "status": "Ativo"
+    },
+    {
+      "id": "4",
+      "nome": "Fernando Lima",
+      "senha": "senha012",
+      "email": "fernando.lima@estagio.instituicao.edu.br",
+      "login": "fernando.l",
+      "perfil": "Estagiário",
+      "status": "Ativo"
+    },
+    {
+      "id": "5",
+      "nome": "Juliana Ribeiro",
+      "senha": "senha345",
+      "email": "juliana.ribeiro@instituicao.edu.br",
+      "login": "juliana.r",
+      "perfil": "Professor",
+      "status": "Inativo"
+    }
+  ],
+  "equipamentos": [
+    {
+      "id": "1",
+      "nome": "Notebook Dell Latitude",
+      "categoria": "Informática",
+      "patrimonio": "PAT-001",
+      "descricao": "Notebook Dell Latitude 7490, Intel Core i7, 16GB RAM, 512GB SSD",
+      "status": "Disponível"
+    },
+    {
+      "id": "2",
+      "nome": "Projetor Epson X41",
+      "categoria": "Audiovisual",
+      "patrimonio": "PAT-002",
+      "descricao": "Projetor Epson X41, 3000 Lumen, HDMI, VGA",
+      "status": "Emprestado"
+    },
+    {
+      "id": "3",
+      "nome": "Câmera Canon EOS",
+      "categoria": "Audiovisual",
+      "patrimonio": "PAT-003",
+      "descricao": "Câmera Canon EOS 80D, lente 18-135mm, Full HD",
+      "status": "Em Manutenção"
+    },
+    {
+      "id": "4",
+      "nome": "Microscópio Binocular",
+      "categoria": "Laboratório",
+      "patrimonio": "PAT-004",
+      "descricao": "Microscópio Binocular com aumento de 40x a 1000x, iluminação LED",
+      "status": "Disponível"
+    },
+    {
+      "id": "5",
+      "nome": "Kit Arduino Completo",
+      "categoria": "Laboratório",
+      "patrimonio": "PAT-005",
+      "descricao": "Kit Arduino Completo com sensores e módulos",
+      "status": "Emprestado"
+    },
+    {
+      "id": "6",
+      "nome": "Impressora HP LaserJet",
+      "categoria": "Informática",
+      "patrimonio": "PAT-006",
+      "descricao": "Impressora HP LaserJet Pro M404dn, Monocromática, Duplex",
+      "status": "Disponível"
+    },
+    {
+      "id": "7",
+      "nome": "Tablet Samsung Tab S8",
+      "categoria": "Informática",
+      "patrimonio": "PAT-007",
+      "descricao": "Tablet Samsung Tab S8, 11 polegadas, 128GB, Wi-Fi",
+      "status": "Disponível"
+    },
+    {
+      "id": "8",
+      "nome": "Caixa de Som JBL",
+      "categoria": "Audiovisual",
+      "patrimonio": "PAT-008",
+      "descricao": "Caixa de Som JBL Flip 5, Bluetooth, à prova d'água",
+      "status": "Inativo"
+    },
+    {
+      "id": "9",
+      "nome": "Monitor LG 24\"",
+      "categoria": "Informática",
+      "patrimonio": "PAT-009",
+      "descricao": "Monitor LG 24 polegadas, Full HD, IPS",
+      "status": "Disponível"
+    },
+    {
+      "id": "10",
+      "nome": "Furadeira Bosch",
+      "categoria": "Ferramentas",
+      "patrimonio": "PAT-010",
+      "descricao": "Furadeira Bosch GSB 13 RE, 650W, com maleta",
+      "status": "Em Manutenção"
+    }
+  ],
+  "manutencoes": [
+    {
+      "id": "1",
+      "id_equipamento": 3,
+      "tipo": "Corretiva",
+      "descricao_defeito": "Lente com problema de foco automático e imagens sem cor",
+      "data_abertura": "2026-06-18",
+      "data_conclusao": null,
+      "concluida": false
+    },
+    {
+      "id": "2",
+      "id_equipamento": 10,
+      "tipo": "Preventiva",
+      "descricao_defeito": "Troca de escovas e revisão do motor e revisão das demais peças",
+      "data_abertura": "2024-06-04",
+      "data_conclusao": null,
+      "concluida": false
+    },
+    {
+      "id": "3",
+      "id_equipamento": 1,
+      "tipo": "Preventiva",
+      "descricao_defeito": "Limpeza interna e troca de pasta térmica",
+      "data_abertura": "2026-05-10",
+      "data_conclusao": "2026-05-12",
+      "concluida": true
+    },
+    {
+      "id": "4",
+      "id_equipamento": 6,
+      "tipo": "Corretiva",
+      "descricao_defeito": "Substituição do cilindro de impressão",
+      "data_abertura": "2026-04-18",
+      "data_conclusao": "2026-04-20",
+      "concluida": true
+    }
+  ],
+  "emprestimos": [
+    {
+      "id": "1",
+      "equipamento": "Projetor Epson X41",
+      "patrimonio": "PAT-002",
+      "usuario": "Carlos Mendes",
+      "data": "2026-06-01",
+      "dataDevolucao": "2026-06-05",
+      "dataDevolucaoReal": "2026-06-05",
+      "status": "Concluído",
+      "diasAtraso": 0,
+      "observacao": "Usado na apresentação de projetos."
+    },
+    {
+      "id": "2",
+      "equipamento": "Kit Arduino Completo",
+      "patrimonio": "PAT-005",
+      "usuario": "Beatriz Souza",
+      "data": "2026-06-10",
+      "dataDevolucao": "2026-06-17",
+      "dataDevolucaoReal": null,
+      "status": "Atrasado",
+      "diasAtraso": 27,
+      "observacao": "Projeto de robótica."
+    },
+    {
+      "id": "3",
+      "equipamento": "Câmera Canon EOS",
+      "patrimonio": "PAT-003",
+      "usuario": "Fernando Lima",
+      "data": "2026-05-20",
+      "dataDevolucao": "2026-07-08",
+      "dataDevolucaoReal": "2026-06-20",
+      "status": "Concluído",
+      "diasAtraso": 12,
+      "observacao": "Aguardando devolução, o aluno relatou problema no cartão SD."
+    },
+    {
+      "id": "4",
+      "equipamento": "Notebook Dell Latitude",
+      "patrimonio": "PAT-001",
+      "usuario": "Ana Costa",
+      "data": "2026-06-08",
+      "dataDevolucao": "2026-06-15",
+      "status": "Ativo",
+      "diasAtraso": 0,
+      "observacao": "Uso para desenvolvimento do sistema GIPAR."
+    },
+    {
+      "id": "5",
+      "equipamento": "Tablet Samsung Tab S8",
+      "patrimonio": "PAT-007",
+      "usuario": "Juliana Ribeiro",
+      "data": "2026-06-05",
+      "dataDevolucao": "2026-06-07",
+      "dataDevolucaoReal": "2026-06-07",
+      "status": "Concluído",
+      "diasAtraso": 0,
+      "observacao": "Devolvido em perfeito estado."
+    },
+    {
+      "id": "6",
+      "equipamento": "Microscópio Binocular",
+      "patrimonio": "PAT-004",
+      "usuario": "Beatriz Souza",
+      "data": "2026-06-01",
+      "dataDevolucao": "2026-06-03",
+      "dataDevolucaoReal": "2026-06-03",
+      "status": "Concluído",
+      "diasAtraso": 0,
+      "observacao": "Aula prática no laboratório."
+    },
+    {
+      "id": "7",
+      "equipamento": "Monitor LG 24\"",
+      "patrimonio": "PAT-009",
+      "usuario": "Carlos Mendes",
+      "data": "2026-05-25",
+      "dataDevolucao": "2026-05-28",
+      "dataDevolucaoReal": "2026-05-28",
+      "status": "Concluído",
+      "diasAtraso": 0,
+      "observacao": ""
+    },
+    {
+      "id": "8",
+      "equipamento": "Furadeira Bosch",
+      "patrimonio": "PAT-010",
+      "usuario": "Fernando Lima",
+      "data": "2026-06-02",
+      "dataDevolucao": "2026-06-04",
+      "status": "Cancelado",
+      "diasAtraso": 4,
+      "observacao": "Usado na manutenção corretiva da sala 3."
+    },
+    {
+      "id": "9",
+      "equipamento": "Caixa de Som JBL",
+      "patrimonio": "PAT-008",
+      "usuario": "Ana Costa",
+      "data": "2026-06-12",
+      "dataDevolucao": "2026-06-14",
+      "status": "Concluído",
+      "diasAtraso": 0,
+      "observacao": "Evento no auditório principal.",
+      "dataDevolucaoReal": "2026-07-09"
+    },
+    {
+      "id": "10",
+      "equipamento": "Impressora HP LaserJet",
+      "patrimonio": "PAT-006",
+      "usuario": "Carlos Mendes",
+      "data": "2026-06-11",
+      "dataDevolucao": "2026-06-18",
+      "status": "Ativo",
+      "diasAtraso": 0,
+      "observacao": "Impressão de provas finais."
+    },
+    {
+      "id": "ev9TW5uv4Vc",
+      "equipamento": "Monitor LG 24\"",
+      "patrimonio": "PAT-009",
+      "usuario": "Carlos Mendes",
+      "data": "2026-07-09",
+      "dataDevolucao": "2026-08-06",
+      "status": "Ativo",
+      "diasAtraso": 0,
+      "observacao": ""
+    },
+    {
+      "id": "n2thXcXBMAQ",
+      "equipamento": "Notebook Dell Latitude",
+      "patrimonio": "PAT-001",
+      "usuario": "Ana Costa",
+      "data": "2026-07-09",
+      "dataDevolucao": "2026-07-23",
+      "status": "Ativo",
+      "diasAtraso": 0,
+      "observacao": ""
+    },
+    {
+      "id": "LySgfMwt9TE",
+      "equipamento": "Impressora HP LaserJet",
+      "usuario": "Beatriz Souza",
+      "patrimonio": "PAT-006",
+      "data": "2026-07-11",
+      "dataDevolucao": "2026-07-02",
+      "status": "Concluído"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

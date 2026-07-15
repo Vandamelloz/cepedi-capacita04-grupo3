@@ -1,27 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../../components/ui/Logo";
+import { useAuth } from "../../contexts/AuthContext";
+import { buscarUsuariosAtivos, HOME_POR_PERFIL } from "../../services/auth/auth.service";
 
-const CREDENCIAIS_DEMO = [
-  {
-    email: "admin@gipar.com",
-    perfil: "Administrador",
-    descricao: "Acesso total ao sistema",
-    icone: "admin",
-  },
-  {
-    email: "maria@gipar.com",
-    perfil: "Estagiário",
-    descricao: "Gerencia empréstimos e equipamentos",
-    icone: "estagiario",
-  },
-  {
-    email: "joao@gipar.com",
-    perfil: "Aluno",
-    descricao: "Visualiza catálogo e seus empréstimos",
-    icone: "aluno",
-  },
-];
+const DESCRICAO_POR_PERFIL = {
+  Administrador: "Acesso total ao sistema",
+  Estagiário: "Gerencia empréstimos e equipamentos",
+  Aluno: "Visualiza catálogo e seus empréstimos",
+  Professor: "Acompanha equipamentos e manutenções",
+};
+
+function iconePorPerfil(perfil) {
+  if (perfil === "Administrador") return "admin";
+  if (perfil === "Estagiário") return "estagiario";
+  return "aluno";
+}
 
 function IconePerfil({ tipo }) {
   const classe = "w-5 h-5 text-[#1A6B74] shrink-0";
@@ -82,13 +76,47 @@ function IconeOlho({ visivel }) {
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const { login, isAuthenticated, homePath } = useAuth();
+
+  const [identificador, setIdentificador] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState("");
+  const [usuariosDemo, setUsuariosDemo] = useState([]);
+  const [erroDemo, setErroDemo] = useState("");
 
-  function handleSubmit(event) {
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(homePath, { replace: true });
+    }
+  }, [isAuthenticated, homePath, navigate]);
+
+  useEffect(() => {
+    buscarUsuariosAtivos()
+      .then(setUsuariosDemo)
+      .catch((err) => setErroDemo(err.message));
+  }, []);
+
+  async function handleSubmit(event) {
     event.preventDefault();
-    navigate("/dashboard");
+    setErro("");
+    setCarregando(true);
+
+    try {
+      const sessao = await login(identificador, senha);
+      navigate(HOME_POR_PERFIL[sessao.role] ?? "/dashboard", { replace: true });
+    } catch (err) {
+      setErro(err.message);
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  function preencherCredencial(usuario) {
+    setIdentificador(usuario.email);
+    setSenha(usuario.senha);
+    setErro("");
   }
 
   return (
@@ -108,15 +136,16 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div>
-              <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-[#374151]">
-                E-mail
+              <label htmlFor="identificador" className="mb-1.5 block text-sm font-medium text-[#374151]">
+                E-mail ou login
               </label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu@email.com"
+                id="identificador"
+                type="text"
+                value={identificador}
+                onChange={(e) => setIdentificador(e.target.value)}
+                placeholder="seu@email.com ou login"
+                required
                 className="h-10 w-full rounded-lg border border-[#D1D5DB] px-3 text-[#111827] outline-none transition-colors placeholder:text-[#9CA3AF] focus:border-[#1A6B74] focus:ring-1 focus:ring-[#1A6B74]"
               />
             </div>
@@ -131,6 +160,7 @@ export default function Login() {
                   type={mostrarSenha ? "text" : "password"}
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
+                  required
                   className="h-10 w-full rounded-lg border border-[#D1D5DB] px-3 pr-10 text-[#111827] outline-none transition-colors focus:border-[#1A6B74] focus:ring-1 focus:ring-[#1A6B74]"
                 />
                 <button
@@ -144,6 +174,12 @@ export default function Login() {
               </div>
             </div>
 
+            {erro && (
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {erro}
+              </p>
+            )}
+
             <div className="flex justify-end">
               <a href="#" className="text-sm text-[#2563EB] hover:underline">
                 Esqueci minha senha
@@ -152,46 +188,51 @@ export default function Login() {
 
             <button
               type="submit"
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#1A6B74] text-sm font-medium text-white transition-colors hover:bg-[#155A61]"
+              disabled={carregando}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#1A6B74] text-sm font-medium text-white transition-colors hover:bg-[#155A61] disabled:cursor-not-allowed disabled:opacity-70"
             >
               <IconeEntrar />
-              Entrar
+              {carregando ? "Entrando..." : "Entrar"}
             </button>
           </form>
 
           <div className="mt-6 sm:mt-8">
             <p className="mb-3 text-center text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF]">
-              Credenciais de demonstração
+              Usuários de demonstração
             </p>
 
-            <div className="space-y-2">
-              {CREDENCIAIS_DEMO.map((credencial) => (
-                <button
-                  key={credencial.email}
-                  type="button"
-                  onClick={() => {
-                    setEmail(credencial.email);
-                    setSenha("123456");
-                    navigate("/dashboard");
-                  }}
-                  className="flex w-full flex-col gap-1 rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-left transition-colors hover:border-[#1A6B74] hover:bg-[#F9FAFB] sm:flex-row sm:items-center sm:gap-3"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <IconePerfil tipo={credencial.icone} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-[#111827]">{credencial.perfil}</p>
-                      <p className="truncate text-xs text-[#6B7280]">{credencial.descricao}</p>
+            {erroDemo ? (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                {erroDemo}
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {usuariosDemo.map((usuario) => (
+                  <button
+                    key={usuario.id}
+                    type="button"
+                    onClick={() => preencherCredencial(usuario)}
+                    className="flex w-full flex-col gap-1 rounded-lg border border-[#E5E7EB] px-3 py-2.5 text-left transition-colors hover:border-[#1A6B74] hover:bg-[#F9FAFB] sm:flex-row sm:items-center sm:gap-3"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <IconePerfil tipo={iconePorPerfil(usuario.perfil)} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-[#111827]">{usuario.perfil}</p>
+                        <p className="truncate text-xs text-[#6B7280]">
+                          {DESCRICAO_POR_PERFIL[usuario.perfil] ?? usuario.nome}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <span className="pl-8 text-[11px] text-[#6B7280] sm:shrink-0 sm:pl-0">
-                    {credencial.email}
-                  </span>
-                </button>
-              ))}
-            </div>
+                    <span className="pl-8 text-[11px] text-[#6B7280] sm:shrink-0 sm:pl-0">
+                      {usuario.email}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             <p className="mt-4 text-center text-xs text-[#9CA3AF]">
-              Senha para todos: 123456
+              Clique em um usuário para preencher e depois em Entrar
             </p>
           </div>
         </div>

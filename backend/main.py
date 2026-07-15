@@ -1,9 +1,9 @@
 #==============================================
 # Projeto: GIPAR - Gerenciamento de Projetos Acadêmicos
 # Descrição: API para gerenciamento de projetos acadêmicos
-# Autores: [Francis, Helen e Ismar]
+# Autores: [Francis, Helen e Yan]
 # Data: [29/05/2026]
-# Versão beta teste 1.0 
+# Versão beta teste 2.0 
 #==============================================
 
 """Importações de bibliotecas necessárias"""
@@ -32,6 +32,7 @@ from gerenciador_db.equipamento import EquipamentoRepositorio
 from gerenciador_db.manutencao import ManutencaoRepositorio
 from gerenciador_db.reserva import ReservaRepositorio
 from gerenciador_db.emprestimo import EmprestimoRepositorio
+from gerenciador_db.historico import HistoricoRepositorio
 from servicos.email_service import enviar_email
 from gerenciador_db.auditoria import AuditoriaRepositorio
 from models.models import LogAuditoria
@@ -67,15 +68,25 @@ equipamento_repositorio = EquipamentoRepositorio(config_db)
 manutencao_repositorio = ManutencaoRepositorio(config_db)
 reserva_repositorio = ReservaRepositorio(config_db)
 emprestimo_repositorio = EmprestimoRepositorio(config_db)
+<<<<<<< HEAD
 auditoria_repositorio = AuditoriaRepositorio(config_db)
 historico_repositorio = HistoricoRepositorio(config_db)
+=======
+historico_repositorio = HistoricoRepositorio(config_db)
+
+emprestimo_repositorio.set_historico_repositorio(historico_repositorio)
+manutencao_repositorio.set_historico_repositorio(historico_repositorio)
+reserva_repositorio.set_historico_repositorio(historico_repositorio)
+
+emprestimo_repositorio.set_reserva_repositorio(reserva_repositorio)
+>>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
 
 @app.get("/")
 async def home():
     """Endpoint de teste para verificar se a API está funcionando"""
     return {
         "mensagem": "Bem-vindo à API do GIPAR!",
-        "versao": "1.0",
+        "versao": "2.0",
         "instrucoes": "Acesse /docs para usar a interface web",
         "endpoints": {
             "GET /": "Esta mensagem",
@@ -104,6 +115,8 @@ async def home():
             "POST /criar_emprestimo": "Criar empréstimo",
             "GET /listar_emprestimos": "Listar empréstimos",
             "PUT /atualizar_emprestimo/{emprestimo_id}": "Atualizar empréstimo",
+            "PATCH /registrar_devolucao/{emprestimo_id}": "Registrar devolução",
+            "GET /listar_historico": "Listar histórico",
 
         }
     }
@@ -164,6 +177,8 @@ async def excluir_categoria(categoria_id: int):
 #                               CRUD - USUÁRIO
 #===============================================================================================
 
+from models.models import Usuario, TipoUsuario
+
 """CREATE (criar)"""
 @app.post("/criar_usuario")
 async def criar_usuario(usuario: Usuario):
@@ -182,6 +197,18 @@ async def listar_usuarios():
     """Endpoint para listar apenas os usuários ativos"""
     return await usuario_repositorio.listar_usuarios()
 
+"""READ (listar por tipo)"""
+@app.get("/listar_usuarios/tipo/{tipo}")
+async def listar_usuarios_por_tipo(tipo: str):
+    """Endpoint para listar usuários por tipo (ADMINISTRADOR, TECNICO, COMUM)"""
+    return await usuario_repositorio.listar_usuarios_por_tipo(tipo)
+
+"""READ (buscar um)"""
+@app.get("/buscar_usuario/{usuario_id}")
+async def buscar_usuario(usuario_id: int):
+    """Endpoint para buscar um usuário específico pelo ID"""
+    return await usuario_repositorio.buscar_usuario(usuario_id)
+
 """UPDATE (atualizar)"""
 @app.put("/atualizar_usuario/{usuario_id}")
 async def atualizar_usuario(usuario_id: int, usuario: Usuario):
@@ -193,7 +220,13 @@ async def atualizar_usuario(usuario_id: int, usuario: Usuario):
     ))
     return resultado
 
-"""INACTIVATE (inativar)""" #patch serve para atualizar apenas um campo específico, nesse caso o campo "ativo"
+"""UPDATE (alterar tipo)"""
+@app.patch("/alterar_tipo_usuario/{usuario_id}")
+async def alterar_tipo_usuario(usuario_id: int, novo_tipo: str, admin_id: int):
+    """Endpoint para alterar o tipo de usuário (apenas administradores)"""
+    return await usuario_repositorio.alterar_tipo_usuario(usuario_id, novo_tipo, admin_id)
+
+"""INACTIVATE (inativar)"""
 @app.patch("/inativar_usuario/{usuario_id}")
 async def inativar_usuario(usuario_id: int):
     resultado = await usuario_repositorio.inativar_usuario(usuario_id)
@@ -207,6 +240,7 @@ async def inativar_usuario(usuario_id: int):
 """REACTIVATE (reativar)"""
 @app.patch("/reativar_usuario/{usuario_id}")
 async def reativar_usuario(usuario_id: int):
+<<<<<<< HEAD
     resultado = await usuario_repositorio.reativar_usuario(usuario_id)
     
     await auditoria_repositorio.registrar_log(LogAuditoria(
@@ -214,6 +248,10 @@ async def reativar_usuario(usuario_id: int):
         id_registro_afetado=usuario_id, detalhes="Usuário reativado no sistema"
     ))
     return resultado
+=======
+    """Endpoint para reativar um usuário existente"""
+    return await usuario_repositorio.reativar_usuario(usuario_id)
+>>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
 
 
 #===============================================================================================
@@ -282,7 +320,6 @@ async def reativar_equipamento(equipamento_id: int):
 #                               CRUD - MANUTENÇÃO
 #===============================================================================================
 
-"""CREATE (criar)"""
 @app.post("/criar_manutencao")
 async def criar_manutencao(manutencao: Manutencao):
     resultado = await manutencao_repositorio.criar_manutencao(manutencao)
@@ -299,13 +336,11 @@ async def criar_manutencao(manutencao: Manutencao):
     ))
     return resultado
 
-"""READ (listar)"""
 @app.get("/listar_manutencoes")
 async def listar_manutencoes():
     """Endpoint para listar todas as manutenções"""
     return await manutencao_repositorio.listar_manutencoes()
 
-"""UPDATE (atualizar)"""
 @app.put("/atualizar_manutencao/{manutencao_id}")
 async def atualizar_manutencao(manutencao_id: int, manutencao: Manutencao):
     resultado = await manutencao_repositorio.atualizar_manutencao(manutencao_id, manutencao)
@@ -316,6 +351,7 @@ async def atualizar_manutencao(manutencao_id: int, manutencao: Manutencao):
     ))
     return resultado
 
+<<<<<<< HEAD
 """DELETE (apagar)"""
 @app.delete("/excluir_manutencao/{manutencao_id}")
 async def excluir_manutencao(manutencao_id: int):
@@ -327,12 +363,13 @@ async def excluir_manutencao(manutencao_id: int):
     ))
     return resultado
 
+=======
+>>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
 
 #===============================================================================================
 #                               CRUD - RESERVA
 #===============================================================================================
 
-"""CREATE (criar)"""
 @app.post("/criar_reserva")
 async def criar_reserva(reserva: Reserva):
     resultado = await reserva_repositorio.criar_reserva(reserva)
@@ -344,13 +381,11 @@ async def criar_reserva(reserva: Reserva):
     ))
     return resultado
 
-"""READ (listar)"""
 @app.get("/listar_reservas")
 async def listar_reservas():
     """Endpoint para listar todas as reservas"""
     return await reserva_repositorio.listar_reservas()
 
-"""UPDATE (atualizar)"""
 @app.put("/atualizar_reserva/{reserva_id}")
 async def atualizar_reserva(reserva_id: int, reserva: Reserva):
     resultado = await reserva_repositorio.atualizar_reserva(reserva_id, reserva)
@@ -361,9 +396,9 @@ async def atualizar_reserva(reserva_id: int, reserva: Reserva):
     ))
     return resultado
 
-"""DELETE (apagar)"""
 @app.delete("/excluir_reserva/{reserva_id}")
 async def excluir_reserva(reserva_id: int):
+<<<<<<< HEAD
     resultado = await reserva_repositorio.excluir_reserva(reserva_id)
     
     await auditoria_repositorio.registrar_log(LogAuditoria(
@@ -371,13 +406,16 @@ async def excluir_reserva(reserva_id: int):
         id_registro_afetado=reserva_id, detalhes="Reserva excluída do sistema"
     ))
     return resultado
+=======
+    """Endpoint para cancelar uma reserva"""
+    return await reserva_repositorio.excluir_reserva(reserva_id)
+>>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
 
 
 #===============================================================================================
 #                               CRUD - EMPRÉSTIMO
 #===============================================================================================
 
-"""CREATE (criar)"""
 @app.post("/criar_emprestimo")
 async def criar_emprestimo(emprestimo: Emprestimo):
     resultado = await emprestimo_repositorio.criar_emprestimo(emprestimo)
@@ -394,12 +432,12 @@ async def criar_emprestimo(emprestimo: Emprestimo):
     ))
     return resultado
 
-"""READ (listar)"""
 @app.get("/listar_emprestimos")
-async def listar_emprestimos():
+async def listar_emprestimos(apenas_ativos: bool = False):
     """Endpoint para listar todos os empréstimos"""
-    return await emprestimo_repositorio.listar_emprestimos()
+    return await emprestimo_repositorio.listar_emprestimos(apenas_ativos)
 
+<<<<<<< HEAD
 """UPDATE (atualizar)"""
 @app.put("/atualizar_emprestimo/{emprestimo_id}")
 async def atualizar_emprestimo(emprestimo_id: int, emprestimo: Emprestimo):
@@ -421,9 +459,25 @@ async def devolver_emprestimo(emprestimo_id: int, id_tecnico_retorno: int):
         id_registro_afetado=emprestimo_id, detalhes="Devolução de equipamento registrada"
     ))
     return resultado
+=======
+@app.patch("/registrar_devolucao/{emprestimo_id}")
+async def registrar_devolucao(emprestimo_id: int, id_tecnico_retorno: int):
+    """Endpoint para registrar a devolução de um equipamento"""
+    return await emprestimo_repositorio.registrar_devolucao(emprestimo_id, id_tecnico_retorno)
+>>>>>>> c04c0dbb58d306ab4ae0748cf8681330980f631f
 
 """ESSE CRUD NÃO POSSUI A FUNÇÃO DELETE, POIS O REGISTRO DE EMPRÉSTIMO DEVE SER MANTIDO
 PARA FINS DE HISTÓRICO, LOGS E RELATÓRIOS."""
+
+#===============================================================================================
+#                               CRUD - HISTÓRICO
+#===============================================================================================
+
+"""READ (listar)"""
+@app.get("/listar_historico")
+async def listar_historico(id_equipamento: int = None):
+    """Endpoint para listar todo o histórico (com filtro opcional por equipamento)"""
+    return await historico_repositorio.listar_historico(id_equipamento)
 
 
 #===============================================================================================

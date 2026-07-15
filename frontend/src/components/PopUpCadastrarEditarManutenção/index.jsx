@@ -1,3 +1,4 @@
+import {buscarEquipamentos, salvarManutencao, excluirManutencao,} from "../../services/manutencao/manutencoes.service";
 import { useState, useEffect } from "react";
 import TituloPagina from "../TituloPagina";
 import SubTitulo from "../SubTitulo";
@@ -6,12 +7,10 @@ import CaixaSelecao from "../CaixadeSelecao/CaixadeSelecao";
 import DataSelecao from "../DataSelecao/DataSelecao";
 import Botao from "../Botao";
 
-const API_URL = "http://localhost:3001/manutencoes";
-const EQUIPAMENTOS_URL = "http://localhost:3001/equipamentos";
-
 export default function PopUpCadastrarEditarManutenção({
   modoEdicao = false,
   manutencao = null,
+  modoVisualizacao = false,
   onFechar,
   onSalvar
 }) {
@@ -26,27 +25,46 @@ export default function PopUpCadastrarEditarManutenção({
 
 
   useEffect(() => {
-    const buscarEquipamentos = async () => {
-      try {
-        const response = await fetch(EQUIPAMENTOS_URL);
 
-        if (!response.ok) {
-          throw new Error();
-        }
+  async function carregarEquipamentos() {
 
-        const dados = await response.json();
+    try {
 
-        setEquipamentos(dados);
-      } catch {
-        setErro(
-          "Erro ao carregar equipamentos."
-        );
-      }
-    };
+      const dados =
+        await buscarEquipamentos();
 
-    buscarEquipamentos();
-  }, []);
+        if (modoEdicao || modoVisualizacao) {
+            setEquipamentos(dados);
+        } else {
+          setEquipamentos(
+            dados.filter(
+              (equipamento) =>
+                equipamento.status === "Disponível"
+      )
+  );
+}
 
+    } catch {
+
+      setErro(
+        "Erro ao carregar equipamentos."
+      );
+    }
+  }
+
+  carregarEquipamentos();
+
+}, []);
+
+// Preenche os campos ao editar/visualizar
+useEffect(() => {
+  if (!manutencao) return;
+
+  setEquipamento(String(manutencao.id_equipamento));
+  setTipo(manutencao.tipo);
+  setDefeito(manutencao.descricao_defeito);
+  setData(manutencao.data_abertura);
+}, [manutencao]);
 
   const opcoesEquipamentos = equipamentos.map(
     (equipamento) => ({
@@ -55,8 +73,8 @@ export default function PopUpCadastrarEditarManutenção({
     })
   );
 
+  const handleSubmit = async (e) => {
 
-const handleSubmit = async (e) => {
   e.preventDefault();
 
   if (
@@ -65,6 +83,7 @@ const handleSubmit = async (e) => {
     !defeito ||
     !data
   ) {
+
     setErro(
       "Preencha todos os campos obrigatórios."
     );
@@ -73,6 +92,7 @@ const handleSubmit = async (e) => {
   }
 
   setSalvando(true);
+
   setErro("");
 
   const equipamentoSelecionado =
@@ -83,84 +103,41 @@ const handleSubmit = async (e) => {
     );
 
   if (!equipamentoSelecionado) {
-    setErro("Equipamento inválido.");
+
+    setErro("Equipamento inválido");
+
     setSalvando(false);
+
     return;
   }
 
   const payload = {
-    id_equipamento: equipamentoSelecionado.id,
-
-    nome: equipamentoSelecionado.nome,
-
-    patrimonio: equipamentoSelecionado.patrimonio,
-
-    tipo: tipo,
-
+    id: manutencao?.id,
+    id_equipamento: Number(equipamento),
+    tipo,
     descricao_defeito: defeito,
-
     data_abertura: data,
-
-    data_conclusao:
-      manutencao?.data_conclusao || null,
-
-    concluida:
-      manutencao?.concluida || false
-  };
+};
 
   try {
-    const response = modoEdicao
-      ? await fetch(
-          `${API_URL}/${manutencao.id}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-            body: JSON.stringify(payload)
-          }
-        )
-
-      : await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-          body: JSON.stringify(payload)
-        });
-
-    if (!response.ok) {
-      throw new Error();
-    }
-
-    await fetch(
-      `${EQUIPAMENTOS_URL}/${equipamentoSelecionado.id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          status: "Indisponível"
-        })
-      }
-    );
 
     const dadosSalvos =
-      await response.json();
+      await salvarManutencao(
+      payload
+  );
 
     onSalvar(dadosSalvos);
 
     onFechar();
 
   } catch {
+
     setErro(
       "Erro ao salvar manutenção."
     );
 
   } finally {
+
     setSalvando(false);
   }
 };
@@ -176,13 +153,17 @@ const handleSubmit = async (e) => {
 
       <div className="mb-6">
         <TituloPagina>
-          {modoEdicao
+          {modoVisualizacao
+            ? "Manutenção Concluída"
+            : modoEdicao
             ? "Editar Manutenção"
             : "Registrar Manutenção"}
-        </TituloPagina>
+          </TituloPagina>
 
         <SubTitulo>
-          {modoEdicao
+          {modoVisualizacao
+            ? "Visualize os detalhes da manutenção concluída."
+            : modoEdicao
             ? "Faça as alterações necessárias."
             : "Registre uma nova manutenção."}
         </SubTitulo>
@@ -204,6 +185,7 @@ const handleSubmit = async (e) => {
           placeholder="Selecione o equipamento"
           opcoes={opcoesEquipamentos}
           value={equipamento}
+          disabled={modoVisualizacao}
           onChange={(e) =>
             setEquipamento(e.target.value)
           }
@@ -224,6 +206,7 @@ const handleSubmit = async (e) => {
             }
           ]}
           value={tipo}
+          disabled={modoVisualizacao}
           onChange={(e) =>
             setTipo(e.target.value)
           }
@@ -234,6 +217,7 @@ const handleSubmit = async (e) => {
           id="defeito"
           placeholder="Digite o defeito"
           value={defeito}
+          disabled={modoVisualizacao}
           onChange={(e) =>
             setDefeito(e.target.value)
           }
@@ -243,18 +227,14 @@ const handleSubmit = async (e) => {
           id="data"
           label="Data de Envio *"
           value={data}
+          disabled={modoVisualizacao}
           onChange={(e) =>
             setData(e.target.value)
           }
         />
 
-      {!modoEdicao && (
-      <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm px-4 py-3 rounded-lg">
-      Ao registrar a manutenção, o equipamento será marcado como <strong>Indisponível</strong>.
-      </div>
-    )}
-
-        <div className="flex justify-end gap-3 mt-2">
+        {!modoVisualizacao && (
+          <div className="flex justify-end gap-3 mt-2">
           <Botao
             children="Cancelar"
             onClick={onFechar}
@@ -280,7 +260,8 @@ const handleSubmit = async (e) => {
             icone={false}
             disabled={salvando}
           />
-        </div>
+  </div>
+)}
       </form>
     </div>
   );
