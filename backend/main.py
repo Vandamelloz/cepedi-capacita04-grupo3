@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 import os
 
 """importações de models"""
-from models.models import Categoria, Usuario, Equipamento, Manutencao, Reserva, Emprestimo
+from models.models import Categoria, Usuario, Equipamento, Manutencao, Reserva, Emprestimo, TipoUsuario
 
 """importações de repositórios"""
 from gerenciador_db.categoria import CategoriaRepositorio
@@ -34,6 +34,10 @@ from gerenciador_db.reserva import ReservaRepositorio
 from gerenciador_db.emprestimo import EmprestimoRepositorio
 from gerenciador_db.historico import HistoricoRepositorio
 from servicos.email_service import enviar_email
+from gerenciador_db.auditoria import AuditoriaRepositorio
+from models.models import LogAuditoria
+from gerenciador_db.historico import HistoricoRepositorio
+from models.models import HistoricoMovimentacao
 
 
 load_dotenv() # Carrega as variáveis de ambiente do arquivo .env
@@ -64,6 +68,7 @@ equipamento_repositorio = EquipamentoRepositorio(config_db)
 manutencao_repositorio = ManutencaoRepositorio(config_db)
 reserva_repositorio = ReservaRepositorio(config_db)
 emprestimo_repositorio = EmprestimoRepositorio(config_db)
+auditoria_repositorio = AuditoriaRepositorio(config_db)
 historico_repositorio = HistoricoRepositorio(config_db)
 
 emprestimo_repositorio.set_historico_repositorio(historico_repositorio)
@@ -94,8 +99,8 @@ async def home():
             "GET /listar_equipamentos": "Listar equioamentos",
             "PUT /atualizar_equipamento/{equipamento_id}": "Atualizar equipamento",
             "PATCH /inativar_equipamento/{equipamento_id}": "Inativar equipamento",
-            "PATCH / reativar_equipamento/{equipamento_id}": "Reativar equipamento",
-            "POSR /criar_manutencao": "Criar manutenção",
+            "PATCH /reativar_equipamento/{equipamento_id}": "Reativar equipamento",
+            "POST /criar_manutencao": "Criar manutenção",
             "GET /listar_manutencoes": "Listar manuteções",
             "PUT /atualizar_manutencao/{manutencao_id}": "Atualizar manutenção",
             "DELETE /excluir_manutecao/{manutencao_id}": "Excluir manutenção",
@@ -120,7 +125,20 @@ async def home():
 @app.post("/criar_categoria")
 async def criar_categoria(categoria: Categoria):
     """Endpoint para criar uma nova categoria"""
-    return await categoria_repositorio.criar_categoria(categoria)
+    resultado = await categoria_repositorio.criar_categoria(categoria)
+    
+    # === Início da Auditoria ===
+    novo_log = LogAuditoria(
+        id_usuario=1, 
+        acao="INSERT", 
+        tabela_afetada="categoria",
+        id_registro_afetado=resultado.get("id", 0) if isinstance(resultado, dict) else 0,
+        detalhes=f"Categoria criada no sistema"
+    )
+    await auditoria_repositorio.registrar_log(novo_log)
+    # === Fim da Auditoria ===
+
+    return resultado
 
 """READ (listar)"""
 @app.get("/listar_categorias")
@@ -131,27 +149,42 @@ async def listar_categorias():
 """UPDATE (atualizar)"""
 @app.put("/atualizar_categoria/{categoria_id}")
 async def atualizar_categoria(categoria_id: int, categoria: Categoria):
-    """Endpoint para atualizar uma categoria existente"""
-    return await categoria_repositorio.atualizar_categoria(categoria_id, categoria)
+    resultado = await categoria_repositorio.atualizar_categoria(categoria_id, categoria)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="UPDATE", tabela_afetada="categoria",
+        id_registro_afetado=categoria_id, detalhes="Categoria atualizada no sistema"
+    ))
+    return resultado
 
 """DELETE (apagar)"""
 @app.delete("/excluir_categoria/{categoria_id}")
 async def excluir_categoria(categoria_id: int):
-    """Endpoint para excluir uma categoria existente"""
-    return await categoria_repositorio.excluir_categoria(categoria_id)
+    resultado = await categoria_repositorio.excluir_categoria(categoria_id)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="DELETE", tabela_afetada="categoria",
+        id_registro_afetado=categoria_id, detalhes="Categoria excluída do sistema"
+    ))
+    return resultado
 
 
 #===============================================================================================
 #                               CRUD - USUÁRIO
 #===============================================================================================
 
-from models.models import Usuario, TipoUsuario
 
 """CREATE (criar)"""
 @app.post("/criar_usuario")
 async def criar_usuario(usuario: Usuario):
-    """Endpoint para criar um novo usuário"""
-    return await usuario_repositorio.criar_usuario(usuario)
+    resultado = await usuario_repositorio.criar_usuario(usuario)
+    id_registro = resultado.get("id", 0) if isinstance(resultado, dict) else getattr(resultado, "id", 0)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="INSERT", tabela_afetada="usuario",
+        id_registro_afetado=id_registro, detalhes="Usuário criado no sistema"
+    ))
+    return resultado
 
 """READ (listar)"""
 @app.get("/listar_usuarios")
@@ -174,8 +207,13 @@ async def buscar_usuario(usuario_id: int):
 """UPDATE (atualizar)"""
 @app.put("/atualizar_usuario/{usuario_id}")
 async def atualizar_usuario(usuario_id: int, usuario: Usuario):
-    """Endpoint para atualizar um usuário existente"""
-    return await usuario_repositorio.atualizar_usuario(usuario_id, usuario)
+    resultado = await usuario_repositorio.atualizar_usuario(usuario_id, usuario)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="UPDATE", tabela_afetada="usuario",
+        id_registro_afetado=usuario_id, detalhes="Usuário atualizado no sistema"
+    ))
+    return resultado
 
 """UPDATE (alterar tipo)"""
 @app.patch("/alterar_tipo_usuario/{usuario_id}")
@@ -186,14 +224,24 @@ async def alterar_tipo_usuario(usuario_id: int, novo_tipo: str, admin_id: int):
 """INACTIVATE (inativar)"""
 @app.patch("/inativar_usuario/{usuario_id}")
 async def inativar_usuario(usuario_id: int):
-    """Endpoint para inativar (Soft Delete) um usuário existente"""
-    return await usuario_repositorio.inativar_usuario(usuario_id)
+    resultado = await usuario_repositorio.inativar_usuario(usuario_id)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="UPDATE", tabela_afetada="usuario",
+        id_registro_afetado=usuario_id, detalhes="Usuário inativado no sistema"
+    ))
+    return resultado
 
 """REACTIVATE (reativar)"""
 @app.patch("/reativar_usuario/{usuario_id}")
 async def reativar_usuario(usuario_id: int):
-    """Endpoint para reativar um usuário existente"""
-    return await usuario_repositorio.reativar_usuario(usuario_id)
+    resultado = await usuario_repositorio.reativar_usuario(usuario_id)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="UPDATE", tabela_afetada="usuario",
+        id_registro_afetado=usuario_id, detalhes="Usuário reativado no sistema"
+    ))
+    return resultado
 
 
 #===============================================================================================
@@ -204,8 +252,19 @@ async def reativar_usuario(usuario_id: int):
 """CREATE (criar)"""
 @app.post("/criar_equipamento")
 async def criar_equipamento(equipamento: Equipamento):
-    """Endpoint para criar um novo equipamento"""
-    return await equipamento_repositorio.criar_equipamento(equipamento)
+    resultado = await equipamento_repositorio.criar_equipamento(equipamento)
+    id_registro = resultado.get("id", 0) if isinstance(resultado, dict) else getattr(resultado, "id", 0)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="INSERT", tabela_afetada="equipamento",
+        id_registro_afetado=id_registro, detalhes="Equipamento criado no sistema"
+    ))
+    await historico_repositorio.registrar_movimentacao(HistoricoMovimentacao(
+    id_equipamento=id_registro,
+    id_usuario_acao=1,   # ou o id do usuário logado, se disponível
+    descricao_motivo="Equipamento cadastrado no sistema"
+    ))
+    return resultado
 
 """READ (listar)"""
 @app.get("/listar_equipamentos")
@@ -216,20 +275,35 @@ async def listar_equipamentos():
 """UPDATE (atualizar)"""
 @app.put("/atualizar_equipamento/{equipamento_id}")
 async def atualizar_equipamento(equipamento_id: int, equipamento: Equipamento):
-    """Endpoint para atualizar um equipamento existente"""
-    return await equipamento_repositorio.atualizar_equipamento(equipamento_id, equipamento)
+    resultado = await equipamento_repositorio.atualizar_equipamento(equipamento_id, equipamento)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="UPDATE", tabela_afetada="equipamento",
+        id_registro_afetado=equipamento_id, detalhes="Equipamento atualizado no sistema"
+    ))
+    return resultado
 
 """INACTIVATE (inativar)"""
 @app.patch("/inativar_equipamento/{equipamento_id}")
 async def inativar_equipamento(equipamento_id: int):
-    """Endpoint para inativar (Soft Delete) um equipamento existente"""
-    return await equipamento_repositorio.inativar_equipamento(equipamento_id)
+    resultado = await equipamento_repositorio.inativar_equipamento(equipamento_id)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="UPDATE", tabela_afetada="equipamento",
+        id_registro_afetado=equipamento_id, detalhes="Equipamento inativado no sistema"
+    ))
+    return resultado
 
 """REACTIVATE (reativar)"""
 @app.patch("/reativar_equipamento/{equipamento_id}")
 async def reativar_equipamento(equipamento_id: int):
-    """Endpoint para reativar (Soft Delete) um equipamento existente"""
-    return await equipamento_repositorio.reativar_equipamento(equipamento_id)
+    resultado = await equipamento_repositorio.reativar_equipamento(equipamento_id)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="UPDATE", tabela_afetada="equipamento",
+        id_registro_afetado=equipamento_id, detalhes="Equipamento reativado no sistema"
+    ))
+    return resultado
 
 
 #===============================================================================================
@@ -238,8 +312,19 @@ async def reativar_equipamento(equipamento_id: int):
 
 @app.post("/criar_manutencao")
 async def criar_manutencao(manutencao: Manutencao):
-    """Endpoint para criar uma nova manutenção"""
-    return await manutencao_repositorio.criar_manutencao(manutencao)
+    resultado = await manutencao_repositorio.criar_manutencao(manutencao)
+    id_registro = resultado.get("id", 0) if isinstance(resultado, dict) else getattr(resultado, "id", 0)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="INSERT", tabela_afetada="manutencao",
+        id_registro_afetado=id_registro, detalhes="Manutenção criada no sistema"
+    ))
+    await historico_repositorio.registrar_movimentacao(HistoricoMovimentacao(
+    id_equipamento=manutencao.id_equipamento,
+    id_usuario_acao=1,
+    descricao_motivo=f"Manutenção registrada (ID {id_registro})"
+    ))
+    return resultado
 
 @app.get("/listar_manutencoes")
 async def listar_manutencoes():
@@ -248,8 +333,24 @@ async def listar_manutencoes():
 
 @app.put("/atualizar_manutencao/{manutencao_id}")
 async def atualizar_manutencao(manutencao_id: int, manutencao: Manutencao):
-    """Endpoint para atualizar uma manutenção existente"""
-    return await manutencao_repositorio.atualizar_manutencao(manutencao_id, manutencao)
+    resultado = await manutencao_repositorio.atualizar_manutencao(manutencao_id, manutencao)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="UPDATE", tabela_afetada="manutencao",
+        id_registro_afetado=manutencao_id, detalhes="Manutenção atualizada no sistema"
+    ))
+    return resultado
+
+"""DELETE (apagar)"""
+@app.delete("/excluir_manutencao/{manutencao_id}")
+async def excluir_manutencao(manutencao_id: int):
+    resultado = await manutencao_repositorio.excluir_manutencao(manutencao_id)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="DELETE", tabela_afetada="manutencao",
+        id_registro_afetado=manutencao_id, detalhes="Manutenção excluída do sistema"
+    ))
+    return resultado
 
 
 #===============================================================================================
@@ -258,8 +359,14 @@ async def atualizar_manutencao(manutencao_id: int, manutencao: Manutencao):
 
 @app.post("/criar_reserva")
 async def criar_reserva(reserva: Reserva):
-    """Endpoint para criar uma nova reserva"""
-    return await reserva_repositorio.criar_reserva(reserva)
+    resultado = await reserva_repositorio.criar_reserva(reserva)
+    id_registro = resultado.get("id", 0) if isinstance(resultado, dict) else getattr(resultado, "id", 0)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="INSERT", tabela_afetada="reserva",
+        id_registro_afetado=id_registro, detalhes="Reserva criada no sistema"
+    ))
+    return resultado
 
 @app.get("/listar_reservas")
 async def listar_reservas():
@@ -268,13 +375,23 @@ async def listar_reservas():
 
 @app.put("/atualizar_reserva/{reserva_id}")
 async def atualizar_reserva(reserva_id: int, reserva: Reserva):
-    """Endpoint para atualizar uma reserva existente"""
-    return await reserva_repositorio.atualizar_reserva(reserva_id, reserva)
+    resultado = await reserva_repositorio.atualizar_reserva(reserva_id, reserva)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="UPDATE", tabela_afetada="reserva",
+        id_registro_afetado=reserva_id, detalhes="Reserva atualizada no sistema"
+    ))
+    return resultado
 
 @app.delete("/excluir_reserva/{reserva_id}")
 async def excluir_reserva(reserva_id: int):
-    """Endpoint para cancelar uma reserva"""
-    return await reserva_repositorio.excluir_reserva(reserva_id)
+    resultado = await reserva_repositorio.excluir_reserva(reserva_id)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="DELETE", tabela_afetada="reserva",
+        id_registro_afetado=reserva_id, detalhes="Reserva excluída do sistema"
+    ))
+    return resultado
 
 
 #===============================================================================================
@@ -283,18 +400,46 @@ async def excluir_reserva(reserva_id: int):
 
 @app.post("/criar_emprestimo")
 async def criar_emprestimo(emprestimo: Emprestimo):
-    """Endpoint para criar um novo empréstimo"""
-    return await emprestimo_repositorio.criar_emprestimo(emprestimo)
+    resultado = await emprestimo_repositorio.criar_emprestimo(emprestimo)
+    id_registro = resultado.get("id", 0) if isinstance(resultado, dict) else getattr(resultado, "id", 0)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="INSERT", tabela_afetada="emprestimo",
+        id_registro_afetado=id_registro, detalhes="Empréstimo criado no sistema"
+    ))
+    await historico_repositorio.registrar_movimentacao(HistoricoMovimentacao(
+    id_equipamento=emprestimo.id_equipamento,
+    id_usuario_acao=emprestimo.id_usuario,
+    descricao_motivo=f"Empréstimo criado (ID {id_registro})"
+    ))
+    return resultado
 
 @app.get("/listar_emprestimos")
 async def listar_emprestimos(apenas_ativos: bool = False):
     """Endpoint para listar todos os empréstimos"""
     return await emprestimo_repositorio.listar_emprestimos(apenas_ativos)
 
-@app.patch("/registrar_devolucao/{emprestimo_id}")
-async def registrar_devolucao(emprestimo_id: int, id_tecnico_retorno: int):
-    """Endpoint para registrar a devolução de um equipamento"""
-    return await emprestimo_repositorio.registrar_devolucao(emprestimo_id, id_tecnico_retorno)
+"""UPDATE (atualizar)"""
+@app.put("/atualizar_emprestimo/{emprestimo_id}")
+async def atualizar_emprestimo(emprestimo_id: int, emprestimo: Emprestimo):
+    resultado = await emprestimo_repositorio.atualizar_emprestimo(emprestimo_id, emprestimo)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=1, acao="UPDATE", tabela_afetada="emprestimo",
+        id_registro_afetado=emprestimo_id, detalhes="Empréstimo atualizado no sistema"
+    ))
+    return resultado
+
+"""UPDATE (devolver)"""
+@app.put("/devolver_emprestimo/{emprestimo_id}")
+async def devolver_emprestimo(emprestimo_id: int, id_tecnico_retorno: int):
+    resultado = await emprestimo_repositorio.registrar_devolucao(emprestimo_id, id_tecnico_retorno)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=id_tecnico_retorno, acao="UPDATE", tabela_afetada="emprestimo",
+        id_registro_afetado=emprestimo_id, detalhes="Devolução de equipamento registrada"
+    ))
+    return resultado
 
 """ESSE CRUD NÃO POSSUI A FUNÇÃO DELETE, POIS O REGISTRO DE EMPRÉSTIMO DEVE SER MANTIDO
 PARA FINS DE HISTÓRICO, LOGS E RELATÓRIOS."""
@@ -351,3 +496,10 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     finally:
         cur.close()
         con.close()
+
+@app.get("/listar_logs")
+async def listar_logs(tabela: str = None, id_usuario: int = None):
+    """Endpoint para listar os logs de auditoria"""
+    return await auditoria_repositorio.listar_logs(tabela, id_usuario)
+
+
