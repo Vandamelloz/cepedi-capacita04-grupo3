@@ -22,9 +22,9 @@ export default function PopUpExclusao({
         <div className="mb-5 mt-1">
         <TituloPagina>{titulo}</TituloPagina>
 
-        <p className="text-[18px] leading-[25px] text-[#6B7280] font-normal mb-4">
+        <SubTitulo className="text-[18px] leading-[25px] text-[#6B7280] font-normal mb-4">
             {subtitulo}
-        </p>
+        </SubTitulo>
         </div>
 
         <div className="flex justify-end gap-3">

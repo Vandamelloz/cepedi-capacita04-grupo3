@@ -42,6 +42,14 @@ export default function useManutencoes() {
     carregar();
   }, [carregar]);
 
+  function formatarData(data) {
+
+      if (!data) return "";
+      const [ano, mes, dia] = data.split("-");
+
+      return `${dia}/${mes}/${ano}`;
+}
+
   // Filtro pesquisa
   const manutencoesFiltradas =
   (manutencoes || []).filter((m) => {
@@ -49,21 +57,19 @@ export default function useManutencoes() {
       const termoBusca = termo.toLowerCase();
 
       const buscaOk =
-      (m.nome || "")
-        .toLowerCase()
-        .includes(termoBusca) ||
+        (m.nome || "")
+          .toLowerCase()
+          .includes(termoBusca) ||
 
-      (m.patrimonio || "")
-        .toLowerCase()
-        .includes(termoBusca) ||
+        (m.patrimonio || "")
+          .toLowerCase()
+          .includes(termoBusca) ||
 
-      (m.data_abertura || "")
-        .toLowerCase()
-        .includes(termoBusca) ||
+        formatarData(m.data_abertura)
+          .includes(termoBusca) ||
 
-      (m.data_conclusao || "")
-        .toLowerCase()
-        .includes(termoBusca);
+        formatarData(m.data_conclusao)
+          .includes(termoBusca);
 
       const statusOk =
         mostrarConcluidas

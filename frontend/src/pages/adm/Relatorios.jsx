@@ -66,8 +66,10 @@ export default function Relatorios() {
   }, [tipoRelatorio, dataInicial, dataFinal]);
 
   useEffect(() => {
+    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     gerarPreview();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

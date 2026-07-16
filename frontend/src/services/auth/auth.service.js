@@ -13,7 +13,7 @@ export const ROTAS_POR_PERFIL = {
   estagiario: ["/dashboard", "/equipamentos", "/equipamento", "/EstagEquipamentos", "/EstagEmprestimos"],
 
   professor: ["/dashboard", "/equipamentos", "/equipamento", "/manutencoes"],
-  aluno: ["/alunoEmprestimos", "/equipamentos", "/equipamento"],
+  aluno: ["/alunoEmprestimos", "/catalogo", "/equipamentos", "/equipamento"],
 };
 
 export function mapPerfilToRole(perfil) {
