@@ -56,6 +56,7 @@ export default function CardsTopoPagina({
   count,
   color = "orange",
   highlight = false,
+  countDestaque = false,
   onClick,
   ativo = false,
 }) {
@@ -86,7 +87,13 @@ export default function CardsTopoPagina({
 
       <div className="flex min-w-0 flex-col gap-0.5 sm:gap-1">
         <span className="truncate text-xs font-medium text-gray-500 sm:text-sm">{label}</span>
-        <span className="text-xl font-bold leading-none text-gray-900 sm:text-2xl">{count}</span>
+        <span
+          className={`text-xl font-bold leading-none sm:text-2xl ${
+            countDestaque ? "text-red-600" : "text-gray-900"
+          }`}
+        >
+          {count}
+        </span>
       </div>
     </Componente>
   );
