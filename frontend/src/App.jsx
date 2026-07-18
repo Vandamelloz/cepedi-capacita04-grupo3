@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Login from './pages/login/Login';
 import Usuarios from './pages/adm/Usuarios.jsx';
 import AdmDashboard from './pages/adm/admDashboard';
+import DashboardEstagiario from './pages/estagiario/Dashboard';
 import AdmEquipamentos from './pages/adm/equipamentos.jsx';
 import EstagEquipamentos from './pages/estagiario/equipamentos.jsx';
 import Manutencoes from './pages/adm/Manutencoes.jsx';
@@ -22,6 +23,16 @@ function RotaInicial() {
   return <Navigate to={isAuthenticated ? homePath : '/login'} replace />;
 }
 
+function DashboardRouter() {
+  const { usuario } = useAuth();
+
+  if (usuario?.role === 'estagiario') {
+    return <DashboardEstagiario />;
+  }
+
+  return <AdmDashboard />;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -34,7 +45,7 @@ export default function App() {
         path="/dashboard" 
         element={
           <ProtectedRoute>
-            <AdmDashboard />
+            <DashboardRouter />
           </ProtectedRoute>
         } 
       />
