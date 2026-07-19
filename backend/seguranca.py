@@ -2,12 +2,15 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from passlib.context import CryptContext
 import os
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 
 #USE pip install passlib argon2-cffi
 
 SECRET_KEY = os.getenv("SECRET_KEY", "chavesecretagipar")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # 🔴 MUDANÇA: Trocar bcrypt por argon2 (sem limite de 72 bytes)
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
@@ -41,3 +44,46 @@ def decodificar_token(token: str) -> dict:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except jwt.PyJWTError:
         return {}
+    
+
+
+def obter_usuario_atual(token: str = Depends(oauth2_scheme)):
+    """
+    Verifica o token da requisição. Se for válido, retorna os dados do usuário.
+    Se não for, bloqueia o acesso com Erro 401.
+    """
+    excecao_credenciais = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Não foi possível validar as credenciais",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    try:
+        # Reutiliza sua função existente para abrir o token
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        usuario_id: int = payload.get("id")
+        perfil: str = payload.get("perfil")
+
+        if email is None or usuario_id is None:
+            raise excecao_credenciais
+            
+        # Retorna o ID e o email extraídos do token
+        return {"id": usuario_id, "email": email, "perfil": perfil}
+        
+    except jwt.PyJWTError:
+        raise excecao_credenciais
+    
+def verificar_permissao(tipos_permitidos: list):
+    async def dependecia_verificacao(usuario_logado: dict = Depends(obter_usuario_atual)):
+        # Busca o perfil direto do token decodificado
+        # Precisamos ajustar o obter_usuario_atual para extrair o 'perfil' também!
+        perfil_usuario = usuario_logado.get("perfil") 
+        
+        if perfil_usuario not in tipos_permitidos:
+            raise HTTPException(
+                status_code=403, 
+                detail="Você não tem permissão para realizar esta ação"
+            )
+        return usuario_logado
+    return dependecia_verificacao
