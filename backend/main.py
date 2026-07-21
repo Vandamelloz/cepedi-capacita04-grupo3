@@ -9,6 +9,9 @@
 """Importações de bibliotecas necessárias"""
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+import csv
+import io
 from pydantic import BaseModel
 import pymysql
 from pymysql.cursors import DictCursor
@@ -448,6 +451,41 @@ async def devolver_emprestimo(emprestimo_id: int, usuario_logado: dict = Depends
 """ESSE CRUD NÃO POSSUI A FUNÇÃO DELETE, POIS O REGISTRO DE EMPRÉSTIMO DEVE SER MANTIDO
 PARA FINS DE HISTÓRICO, LOGS E RELATÓRIOS."""
 
+"""GERAR RELATÓRIO (CSV)"""
+@app.get("/relatorios/emprestimos/csv", dependencies=[PERMISSAO_TECNICO])
+async def relatorio_emprestimos_csv(usuario_logado: dict = Depends(obter_usuario_atual)):
+    """Endpoint para baixar o relatório de empréstimos em formato de planilha (CSV)"""
+    
+    # 1. Puxa os dados usando a função que já existe no seu banco
+    resultado = await emprestimo_repositorio.listar_emprestimos()
+    emprestimos = resultado.get("emprestimos", [])
+
+    # 2. Prepara o arquivo em memória
+    output = io.StringIO()
+    # Usamos ponto e vírgula (;) para o Excel em português abrir as colunas corretamente
+    writer = csv.writer(output, delimiter=';') 
+
+    # 3. Escreve o cabeçalho (nome das colunas na planilha)
+    writer.writerow(["ID", "Equipamento", "Patrimonio", "Usuario", "Data Retirada", "Status"])
+
+    # 4. Preenche as linhas com os dados do banco
+    for emp in emprestimos:
+        writer.writerow([
+            emp.get("emprestimo_id", ""),
+            emp.get("nome_equipamento", ""),
+            emp.get("codigo_patrimonio", ""),
+            emp.get("nome_usuario", ""),
+            emp.get("data_retirada", ""),
+            emp.get("status", "")
+        ])
+
+    # 5. Devolve o arquivo pronto para download
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=relatorio_emprestimos.csv"}
+    )
+
 #===============================================================================================
 #                               CRUD - HISTÓRICO
 #===============================================================================================
@@ -505,5 +543,3 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 async def listar_logs(tabela: str = None, id_usuario: int = None):
     """Endpoint para listar os logs de auditoria"""
     return await auditoria_repositorio.listar_logs(tabela, id_usuario)
-
-
