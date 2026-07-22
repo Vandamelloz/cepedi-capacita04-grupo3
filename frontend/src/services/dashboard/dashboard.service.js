@@ -1,4 +1,4 @@
-import { METRICAS_DEFINICAO } from "../../constants/dashboard.constants";
+import { METRICAS_DEFINICAO, METRICAS_ESTAGIARIO_DEFINICAO } from "../../constants/dashboard.constants";
 import { buscarEquipamentos } from "../Equipamentos/equipamentos.service";
 import { buscarEmprestimos } from "../Emprestimos/emprestimos.service";
 import { buscarUsuarios } from "../usuarios/usuarios.service";
@@ -76,13 +76,32 @@ function prepararEmprestimos(emprestimos) {
   }));
 }
 
+function contarEquipamentosPorStatus(equipamentos) {
+  return {
+    disponivel: equipamentos.filter((item) => item.status === "Disponível").length,
+    emprestado: equipamentos.filter((item) => item.status === "Emprestado").length,
+    manutencao: equipamentos.filter((item) => item.status === "Em Manutenção").length,
+  };
+}
+
+function emprestimoEstaAtrasado(emprestimo) {
+  const diasAtraso = emprestimo.diasAtraso ?? 0;
+
+  if (diasAtraso > 0) {
+    return true;
+  }
+
+  return emprestimo.status === "Atrasado";
+}
+
 function calcularMetricas(equipamentos, emprestimos) {
   const emprestimosComStatus = aplicarStatusDinamico(emprestimos);
+  const contagemEquipamentos = contarEquipamentosPorStatus(equipamentos);
 
   const contagens = {
-    disponiveis: equipamentos.filter((item) => item.status === "Disponível").length,
-    emprestados: equipamentos.filter((item) => item.status === "Emprestado").length,
-    manutencao: equipamentos.filter((item) => item.status === "Em Manutenção").length,
+    disponiveis: contagemEquipamentos.disponivel,
+    emprestados: contagemEquipamentos.emprestado,
+    manutencao: contagemEquipamentos.manutencao,
     atrasos: emprestimosComStatus.filter((item) => item.status === "Atrasado").length,
   };
 
@@ -90,6 +109,58 @@ function calcularMetricas(equipamentos, emprestimos) {
     ...metrica,
     count: contagens[metrica.id] ?? 0,
   }));
+}
+
+function calcularMetricasEstagiario(equipamentos, emprestimos) {
+  const contagemEquipamentos = contarEquipamentosPorStatus(equipamentos);
+
+  const contagens = {
+    disponiveis: contagemEquipamentos.disponivel,
+    emprestados: contagemEquipamentos.emprestado,
+    ativos: emprestimos.filter((item) => item.status === "Ativo").length,
+    atrasados: emprestimos.filter((item) => emprestimoEstaAtrasado(item)).length,
+  };
+
+  return METRICAS_ESTAGIARIO_DEFINICAO.map((metrica) => ({
+    ...metrica,
+    count: contagens[metrica.id] ?? 0,
+  }));
+}
+
+function calcularStatusEquipamentosGrafico(equipamentos) {
+  const contagem = contarEquipamentosPorStatus(equipamentos ?? []);
+
+  return [
+    { id: "disponivel", label: "Disponível", valor: contagem.disponivel },
+    { id: "emprestado", label: "Emprestado", valor: contagem.emprestado },
+    { id: "manutencao", label: "Em Manutenção", valor: contagem.manutencao },
+  ];
+}
+
+/** Dados do gráfico a partir da coleção equipamentos (json-server). */
+export function calcularGraficoStatusEquipamentos(equipamentos) {
+  return calcularStatusEquipamentosGrafico(equipamentos);
+}
+
+/** @deprecated Use calcularGraficoStatusEquipamentos */
+export function montarDadosGraficoEquipamentos(equipamentos) {
+  return calcularGraficoStatusEquipamentos(equipamentos);
+}
+
+/**
+ * Normaliza os dados para o contrato do GraficoBarrasHorizontal:
+ * { id, label, valor } — a barra usa "valor" para calcular a largura.
+ */
+export function mapearDadosParaGraficoBarras(dadosGrafico) {
+  return (dadosGrafico ?? []).map((item) => ({
+    id: item.id,
+    label: item.label,
+    valor: Number(item.valor ?? 0),
+  }));
+}
+
+function prepararEmprestimosEstagiario(emprestimos) {
+  return prepararEmprestimos(aplicarStatusDinamico(emprestimos));
 }
 
 function calcularItensMaisUsados(emprestimos) {
@@ -213,5 +284,30 @@ export async function buscarDadosDashboard({ simularErro = false, simularVazio =
       usuarios
     ),
     equipamentosEmManutencao,
+  };
+}
+
+/**
+ * Camada de acesso aos dados do dashboard do estagiário via json-server.
+ */
+export async function buscarDashboardEstagiario() {
+  const [equipamentos, emprestimos, manutencoes, usuarios] = await Promise.all([
+    buscarEquipamentos(),
+    buscarEmprestimos(),
+    buscarManutencoes(),
+    buscarUsuarios(),
+  ]);
+
+  return {
+    metricas: calcularMetricasEstagiario(equipamentos, emprestimos),
+    equipamentos,
+    statusEquipamentos: calcularGraficoStatusEquipamentos(equipamentos),
+    emprestimos: prepararEmprestimosEstagiario(emprestimos),
+    notificacoes: montarNotificacoes(
+      emprestimos,
+      manutencoes,
+      equipamentos,
+      usuarios
+    ),
   };
 }

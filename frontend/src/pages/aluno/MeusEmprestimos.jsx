@@ -4,11 +4,13 @@ import ModalDetalheEmprestimo from "../../components/ModalDetalheEmprestimo";
 import useMeusEmprestimos from "../../hooks/useMeusEmprestimos";
 import DashboardEstadoPainel from "../adm/components/DashboardEstadoPainel";
 import AlertaBanner from "../../components/AlertaBanner/AlertaBanner";
-import CardEmprestimo from "../../components/CardEmprestimo/CardEmprestimo";
+import CardEmprestimoAluno from "../../components/CardEmprestimoAluno/CardEmprestimoAluno";
 import EstadoVazio from "../../components/EstadoVazio/EstadoVazio";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function MeusEmprestimos() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const {
     usuario,
     emprestimosAtivos,
@@ -27,14 +29,15 @@ export default function MeusEmprestimos() {
   } = useMeusEmprestimos();
 
   function handleLogout() {
-    navigate("/login");
+    logout();
+    navigate("/login", { replace: true });
   }
 
   return (
     <LayoutUsuario
-      tipoUsuario={usuario.tipoUsuario}
+      tipoUsuario={usuario.role}
       titulo="Meus Empréstimos"
-      cargo={usuario.cargo}
+      cargo={usuario.perfil}
       nome={usuario.nome}
       notificacoes={notificacoes}
       onMarcarNotificacaoLida={marcarNotificacaoLida}
@@ -51,7 +54,6 @@ export default function MeusEmprestimos() {
 
       {!carregando && !erro && !paginaVazia && (
         <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-3 py-3 sm:px-6 sm:py-6">
-         
 
           {possuiAtraso && (
             <AlertaBanner
@@ -70,13 +72,13 @@ export default function MeusEmprestimos() {
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {emprestimosAtivos.map((emprestimo) => (
-                  <CardEmprestimo
+                  <CardEmprestimoAluno
                     key={emprestimo.id}
                     equipamento={emprestimo.equipamento}
                     patrimonio={emprestimo.patrimonio}
                     status={emprestimo.status}
-                    dataRetirada={emprestimo.dataFormatada}
-                    dataDevolucao={emprestimo.dataDevolucaoFormatada}
+                    data={emprestimo.data}
+                    dataDevolucao={emprestimo.dataDevolucao}
                     diasAtraso={emprestimo.diasAtraso}
                     onClick={() => abrirDetalheEmprestimo(emprestimo)}
                   />
@@ -95,13 +97,13 @@ export default function MeusEmprestimos() {
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {historico.map((emprestimo) => (
-                  <CardEmprestimo
+                  <CardEmprestimoAluno
                     key={emprestimo.id}
                     equipamento={emprestimo.equipamento}
                     patrimonio={emprestimo.patrimonio}
                     status={emprestimo.status}
-                    dataRetirada={emprestimo.dataFormatada}
-                    dataDevolucao={emprestimo.dataDevolucaoFormatada}
+                    data={emprestimo.data}
+                    dataDevolucao={emprestimo.dataDevolucao}
                     onClick={() => abrirDetalheEmprestimo(emprestimo)}
                   />
                 ))}

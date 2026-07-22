@@ -200,15 +200,13 @@ class EmprestimoRepositorio:
         except HTTPException:
             raise
         except Exception as e:
-            if con:
-                con.rollback()
+            if con: con.rollback()
             traceback.print_exc()
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            if cur:
-                cur.close()
-            if con:
-                con.close()
+            if cur: cur.close()
+            if con: con.close()
+    
 
     async def atualizar_emprestimo(self, emprestimo_id: int, emprestimo: Emprestimo):
         """
@@ -409,3 +407,29 @@ class EmprestimoRepositorio:
                 cur.close()
             if con:
                 con.close()
+
+    # Método para corrigir dados de um empréstimo que ainda está em andamento
+    async def atualizar_emprestimo(self, emprestimo_id: int, emprestimo: Emprestimo):
+        con = None
+        cur = None
+        try:
+            con = pymysql.connect(**self.config_db)
+            cur = con.cursor()
+            
+            # Atualiza apenas os campos que fazem sentido ser corrigidos manualmente
+            sql = "UPDATE emprestimo SET data_previsao_devolucao = %s, observacoes = %s WHERE id = %s"
+            cur.execute(sql, (emprestimo.data_previsao_devolucao, emprestimo.observacoes, emprestimo_id))
+            con.commit()
+
+            return {
+                "sucesso": True,
+                "mensagem": "Dados do empréstimo corrigidos com sucesso"
+            }
+        except Exception as e:
+            if con: con.rollback()
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            if cur: cur.close()
+            if con: con.close()
+

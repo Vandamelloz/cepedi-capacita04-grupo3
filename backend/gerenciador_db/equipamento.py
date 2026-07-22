@@ -22,18 +22,20 @@ class EquipamentoRepositorio:
             cur.execute("SELECT id FROM categoria WHERE id = %s", (equipamento.id_categoria,))
             if not cur.fetchone():
                 raise HTTPException(status_code=404, detail="Categoria não encontrada")
-
+            qtd = equipamento.quantidade if hasattr(equipamento, 'quantidade') else 1
+            status_seguro = equipamento.status.value if equipamento.status else 'DISPONIVEL'
             sql = """
                 INSERT INTO equipamento 
-                (codigo_patrimonio, nome, modelo, id_categoria, status, ativo) 
-                VALUES (%s, %s, %s, %s, %s, %s)
+                (codigo_patrimonio, nome, modelo, id_categoria, quantidade, status, ativo) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
             cur.execute(sql, (
                 equipamento.codigo_patrimonio,
                 equipamento.nome,
                 equipamento.modelo,
                 equipamento.id_categoria,
-                equipamento.status.value,
+                qtd,          # Adicionado aqui
+                status_seguro,
                 equipamento.ativo
             ))
             con.commit()

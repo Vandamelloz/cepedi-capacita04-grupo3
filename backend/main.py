@@ -26,17 +26,7 @@ from dotenv import load_dotenv
 import os
 
 """importações de models"""
-from models.models import (
-    Categoria,
-    Usuario,
-    Equipamento,
-    Manutencao,
-    Reserva,
-    Emprestimo,
-    TipoUsuario,
-    LogAuditoria,
-    HistoricoMovimentacao,
-)
+from models.models import Categoria, Usuario, Equipamento, Manutencao, Reserva, Emprestimo, TipoUsuario
 
 """importações de repositórios"""
 from gerenciador_db.categoria import CategoriaRepositorio
@@ -46,9 +36,12 @@ from gerenciador_db.manutencao import ManutencaoRepositorio
 from gerenciador_db.reserva import ReservaRepositorio
 from gerenciador_db.emprestimo import EmprestimoRepositorio
 from gerenciador_db.historico import HistoricoRepositorio
-from gerenciador_db.auditoria import AuditoriaRepositorio
 from servicos.email_service import enviar_email
 from servicos.dashboard import DashboardService
+from gerenciador_db.auditoria import AuditoriaRepositorio
+from models.models import LogAuditoria
+from gerenciador_db.historico import HistoricoRepositorio
+from models.models import HistoricoMovimentacao
 
 
 load_dotenv() # Carrega as variáveis de ambiente do arquivo .env
@@ -115,7 +108,7 @@ async def home():
             "POST /criar_manutencao": "Criar manutenção",
             "GET /listar_manutencoes": "Listar manuteções",
             "PUT /atualizar_manutencao/{manutencao_id}": "Atualizar manutenção",
-            "DELETE /excluir_manutencao/{manutencao_id}": "Excluir manutenção",
+            "DELETE /excluir_manutecao/{manutencao_id}": "Excluir manutenção",
             "POST /criar_reserva": "Criar reserva",
             "GET /listar_reservas": "Listar reservas",
             "PUT /atualizar_reserva/{reserva_id}": "Atualizar reserva",
@@ -123,12 +116,10 @@ async def home():
             "POST /criar_emprestimo": "Criar empréstimo",
             "GET /listar_emprestimos": "Listar empréstimos",
             "PUT /atualizar_emprestimo/{emprestimo_id}": "Atualizar empréstimo",
-            "PUT /devolver_emprestimo/{emprestimo_id}": "Registrar devolução",
             "PATCH /registrar_devolucao/{emprestimo_id}": "Registrar devolução",
-            "GET /relatorios/emprestimos/csv": "Gerar relatório de empréstimos em CSV",
             "GET /listar_historico": "Listar histórico",
-            "GET /listar_logs": "Listar logs de auditoria",
             "GET /dashboard/estatisticas": "Estatísticas do dashboard",
+
         }
     }
 
@@ -141,18 +132,21 @@ PERMISSAO_TECNICO = Depends(verificar_permissao(["ADMINISTRADOR", "TECNICO"]))
 
 """CREATE (criar)"""
 @app.post("/criar_categoria", dependencies=[PERMISSAO_ADMIN])
-async def criar_categoria(categoria: Categoria, usuario_logado: dict = Depends(obter_usuario_atual)):
+async def criar_categoria(categoria: Categoria,
+    usuario_logado: dict = Depends(obter_usuario_atual)):
     """Endpoint para criar uma nova categoria"""
     resultado = await categoria_repositorio.criar_categoria(categoria)
 
+    # === Início da Auditoria ===
     novo_log = LogAuditoria(
         id_usuario=usuario_logado["id"],
         acao="INSERT",
         tabela_afetada="categoria",
         id_registro_afetado=resultado.get("id", 0) if isinstance(resultado, dict) else 0,
-        detalhes="Categoria criada no sistema"
+        detalhes=f"Categoria criada no sistema"
     )
     await auditoria_repositorio.registrar_log(novo_log)
+    # === Fim da Auditoria ===
 
     return resultado
 
@@ -163,7 +157,7 @@ async def listar_categorias(usuario_logado: dict = Depends(obter_usuario_atual))
     return await categoria_repositorio.listar_categorias()
 
 """UPDATE (atualizar)"""
-@app.put("/atualizar_categoria/{categoria_id}", dependencies=[PERMISSAO_ADMIN])
+@app.put("/atualizar_categoria/{categoria_id}",  dependencies=[PERMISSAO_ADMIN])
 async def atualizar_categoria(categoria_id: int, categoria: Categoria, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await categoria_repositorio.atualizar_categoria(categoria_id, categoria)
 
@@ -174,7 +168,7 @@ async def atualizar_categoria(categoria_id: int, categoria: Categoria, usuario_l
     return resultado
 
 """DELETE (apagar)"""
-@app.delete("/excluir_categoria/{categoria_id}", dependencies=[PERMISSAO_ADMIN])
+@app.delete("/excluir_categoria/{categoria_id}",dependencies=[PERMISSAO_ADMIN])
 async def excluir_categoria(categoria_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await categoria_repositorio.excluir_categoria(categoria_id)
 
@@ -188,6 +182,7 @@ async def excluir_categoria(categoria_id: int, usuario_logado: dict = Depends(ob
 #===============================================================================================
 #                               CRUD - USUÁRIO
 #===============================================================================================
+
 
 """CREATE (criar)"""
 @app.post("/criar_usuario", dependencies=[PERMISSAO_ADMIN])
@@ -231,7 +226,7 @@ async def atualizar_usuario(usuario_id: int, usuario: Usuario, usuario_logado: d
     return resultado
 
 """UPDATE (alterar tipo)"""
-@app.patch("/alterar_tipo_usuario/{usuario_id}", dependencies=[PERMISSAO_ADMIN])
+@app.patch("/alterar_tipo_usuario/{usuario_id}",  dependencies=[PERMISSAO_ADMIN])
 async def alterar_tipo_usuario(usuario_id: int, novo_tipo: str, admin_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
     """Endpoint para alterar o tipo de usuário (apenas administradores)"""
     return await usuario_repositorio.alterar_tipo_usuario(usuario_id, novo_tipo, admin_id)
@@ -263,6 +258,7 @@ async def reativar_usuario(usuario_id: int, usuario_logado: dict = Depends(obter
 #                               CRUD - EQUIPAMENTO
 #===============================================================================================
 
+
 """CREATE (criar)"""
 @app.post("/criar_equipamento", dependencies=[PERMISSAO_TECNICO])
 async def criar_equipamento(equipamento: Equipamento, usuario_logado: dict = Depends(obter_usuario_atual)):
@@ -274,15 +270,15 @@ async def criar_equipamento(equipamento: Equipamento, usuario_logado: dict = Dep
         id_registro_afetado=id_registro, detalhes="Equipamento criado no sistema"
     ))
     await historico_repositorio.registrar_movimentacao(HistoricoMovimentacao(
-        id_equipamento=id_registro,
-        id_usuario_acao=usuario_logado["id"],
-        descricao_motivo="Equipamento cadastrado no sistema"
+    id_equipamento=id_registro,
+    id_usuario_acao=usuario_logado["id"],   # ou o id do usuário logado, se disponível
+    descricao_motivo="Equipamento cadastrado no sistema"
     ))
     return resultado
 
 """READ (listar)"""
 @app.get("/listar_equipamentos")
-async def listar_equipamentos(usuario_logado: dict = Depends(obter_usuario_atual)):
+async def listar_equipamentos( usuario_logado: dict = Depends(obter_usuario_atual)):
     """Endpoint para listar apenas os equipamentos ativos"""
     return await equipamento_repositorio.listar_equipamentos()
 
@@ -334,9 +330,9 @@ async def criar_manutencao(manutencao: Manutencao, usuario_logado: dict = Depend
         id_registro_afetado=id_registro, detalhes="Manutenção criada no sistema"
     ))
     await historico_repositorio.registrar_movimentacao(HistoricoMovimentacao(
-        id_equipamento=manutencao.id_equipamento,
-        id_usuario_acao=usuario_logado["id"],
-        descricao_motivo=f"Manutenção registrada (ID {id_registro})"
+    id_equipamento=manutencao.id_equipamento,
+    id_usuario_acao=usuario_logado["id"],
+    descricao_motivo=f"Manutenção registrada (ID {id_registro})"
     ))
     return resultado
 
@@ -422,9 +418,9 @@ async def criar_emprestimo(emprestimo: Emprestimo, usuario_logado: dict = Depend
         id_registro_afetado=id_registro, detalhes="Empréstimo criado no sistema"
     ))
     await historico_repositorio.registrar_movimentacao(HistoricoMovimentacao(
-        id_equipamento=emprestimo.id_equipamento,
-        id_usuario_acao=usuario_logado["id"],
-        descricao_motivo=f"Empréstimo criado (ID {id_registro})"
+    id_equipamento=emprestimo.id_equipamento,
+    id_usuario_acao=usuario_logado["id"],
+    descricao_motivo=f"Empréstimo criado (ID {id_registro})"
     ))
     return resultado
 
@@ -444,7 +440,9 @@ async def atualizar_emprestimo(emprestimo_id: int, emprestimo: Emprestimo, usuar
     ))
     return resultado
 
-async def _registrar_devolucao_com_auditoria(emprestimo_id: int, usuario_logado: dict):
+"""UPDATE (devolver)"""
+@app.put("/devolver_emprestimo/{emprestimo_id}", dependencies=[PERMISSAO_TECNICO])
+async def devolver_emprestimo(emprestimo_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await emprestimo_repositorio.registrar_devolucao(emprestimo_id, usuario_logado["id"])
 
     await auditoria_repositorio.registrar_log(LogAuditoria(
@@ -452,16 +450,6 @@ async def _registrar_devolucao_com_auditoria(emprestimo_id: int, usuario_logado:
         id_registro_afetado=emprestimo_id, detalhes="Devolução de equipamento registrada"
     ))
     return resultado
-
-"""UPDATE (devolver)"""
-@app.put("/devolver_emprestimo/{emprestimo_id}", dependencies=[PERMISSAO_TECNICO])
-async def devolver_emprestimo(emprestimo_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
-    return await _registrar_devolucao_com_auditoria(emprestimo_id, usuario_logado)
-
-"""UPDATE (registrar devolução)"""
-@app.patch("/registrar_devolucao/{emprestimo_id}", dependencies=[PERMISSAO_TECNICO])
-async def registrar_devolucao(emprestimo_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
-    return await _registrar_devolucao_com_auditoria(emprestimo_id, usuario_logado)
 
 """ESSE CRUD NÃO POSSUI A FUNÇÃO DELETE, POIS O REGISTRO DE EMPRÉSTIMO DEVE SER MANTIDO
 PARA FINS DE HISTÓRICO, LOGS E RELATÓRIOS."""
@@ -471,14 +459,19 @@ PARA FINS DE HISTÓRICO, LOGS E RELATÓRIOS."""
 async def relatorio_emprestimos_csv(usuario_logado: dict = Depends(obter_usuario_atual)):
     """Endpoint para baixar o relatório de empréstimos em formato de planilha (CSV)"""
 
+    # 1. Puxa os dados usando a função que já existe no seu banco
     resultado = await emprestimo_repositorio.listar_emprestimos()
     emprestimos = resultado.get("emprestimos", [])
 
+    # 2. Prepara o arquivo em memória
     output = io.StringIO()
+    # Usamos ponto e vírgula (;) para o Excel em português abrir as colunas corretamente
     writer = csv.writer(output, delimiter=';')
 
+    # 3. Escreve o cabeçalho (nome das colunas na planilha)
     writer.writerow(["ID", "Equipamento", "Patrimonio", "Usuario", "Data Retirada", "Status"])
 
+    # 4. Preenche as linhas com os dados do banco
     for emp in emprestimos:
         writer.writerow([
             emp.get("emprestimo_id", ""),
@@ -489,6 +482,7 @@ async def relatorio_emprestimos_csv(usuario_logado: dict = Depends(obter_usuario
             emp.get("status", "")
         ])
 
+    # 5. Devolve o arquivo pronto para download
     return Response(
         content=output.getvalue(),
         media_type="text/csv",

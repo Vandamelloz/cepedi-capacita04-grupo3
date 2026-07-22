@@ -1,28 +1,13 @@
-import {
-  MOCK_EMPRESTIMOS_ATIVOS,
-  MOCK_HISTORICO_EMPRESTIMOS,
-  MOCK_NOTIFICACOES_EMPRESTIMOS,
-} from "../../mocks/emprestimosAluno.mock";
+const API_URL = "http://localhost:3001/emprestimos";
 
-// TODO: substituir pela chamada real da API quando o backend estiver pronto
-export async function buscarMeusEmprestimos({ simularErro = false, simularVazio = false } = {}) {
-  await new Promise((resolve) => setTimeout(resolve, 400));
+// Mantém o mesmo nome de função de antes (buscarMeusEmprestimos) para não quebrar
+// nenhum import existente — só trocou o que tem por dentro (mock -> API real).
+export async function buscarMeusEmprestimos(nomeUsuario) {
+  const resposta = await fetch(`${API_URL}?usuario=${encodeURIComponent(nomeUsuario)}`);
 
-  if (simularErro) {
+  if (!resposta.ok) {
     throw new Error("Não foi possível carregar seus empréstimos. Tente novamente.");
   }
 
-  if (simularVazio) {
-    return {
-      emprestimosAtivos: [],
-      historico: [],
-      notificacoes: [],
-    };
-  }
-
-  return {
-    emprestimosAtivos: MOCK_EMPRESTIMOS_ATIVOS,
-    historico: MOCK_HISTORICO_EMPRESTIMOS,
-    notificacoes: MOCK_NOTIFICACOES_EMPRESTIMOS,
-  };
+  return await resposta.json();
 }
