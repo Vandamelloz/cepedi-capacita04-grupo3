@@ -120,11 +120,20 @@ class DashboardService:
             cur.execute(sql_manutencoes_em_aberto)
             manutencoes_em_aberto = cur.fetchall()
 
+            sql_total_manutencoes_abertas = """
+                SELECT COUNT(*) AS total
+                FROM manutencao
+                WHERE ativo = TRUE AND status IN ('PENDENTE', 'EM_ANDAMENTO')
+            """
+            cur.execute(sql_total_manutencoes_abertas)
+            total_manutencoes_abertas = cur.fetchone()
+
             total_equip = stats.get('total_equip', 0)
             disponiveis = stats.get('disponiveis', 0)
             emprestados = stats.get('emprestados', 0)
             em_manutencao = stats.get('em_manutencao', 0)
             inativos = stats.get('inativos', 0)
+            manutencoes_em_aberto_total = total_manutencoes_abertas.get('total', 0) if total_manutencoes_abertas else 0
 
             # Monta o objeto de resposta final
             return {
@@ -143,7 +152,7 @@ class DashboardService:
                         "concluidos": stats.get('emprestimos_concluidos', 0)
                     },
                     "manutencoes": {
-                        "em_aberto": em_manutencao
+                        "em_aberto": manutencoes_em_aberto_total
                     },
                     "graficos": {
                         "itens_mais_usados": itens_mais_usados,
