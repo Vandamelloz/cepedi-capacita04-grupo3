@@ -3,7 +3,7 @@
 # Descrição: API para gerenciamento de projetos acadêmicos
 # Autores: [Francis, Helen e Yan]
 # Data: [29/05/2026]
-# Versão beta teste 2.0
+# Versão beta teste 2.0 
 #==============================================
 
 """Importações de bibliotecas necessárias"""
@@ -19,7 +19,7 @@ from datetime import datetime
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Depends
 from seguranca import verificar_permissao, verificar_senha, criar_token_acesso, obter_usuario_atual
-import traceback
+import traceback 
 
 """importações para dados sensíveis do banco"""
 from dotenv import load_dotenv
@@ -136,11 +136,11 @@ async def criar_categoria(categoria: Categoria,
     usuario_logado: dict = Depends(obter_usuario_atual)):
     """Endpoint para criar uma nova categoria"""
     resultado = await categoria_repositorio.criar_categoria(categoria)
-
+    
     # === Início da Auditoria ===
     novo_log = LogAuditoria(
-        id_usuario=usuario_logado["id"],
-        acao="INSERT",
+        id_usuario=usuario_logado["id"], 
+        acao="INSERT", 
         tabela_afetada="categoria",
         id_registro_afetado=resultado.get("id", 0) if isinstance(resultado, dict) else 0,
         detalhes=f"Categoria criada no sistema"
@@ -160,7 +160,7 @@ async def listar_categorias(usuario_logado: dict = Depends(obter_usuario_atual))
 @app.put("/atualizar_categoria/{categoria_id}",  dependencies=[PERMISSAO_ADMIN])
 async def atualizar_categoria(categoria_id: int, categoria: Categoria, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await categoria_repositorio.atualizar_categoria(categoria_id, categoria)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="categoria",
         id_registro_afetado=categoria_id, detalhes="Categoria atualizada no sistema"
@@ -171,7 +171,7 @@ async def atualizar_categoria(categoria_id: int, categoria: Categoria, usuario_l
 @app.delete("/excluir_categoria/{categoria_id}",dependencies=[PERMISSAO_ADMIN])
 async def excluir_categoria(categoria_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await categoria_repositorio.excluir_categoria(categoria_id)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="DELETE", tabela_afetada="categoria",
         id_registro_afetado=categoria_id, detalhes="Categoria excluída do sistema"
@@ -189,7 +189,7 @@ async def excluir_categoria(categoria_id: int, usuario_logado: dict = Depends(ob
 async def criar_usuario(usuario: Usuario, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await usuario_repositorio.criar_usuario(usuario)
     id_registro = resultado.get("id", 0) if isinstance(resultado, dict) else getattr(resultado, "id", 0)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="INSERT", tabela_afetada="usuario",
         id_registro_afetado=id_registro, detalhes="Usuário criado no sistema"
@@ -218,7 +218,7 @@ async def buscar_usuario(usuario_id: int, usuario_logado: dict = Depends(obter_u
 @app.put("/atualizar_usuario/{usuario_id}", dependencies=[PERMISSAO_ADMIN])
 async def atualizar_usuario(usuario_id: int, usuario: Usuario, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await usuario_repositorio.atualizar_usuario(usuario_id, usuario)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="usuario",
         id_registro_afetado=usuario_id, detalhes="Usuário atualizado no sistema"
@@ -235,7 +235,7 @@ async def alterar_tipo_usuario(usuario_id: int, novo_tipo: str, admin_id: int, u
 @app.patch("/inativar_usuario/{usuario_id}", dependencies=[PERMISSAO_ADMIN])
 async def inativar_usuario(usuario_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await usuario_repositorio.inativar_usuario(usuario_id)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="usuario",
         id_registro_afetado=usuario_id, detalhes="Usuário inativado no sistema"
@@ -246,7 +246,7 @@ async def inativar_usuario(usuario_id: int, usuario_logado: dict = Depends(obter
 @app.patch("/reativar_usuario/{usuario_id}", dependencies=[PERMISSAO_ADMIN])
 async def reativar_usuario(usuario_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await usuario_repositorio.reativar_usuario(usuario_id)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="usuario",
         id_registro_afetado=usuario_id, detalhes="Usuário reativado no sistema"
@@ -264,7 +264,7 @@ async def reativar_usuario(usuario_id: int, usuario_logado: dict = Depends(obter
 async def criar_equipamento(equipamento: Equipamento, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await equipamento_repositorio.criar_equipamento(equipamento)
     id_registro = resultado.get("id", 0) if isinstance(resultado, dict) else getattr(resultado, "id", 0)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="INSERT", tabela_afetada="equipamento",
         id_registro_afetado=id_registro, detalhes="Equipamento criado no sistema"
@@ -286,7 +286,7 @@ async def listar_equipamentos( usuario_logado: dict = Depends(obter_usuario_atua
 @app.put("/atualizar_equipamento/{equipamento_id}", dependencies=[PERMISSAO_TECNICO])
 async def atualizar_equipamento(equipamento_id: int, equipamento: Equipamento, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await equipamento_repositorio.atualizar_equipamento(equipamento_id, equipamento)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="equipamento",
         id_registro_afetado=equipamento_id, detalhes="Equipamento atualizado no sistema"
@@ -297,7 +297,7 @@ async def atualizar_equipamento(equipamento_id: int, equipamento: Equipamento, u
 @app.patch("/inativar_equipamento/{equipamento_id}", dependencies=[PERMISSAO_TECNICO])
 async def inativar_equipamento(equipamento_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await equipamento_repositorio.inativar_equipamento(equipamento_id)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="equipamento",
         id_registro_afetado=equipamento_id, detalhes="Equipamento inativado no sistema"
@@ -308,7 +308,7 @@ async def inativar_equipamento(equipamento_id: int, usuario_logado: dict = Depen
 @app.patch("/reativar_equipamento/{equipamento_id}", dependencies=[PERMISSAO_TECNICO])
 async def reativar_equipamento(equipamento_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await equipamento_repositorio.reativar_equipamento(equipamento_id)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="equipamento",
         id_registro_afetado=equipamento_id, detalhes="Equipamento reativado no sistema"
@@ -324,7 +324,7 @@ async def reativar_equipamento(equipamento_id: int, usuario_logado: dict = Depen
 async def criar_manutencao(manutencao: Manutencao, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await manutencao_repositorio.criar_manutencao(manutencao)
     id_registro = resultado.get("id", 0) if isinstance(resultado, dict) else getattr(resultado, "id", 0)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="INSERT", tabela_afetada="manutencao",
         id_registro_afetado=id_registro, detalhes="Manutenção criada no sistema"
@@ -344,7 +344,7 @@ async def listar_manutencoes(usuario_logado: dict = Depends(obter_usuario_atual)
 @app.put("/atualizar_manutencao/{manutencao_id}", dependencies=[PERMISSAO_TECNICO])
 async def atualizar_manutencao(manutencao_id: int, manutencao: Manutencao, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await manutencao_repositorio.atualizar_manutencao(manutencao_id, manutencao)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="manutencao",
         id_registro_afetado=manutencao_id, detalhes="Manutenção atualizada no sistema"
@@ -355,7 +355,7 @@ async def atualizar_manutencao(manutencao_id: int, manutencao: Manutencao, usuar
 @app.delete("/excluir_manutencao/{manutencao_id}", dependencies=[PERMISSAO_TECNICO])
 async def excluir_manutencao(manutencao_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await manutencao_repositorio.excluir_manutencao(manutencao_id)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="DELETE", tabela_afetada="manutencao",
         id_registro_afetado=manutencao_id, detalhes="Manutenção excluída do sistema"
@@ -371,7 +371,7 @@ async def excluir_manutencao(manutencao_id: int, usuario_logado: dict = Depends(
 async def criar_reserva(reserva: Reserva, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await reserva_repositorio.criar_reserva(reserva)
     id_registro = resultado.get("id", 0) if isinstance(resultado, dict) else getattr(resultado, "id", 0)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="INSERT", tabela_afetada="reserva",
         id_registro_afetado=id_registro, detalhes="Reserva criada no sistema"
@@ -386,7 +386,7 @@ async def listar_reservas(usuario_logado: dict = Depends(obter_usuario_atual)):
 @app.put("/atualizar_reserva/{reserva_id}", dependencies=[PERMISSAO_TECNICO])
 async def atualizar_reserva(reserva_id: int, reserva: Reserva, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await reserva_repositorio.atualizar_reserva(reserva_id, reserva)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="reserva",
         id_registro_afetado=reserva_id, detalhes="Reserva atualizada no sistema"
@@ -396,7 +396,7 @@ async def atualizar_reserva(reserva_id: int, reserva: Reserva, usuario_logado: d
 @app.delete("/excluir_reserva/{reserva_id}", dependencies=[PERMISSAO_TECNICO])
 async def excluir_reserva(reserva_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await reserva_repositorio.excluir_reserva(reserva_id)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="DELETE", tabela_afetada="reserva",
         id_registro_afetado=reserva_id, detalhes="Reserva excluída do sistema"
@@ -412,7 +412,7 @@ async def excluir_reserva(reserva_id: int, usuario_logado: dict = Depends(obter_
 async def criar_emprestimo(emprestimo: Emprestimo, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await emprestimo_repositorio.criar_emprestimo(emprestimo)
     id_registro = resultado.get("id", 0) if isinstance(resultado, dict) else getattr(resultado, "id", 0)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="INSERT", tabela_afetada="emprestimo",
         id_registro_afetado=id_registro, detalhes="Empréstimo criado no sistema"
@@ -433,7 +433,7 @@ async def listar_emprestimos(apenas_ativos: bool = False, usuario_logado: dict =
 @app.put("/atualizar_emprestimo/{emprestimo_id}", dependencies=[PERMISSAO_TECNICO])
 async def atualizar_emprestimo(emprestimo_id: int, emprestimo: Emprestimo, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await emprestimo_repositorio.atualizar_emprestimo(emprestimo_id, emprestimo)
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="emprestimo",
         id_registro_afetado=emprestimo_id, detalhes="Empréstimo atualizado no sistema"
@@ -444,7 +444,7 @@ async def atualizar_emprestimo(emprestimo_id: int, emprestimo: Emprestimo, usuar
 @app.put("/devolver_emprestimo/{emprestimo_id}", dependencies=[PERMISSAO_TECNICO])
 async def devolver_emprestimo(emprestimo_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await emprestimo_repositorio.registrar_devolucao(emprestimo_id, usuario_logado["id"])
-
+    
     await auditoria_repositorio.registrar_log(LogAuditoria(
         id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="emprestimo",
         id_registro_afetado=emprestimo_id, detalhes="Devolução de equipamento registrada"
@@ -458,7 +458,7 @@ PARA FINS DE HISTÓRICO, LOGS E RELATÓRIOS."""
 @app.get("/relatorios/emprestimos/csv", dependencies=[PERMISSAO_TECNICO])
 async def relatorio_emprestimos_csv(usuario_logado: dict = Depends(obter_usuario_atual)):
     """Endpoint para baixar o relatório de empréstimos em formato de planilha (CSV)"""
-
+    
     # 1. Puxa os dados usando a função que já existe no seu banco
     resultado = await emprestimo_repositorio.listar_emprestimos()
     emprestimos = resultado.get("emprestimos", [])
@@ -466,7 +466,7 @@ async def relatorio_emprestimos_csv(usuario_logado: dict = Depends(obter_usuario
     # 2. Prepara o arquivo em memória
     output = io.StringIO()
     # Usamos ponto e vírgula (;) para o Excel em português abrir as colunas corretamente
-    writer = csv.writer(output, delimiter=';')
+    writer = csv.writer(output, delimiter=';') 
 
     # 3. Escreve o cabeçalho (nome das colunas na planilha)
     writer.writerow(["ID", "Equipamento", "Patrimonio", "Usuario", "Data Retirada", "Status"])
@@ -526,7 +526,7 @@ async def testar_email(req: EmailRequest):
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     con = pymysql.connect(**config_db)
     cur = con.cursor()
-
+    
     try:
         sql = "SELECT id, email, senha, tipo_usuario FROM usuario WHERE email = %s AND ativo = True"
         cur.execute(sql, (form_data.username,))
@@ -536,7 +536,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             raise HTTPException(status_code=401, detail="Email ou senha incorretos")
 
         token_acesso = criar_token_acesso(dados={"sub": usuario_db['email'], "id": usuario_db['id'], "perfil": usuario_db['tipo_usuario']})
-
+        
         return {"access_token": token_acesso, "token_type": "bearer"}
     finally:
         cur.close()
@@ -546,10 +546,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 async def listar_logs(tabela: str = None, id_usuario: int = None):
     """Endpoint para listar os logs de auditoria"""
     return await auditoria_repositorio.listar_logs(tabela, id_usuario)
-
-#===============================================================================================
-#                               DASHBOARD
-#===============================================================================================
 
 @app.get("/dashboard/estatisticas", dependencies=[PERMISSAO_TECNICO])
 async def obter_estatisticas_dashboard(usuario_logado: dict = Depends(obter_usuario_atual)):

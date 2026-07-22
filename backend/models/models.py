@@ -64,7 +64,6 @@ class Equipamento(BaseModel):
 
 class Manutencao(BaseModel):
     id_equipamento: int
-    id_tecnico: int          
     descricao_defeito: str
     status: StatusManutencao = StatusManutencao.PENDENTE
     data_conclusao: Optional[datetime] = None

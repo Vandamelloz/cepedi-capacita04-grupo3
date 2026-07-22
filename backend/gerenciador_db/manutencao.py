@@ -33,7 +33,7 @@ class ManutencaoRepositorio:
         try:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
-
+            
             # 🔴 Configura timeout reduzido para evitar lock
             cur.execute("SET innodb_lock_wait_timeout = 5")
 
@@ -43,22 +43,16 @@ class ManutencaoRepositorio:
             if not equipamento:
                 raise HTTPException(status_code=404, detail="Equipamento não encontrado")
 
-            # Verifica técnico responsável
-            cur.execute("SELECT id FROM usuario WHERE id = %s AND ativo = True", (manutencao.id_tecnico,))
-            if not cur.fetchone():
-                raise HTTPException(status_code=404, detail="Técnico não encontrado ou inativo")
-
             # Atualiza status do equipamento para EM_MANUTENCAO
             cur.execute("UPDATE equipamento SET status = 'EM_MANUTENCAO' WHERE id = %s", (manutencao.id_equipamento,))
 
             sql = """
                 INSERT INTO manutencao 
-                (id_equipamento, id_tecnico, descricao_defeito, status, data_abertura) 
-                VALUES (%s, %s, %s, %s, NOW())
+                (id_equipamento, descricao_defeito, status, data_abertura) 
+                VALUES (%s, %s, %s, NOW())
             """
             cur.execute(sql, (
                 manutencao.id_equipamento,
-                manutencao.id_tecnico,
                 manutencao.descricao_defeito,
                 manutencao.status.value
             ))
@@ -69,7 +63,7 @@ class ManutencaoRepositorio:
             # Registra histórico (fora da transação principal)
             await self._registrar_historico(
                 id_equipamento=manutencao.id_equipamento,
-                id_usuario_acao=manutencao.id_tecnico,
+                id_usuario_acao=1,
                 status_anterior=equipamento['status'],
                 status_novo=StatusEquipamento.EM_MANUTENCAO.value,
                 descricao=f"Manutenção aberta - ID: {id_gerado}"
@@ -99,7 +93,7 @@ class ManutencaoRepositorio:
         try:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
-
+            
             # 🔴 Configura timeout reduzido
             cur.execute("SET innodb_lock_wait_timeout = 5")
 
@@ -107,7 +101,6 @@ class ManutencaoRepositorio:
                 SELECT m.*, eq.nome as nome_equipamento 
                 FROM manutencao m
                 INNER JOIN equipamento eq ON m.id_equipamento = eq.id
-                WHERE m.ativo = TRUE
                 ORDER BY m.data_abertura DESC
             """
             cur.execute(sql)
@@ -140,21 +133,21 @@ class ManutencaoRepositorio:
                 write_timeout=10    # Timeout de escrita
             )
             cur = con.cursor()
-
+            
             # 🔴 Configura timeout do InnoDB
             cur.execute("SET innodb_lock_wait_timeout = 5")
-
+            
             # 🔴 Inicia transação com isolamento READ COMMITTED (menos locks)
             cur.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
-            # 1. Verifica se a manutenção existe e está ativa
+            # 1. Verifica se a manutenção existe
             cur.execute("""
                 SELECT id, id_equipamento, status 
                 FROM manutencao 
-                WHERE id = %s AND ativo = TRUE
+                WHERE id = %s
             """, (manutencao_id,))
             manutencao_existente = cur.fetchone()
-
+            
             if not manutencao_existente:
                 raise HTTPException(status_code=404, detail="Manutenção não encontrada")
 
@@ -167,15 +160,13 @@ class ManutencaoRepositorio:
                 UPDATE manutencao 
                 SET descricao_defeito = %s, 
                     status = %s, 
-                    data_conclusao = %s,
-                    id_tecnico = %s
+                    data_conclusao = %s 
                 WHERE id = %s
             """
             cur.execute(sql, (
                 manutencao.descricao_defeito,
                 manutencao.status.value,
                 manutencao.data_conclusao or datetime.now() if manutencao.status == StatusManutencao.CONCLUIDO else None,
-                manutencao.id_tecnico,
                 manutencao_id
             ))
 
@@ -184,13 +175,13 @@ class ManutencaoRepositorio:
                 # Verifica se o equipamento está em manutenção
                 cur.execute("SELECT status FROM equipamento WHERE id = %s", (manutencao_existente['id_equipamento'],))
                 equipamento = cur.fetchone()
-
+                
                 if equipamento and equipamento['status'] == 'EM_MANUTENCAO':
                     cur.execute("""
                         UPDATE equipamento SET status = 'DISPONIVEL' 
                         WHERE id = %s
                     """, (manutencao_existente['id_equipamento'],))
-
+            
             # 5. COMMIT - Libera os locks
             con.commit()
 
@@ -198,7 +189,7 @@ class ManutencaoRepositorio:
             if manutencao.status == StatusManutencao.CONCLUIDO:
                 await self._registrar_historico(
                     id_equipamento=manutencao_existente['id_equipamento'],
-                    id_usuario_acao=manutencao.id_tecnico,
+                    id_usuario_acao=1,  # TODO: pegar do usuário logado
                     status_anterior=StatusEquipamento.EM_MANUTENCAO.value,
                     status_novo=StatusEquipamento.DISPONIVEL.value,
                     descricao=f"Manutenção concluída - ID: {manutencao_id}"
@@ -214,11 +205,12 @@ class ManutencaoRepositorio:
             if con:
                 con.rollback()
             traceback.print_exc()
-
+            
             # Verifica se é erro de lock
             if "Lock wait timeout" in str(e) or "1205" in str(e):
                 # Tenta matar a transação presa
                 try:
+                    # Tenta encontrar e matar a transação
                     kill_con = pymysql.connect(**self.config_db)
                     kill_cur = kill_con.cursor()
                     kill_cur.execute("""
@@ -235,49 +227,14 @@ class ManutencaoRepositorio:
                     kill_con.close()
                 except:
                     pass
-
+                
                 raise HTTPException(
                     status_code=409, 
                     detail="O recurso está bloqueado. Tente novamente em alguns segundos."
                 )
             else:
                 raise HTTPException(status_code=500, detail=str(e))
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            if con:
-                con.rollback()
-            traceback.print_exc()
-            raise HTTPException(status_code=500, detail=str(e))
-        finally:
-            if cur:
-                cur.close()
-            if con:
-                con.close()
-
-    async def excluir_manutencao(self, manutencao_id: int):
-        """Exclui uma manutenção (Soft Delete - marca como inativa, não apaga a linha)."""
-        con = None
-        cur = None
-
-        try:
-            con = pymysql.connect(**self.config_db)
-            cur = con.cursor()
-
-            # Verifica se a manutenção existe e está ativa
-            cur.execute("SELECT id FROM manutencao WHERE id = %s AND ativo = TRUE", (manutencao_id,))
-            if not cur.fetchone():
-                raise HTTPException(status_code=404, detail="Manutenção não encontrada")
-
-            sql = "UPDATE manutencao SET ativo = FALSE WHERE id = %s"
-            cur.execute(sql, (manutencao_id,))
-            con.commit()
-
-            return {
-                "sucesso": True,
-                "mensagem": "Manutenção excluída com sucesso"
-            }
+                
         except HTTPException:
             raise
         except Exception as e:

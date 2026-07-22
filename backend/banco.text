@@ -44,14 +44,12 @@ CREATE TABLE equipamento (
 CREATE TABLE manutencao (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_equipamento INT NOT NULL,
-    id_tecnico INT NOT NULL,
     descricao_defeito TEXT NOT NULL,
     status VARCHAR(20) DEFAULT 'PENDENTE',
     ativo BOOLEAN DEFAULT TRUE,
     data_abertura DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     data_conclusao DATETIME NULL,
-    FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE RESTRICT,
-    FOREIGN KEY (id_tecnico) REFERENCES usuario(id) ON DELETE RESTRICT
+    FOREIGN KEY (id_equipamento) REFERENCES equipamento(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
 -- 5. TABELA: reserva
