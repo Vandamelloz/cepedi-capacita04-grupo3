@@ -37,6 +37,7 @@ from gerenciador_db.reserva import ReservaRepositorio
 from gerenciador_db.emprestimo import EmprestimoRepositorio
 from gerenciador_db.historico import HistoricoRepositorio
 from servicos.email_service import enviar_email
+from servicos.dashboard import DashboardService
 from gerenciador_db.auditoria import AuditoriaRepositorio
 from models.models import LogAuditoria
 from gerenciador_db.historico import HistoricoRepositorio
@@ -73,6 +74,7 @@ reserva_repositorio = ReservaRepositorio(config_db)
 emprestimo_repositorio = EmprestimoRepositorio(config_db)
 auditoria_repositorio = AuditoriaRepositorio(config_db)
 historico_repositorio = HistoricoRepositorio(config_db)
+dashboard_service = DashboardService(config_db)
 
 emprestimo_repositorio.set_historico_repositorio(historico_repositorio)
 manutencao_repositorio.set_historico_repositorio(historico_repositorio)
@@ -116,6 +118,7 @@ async def home():
             "PUT /atualizar_emprestimo/{emprestimo_id}": "Atualizar empréstimo",
             "PATCH /registrar_devolucao/{emprestimo_id}": "Registrar devolução",
             "GET /listar_historico": "Listar histórico",
+            "GET /dashboard/estatisticas": "Estatísticas do dashboard",
 
         }
     }
@@ -543,3 +546,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 async def listar_logs(tabela: str = None, id_usuario: int = None):
     """Endpoint para listar os logs de auditoria"""
     return await auditoria_repositorio.listar_logs(tabela, id_usuario)
+
+@app.get("/dashboard/estatisticas", dependencies=[PERMISSAO_TECNICO])
+async def obter_estatisticas_dashboard(usuario_logado: dict = Depends(obter_usuario_atual)):
+    """Endpoint para obter dados agrupados para o dashboard principal."""
+    return await dashboard_service.obter_estatisticas()
