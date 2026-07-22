@@ -12,166 +12,124 @@ class DashboardService:
         """
         Busca e agrupa dados de várias tabelas para popular o dashboard.
         """
-        con = None
-        cur = None
         try:
-            con = pymysql.connect(**self.config_db)
-            cur = con.cursor()
+            with pymysql.connect(**self.config_db) as con, con.cursor() as cur:
+                # Query 1: Contadores principais para as métricas
+                sql_stats = """
+                    SELECT
+                        (SELECT COUNT(*) FROM emprestimo WHERE status = 'ATIVO') AS emprestimos_ativos,
+                        (SELECT COUNT(*) FROM emprestimo WHERE status = 'ATRASADO') AS emprestimos_atrasados,
+                        (SELECT COUNT(*) FROM equipamento WHERE status = 'EM_MANUTENCAO') AS em_manutencao;
+                """
+                cur.execute(sql_stats)
+                stats = cur.fetchone()
 
-            # Query única e otimizada para buscar todas as estatísticas de uma vez.
-            # Isso reduz o número de viagens ao banco de dados, melhorando a performance.
-            sql = """
-            SELECT
-                (SELECT COUNT(*) FROM equipamento) AS total_equip,
-                (SELECT COUNT(*) FROM equipamento WHERE ativo = False) AS inativos,
-                (SELECT COUNT(*) FROM equipamento WHERE status = 'DISPONIVEL') AS disponiveis,
-                (SELECT COUNT(*) FROM equipamento WHERE status = 'EM_USO') AS emprestados,
-                (SELECT COUNT(*) FROM equipamento WHERE status = 'EM_MANUTENCAO') AS em_manutencao,
-                (SELECT COUNT(*) FROM emprestimo WHERE status = 'ATIVO') AS emprestimos_ativos,
-                (SELECT COUNT(*) FROM emprestimo WHERE status = 'ATRASADO') AS emprestimos_atrasados,
-                (SELECT COUNT(*) FROM emprestimo WHERE status = 'DEVOLVIDO') AS emprestimos_concluidos;
-            """
-            cur.execute(sql)
-            stats = cur.fetchone()
+                # Query 2: Lista completa de empréstimos para a tabela principal
+                sql_emprestimos = """
+                    SELECT
+                        emp.id,
+                        eq.nome AS equipamento,
+                        eq.codigo_patrimonio AS patrimonio,
+                        u.nome AS usuario,
+                        emp.data_retirada AS data,
+                        emp.data_previsao_devolucao AS dataDevolucao,
+                        emp.data_devolucao_real AS dataDevolucaoReal,
+                        emp.status,
+                        emp.observacoes
+                    FROM emprestimo emp
+                    INNER JOIN equipamento eq ON eq.id = emp.id_equipamento
+                    INNER JOIN usuario u ON u.id = emp.id_usuario
+                    ORDER BY emp.data_retirada DESC
+                """
+                cur.execute(sql_emprestimos)
+                emprestimos = cur.fetchall()
 
-            # Consultas agrupadas para os blocos do dashboard.
-            sql_top_equipamentos = """
-                SELECT
-                    eq.id AS id_equipamento,
-                    eq.nome AS label,
-                    COUNT(emp.id) AS total
-                FROM emprestimo emp
-                INNER JOIN equipamento eq ON eq.id = emp.id_equipamento
-                GROUP BY eq.id, eq.nome
-                ORDER BY total DESC, label ASC
-                LIMIT 5
-            """
-            cur.execute(sql_top_equipamentos)
-            itens_mais_usados = cur.fetchall()
+                # Query 3: Itens mais usados para o gráfico
+                sql_top_equipamentos = """
+                    SELECT
+                        eq.nome AS label,
+                        COUNT(emp.id) AS count
+                    FROM emprestimo emp
+                    INNER JOIN equipamento eq ON eq.id = emp.id_equipamento
+                    GROUP BY eq.id, eq.nome
+                    ORDER BY count DESC, label ASC
+                    LIMIT 5
+                """
+                cur.execute(sql_top_equipamentos)
+                itens_mais_usados = cur.fetchall()
 
-            sql_emprestimos_por_status = """
-                SELECT
-                    status,
-                    COUNT(*) AS total
-                FROM emprestimo
-                GROUP BY status
-                ORDER BY total DESC, status ASC
-            """
-            cur.execute(sql_emprestimos_por_status)
-            emprestimos_por_status = cur.fetchall()
+                # Query 4: Nomes dos equipamentos em manutenção para o filtro
+                sql_equip_manutencao = "SELECT nome FROM equipamento WHERE status = 'EM_MANUTENCAO'"
+                cur.execute(sql_equip_manutencao)
+                equipamentos_em_manutencao_result = cur.fetchall()
+                equipamentos_em_manutencao = [item['nome'] for item in equipamentos_em_manutencao_result]
 
-            sql_manutencoes_por_status = """
-                SELECT
-                    status,
-                    COUNT(*) AS total
-                FROM manutencao
-                WHERE ativo = TRUE
-                GROUP BY status
-                ORDER BY total DESC, status ASC
-            """
-            cur.execute(sql_manutencoes_por_status)
-            manutencoes_por_status = cur.fetchall()
+                # Query 5: Manutenções pendentes para notificações
+                sql_manutencoes_pendentes = """
+                    SELECT m.id, eq.nome AS equipamento
+                    FROM manutencao m
+                    JOIN equipamento eq ON m.id_equipamento = eq.id
+                    WHERE m.status = 'PENDENTE'
+                    ORDER BY m.data_abertura DESC
+                """
+                cur.execute(sql_manutencoes_pendentes)
+                manutencoes_pendentes = cur.fetchall()
 
-            sql_emprestimos_por_dia = """
-                SELECT
-                    DATE(data_retirada) AS dia,
-                    COUNT(*) AS total
-                FROM emprestimo
-                GROUP BY DATE(data_retirada)
-                ORDER BY dia ASC
-            """
-            cur.execute(sql_emprestimos_por_dia)
-            emprestimos_por_dia = cur.fetchall()
+                # Query 6: Empréstimos atrasados para notificações
+                sql_emprestimos_atrasados_notificacao = """
+                    SELECT emp.id, eq.nome as equipamento, u.nome as usuario
+                    FROM emprestimo emp
+                    JOIN equipamento eq ON emp.id_equipamento = eq.id
+                    JOIN usuario u ON emp.id_usuario = u.id
+                    WHERE emp.status = 'ATRASADO'
+                    ORDER BY emp.data_previsao_devolucao ASC
+                """
+                cur.execute(sql_emprestimos_atrasados_notificacao)
+                emprestimos_atrasados_notificacao = cur.fetchall()
 
-            sql_ultimos_emprestimos = """
-                SELECT
-                    emp.id,
-                    emp.id_equipamento,
-                    emp.id_usuario,
-                    emp.data_retirada,
-                    emp.data_previsao_devolucao,
-                    emp.data_devolucao_real,
-                    emp.status,
-                    eq.nome AS equipamento,
-                    u.nome AS usuario
-                FROM emprestimo emp
-                INNER JOIN equipamento eq ON eq.id = emp.id_equipamento
-                INNER JOIN usuario u ON u.id = emp.id_usuario
-                ORDER BY emp.data_retirada DESC
-                LIMIT 5
-            """
-            cur.execute(sql_ultimos_emprestimos)
-            ultimos_emprestimos = cur.fetchall()
+                # --- Processamento e Estruturação dos Dados ---
 
-            sql_manutencoes_em_aberto = """
-                SELECT
-                    m.id,
-                    m.id_equipamento,
-                    m.descricao_defeito,
-                    m.status,
-                    m.data_abertura,
-                    eq.nome AS equipamento
-                FROM manutencao m
-                INNER JOIN equipamento eq ON eq.id = m.id_equipamento
-                WHERE m.ativo = TRUE AND m.status IN ('PENDENTE', 'EM_ANDAMENTO')
-                ORDER BY m.data_abertura DESC
-                LIMIT 5
-            """
-            cur.execute(sql_manutencoes_em_aberto)
-            manutencoes_em_aberto = cur.fetchall()
+                # 1. Monta o array de métricas no formato esperado pelo frontend
+                metricas = [
+                    {"id": "ativos", "label": "Empréstimos Ativos", "count": stats.get('emprestimos_ativos', 0)},
+                    {"id": "atrasados", "label": "Empréstimos Atrasados", "count": stats.get('emprestimos_atrasados', 0)},
+                    {"id": "manutencao", "label": "Em Manutenção", "count": stats.get('em_manutencao', 0)},
+                ]
 
-            sql_total_manutencoes_abertas = """
-                SELECT COUNT(*) AS total
-                FROM manutencao
-                WHERE ativo = TRUE AND status IN ('PENDENTE', 'EM_ANDAMENTO')
-            """
-            cur.execute(sql_total_manutencoes_abertas)
-            total_manutencoes_abertas = cur.fetchone()
+                # 2. Monta o array de notificações no formato esperado pelo frontend
+                notificacoes = []
+                for emprestimo in emprestimos_atrasados_notificacao:
+                    notificacoes.append({
+                        "id": f"emp-atr-{emprestimo['id']}",
+                        "titulo": "Empréstimo atrasado",
+                        "mensagem": f"Empréstimo para {emprestimo['usuario']} do item '{emprestimo['equipamento']}' está atrasado.",
+                        "horario": "Hoje",
+                        "tipo": "atraso",
+                        "lida": False,
+                    })
 
-            total_equip = stats.get('total_equip', 0)
-            disponiveis = stats.get('disponiveis', 0)
-            emprestados = stats.get('emprestados', 0)
-            em_manutencao = stats.get('em_manutencao', 0)
-            inativos = stats.get('inativos', 0)
-            manutencoes_em_aberto_total = total_manutencoes_abertas.get('total', 0) if total_manutencoes_abertas else 0
+                for manutencao in manutencoes_pendentes:
+                    notificacoes.append({
+                        "id": f"man-pen-{manutencao['id']}",
+                        "titulo": "Manutenção pendente",
+                        "tipo": "manutencao",
+                        "mensagem": f"Nova solicitação de manutenção para o item '{manutencao['equipamento']}'.",
+                        "horario": "Hoje",
+                        "lida": False,
+                    })
 
-            # Monta o objeto de resposta final
-            return {
-                "sucesso": True,
-                "dados": {
-                    "equipamentos": {
-                        "total": total_equip,
-                        "disponiveis": disponiveis,
-                        "emprestados": emprestados,
-                        "em_manutencao": em_manutencao,
-                        "inativos": inativos
-                    },
-                    "emprestimos": {
-                        "ativos": stats.get('emprestimos_ativos', 0),
-                        "atrasados": stats.get('emprestimos_atrasados', 0),
-                        "concluidos": stats.get('emprestimos_concluidos', 0)
-                    },
-                    "manutencoes": {
-                        "em_aberto": manutencoes_em_aberto_total
-                    },
-                    "graficos": {
-                        "itens_mais_usados": itens_mais_usados,
-                        "emprestimos_por_status": emprestimos_por_status,
-                        "manutencoes_por_status": manutencoes_por_status,
-                        "emprestimos_por_dia": emprestimos_por_dia
-                    },
-                    "recentes": {
-                        "ultimos_emprestimos": ultimos_emprestimos,
-                        "manutencoes_em_aberto": manutencoes_em_aberto
+                # 3. Monta o objeto de resposta final no formato esperado pelo frontend
+                return {
+                    "sucesso": True,
+                    "dados": {
+                        "metricas": metricas,
+                        "emprestimos": emprestimos,
+                        "itensMaisUsados": itens_mais_usados,
+                        "notificacoes": notificacoes,
+                        "equipamentosEmManutencao": equipamentos_em_manutencao,
                     }
                 }
-            }
 
         except Exception as e:
             traceback.print_exc()
             raise HTTPException(status_code=500, detail=f"Erro ao buscar estatísticas do dashboard: {e}")
-        finally:
-            if cur:
-                cur.close()
-            if con:
-                con.close()
