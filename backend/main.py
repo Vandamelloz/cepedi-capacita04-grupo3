@@ -701,19 +701,45 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     cur = con.cursor()
     
     try:
-        sql = "SELECT id, email, senha, tipo_usuario FROM usuario WHERE email = %s AND ativo = True"
+        sql = "SELECT id, nome, email, senha, tipo_usuario FROM usuario WHERE email = %s AND ativo = True"
         cur.execute(sql, (form_data.username,))
         usuario_db = cur.fetchone()
 
         if not usuario_db or not verificar_senha(form_data.password, usuario_db['senha']):
             raise HTTPException(status_code=401, detail="Email ou senha incorretos")
 
-        token_acesso = criar_token_acesso(dados={"sub": usuario_db['email'], "id": usuario_db['id'], "perfil": usuario_db['tipo_usuario']})
+        # Mapeamento de perfis para o frontend
+        perfil_map = {
+            "ADMINISTRADOR": "admin",
+            "TECNICO": "tecnico",
+            "COMUM": "comum"
+        }
         
-        return {"access_token": token_acesso, "token_type": "bearer"}
+        perfil_frontend = perfil_map.get(usuario_db['tipo_usuario'], "comum")
+
+        # Cria o token JWT
+        token_acesso = criar_token_acesso(dados={
+            "sub": usuario_db['email'], 
+            "id": usuario_db['id'],
+            "nome": usuario_db['nome'],
+            "perfil": usuario_db['tipo_usuario']
+        })
+        
+        #dados do usuário que serão retornados para o frontend
+        return {
+            "access_token": token_acesso,
+            "token_type": "bearer",
+            "id": usuario_db['id'],
+            "nome": usuario_db['nome'],
+            "email": usuario_db['email'],
+            "perfil": perfil_frontend,
+            "tipo_usuario": usuario_db['tipo_usuario']
+        }
     finally:
-        cur.close()
-        con.close()
+        if cur:
+            cur.close()
+        if con:
+            con.close()
 
 @app.get("/listar_logs", dependencies=[PERMISSAO_ADMIN])
 async def listar_logs(tabela: str = None, id_usuario: int = None):
