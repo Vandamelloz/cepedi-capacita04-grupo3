@@ -12,7 +12,6 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-# 🔴 MUDANÇA: Trocar bcrypt por argon2 (sem limite de 72 bytes)
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 

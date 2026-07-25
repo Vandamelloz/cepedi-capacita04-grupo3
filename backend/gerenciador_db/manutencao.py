@@ -125,7 +125,7 @@ class ManutencaoRepositorio:
         con = None
         cur = None
         try:
-            # 🔴 ABRE CONEXÃO COM TIMEOUT REDUZIDO
+            # ABRE CONEXÃO COM TIMEOUT REDUZIDO
             con = pymysql.connect(
                 **self.config_db,
                 connect_timeout=5,  # Timeout de conexão
@@ -134,10 +134,10 @@ class ManutencaoRepositorio:
             )
             cur = con.cursor()
             
-            # 🔴 Configura timeout do InnoDB
+            # Configura timeout do InnoDB
             cur.execute("SET innodb_lock_wait_timeout = 5")
             
-            # 🔴 Inicia transação com isolamento READ COMMITTED (menos locks)
+            # Inicia transação com isolamento READ COMMITTED (menos locks)
             cur.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
             # 1. Verifica se a manutenção existe
