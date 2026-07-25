@@ -549,7 +549,7 @@ async def relatorio_emprestimos(
 @app.get("/relatorios/equipamentos", dependencies=[PERMISSAO_TECNICO])
 async def relatorio_equipamentos(formato: str = "csv", usuario_logado: dict = Depends(obter_usuario_atual)):
     resultado = await equipamento_repositorio.listar_equipamentos()
-    equipamentos = resultado if isinstance(resultado, list) else resultado.get("equipamentos", [])
+    equipamentos = resultado.get("equipamentos", [])
 
     if formato.lower() == "csv":
         output = io.StringIO()
@@ -573,7 +573,8 @@ async def relatorio_equipamentos(formato: str = "csv", usuario_logado: dict = De
 """GERAR RELATÓRIO DE USUÁRIOS (CSV E PDF)"""
 @app.get("/relatorios/usuarios", dependencies=[PERMISSAO_TECNICO])
 async def relatorio_usuarios(formato: str = "csv", usuario_logado: dict = Depends(obter_usuario_atual)):
-    usuarios = await usuario_repositorio.listar_usuarios()
+    resultado = await usuario_repositorio.listar_usuarios()
+    usuarios = resultado.get("usuarios", [])
     if formato.lower() == "csv":
         output = io.StringIO()
         writer = csv.writer(output, delimiter=';') 
@@ -594,10 +595,16 @@ async def relatorio_usuarios(formato: str = "csv", usuario_logado: dict = Depend
 """GERAR RELATÓRIO DE MANUTENÇÕES (CSV E PDF)"""
 @app.get("/relatorios/manutencoes", dependencies=[PERMISSAO_TECNICO])
 async def relatorio_manutencoes(formato: str = "csv", data_inicial: str = None, data_final: str = None, usuario_logado: dict = Depends(obter_usuario_atual)):
-    manutencoes = await manutencao_repositorio.listar_manutencoes()
-    
+    resultado = await manutencao_repositorio.listar_manutencoes()
+    manutencoes = resultado.get("manutencoes", [])
+
     if data_inicial and data_final:
-        manutencoes = [m for m in manutencoes if str(m.get("data_abertura", ""))[:10] >= data_inicial and str(m.get("data_abertura", ""))[:10] <= data_final]
+        manutencoes_filtradas = []
+        for m in manutencoes:
+            data_ab = str(m.get("data_abertura", ""))[:10]
+            if data_ab and data_inicial <= data_ab <= data_final:
+                manutencoes_filtradas.append(m)
+        manutencoes = manutencoes_filtradas
         
     if formato.lower() == "csv":
         output = io.StringIO()
@@ -619,10 +626,16 @@ async def relatorio_manutencoes(formato: str = "csv", data_inicial: str = None, 
 """GERAR RELATÓRIO DE RESERVAS (CSV E PDF)"""
 @app.get("/relatorios/reservas", dependencies=[PERMISSAO_TECNICO])
 async def relatorio_reservas(formato: str = "csv", data_inicial: str = None, data_final: str = None, usuario_logado: dict = Depends(obter_usuario_atual)):
-    reservas = await reserva_repositorio.listar_reservas()
-    
+    resultado = await reserva_repositorio.listar_reservas()
+    reservas = resultado.get("reservas", [])
+
     if data_inicial and data_final:
-        reservas = [r for r in reservas if str(r.get("data_reserva", ""))[:10] >= data_inicial and str(r.get("data_reserva", ""))[:10] <= data_final]
+        reservas_filtradas = []
+        for r in reservas:
+            data_res = str(r.get("data_reserva", ""))[:10]
+            if data_res and data_inicial <= data_res <= data_final:
+                reservas_filtradas.append(r)
+        reservas = reservas_filtradas
         
     if formato.lower() == "csv":
         output = io.StringIO()
@@ -644,7 +657,8 @@ async def relatorio_reservas(formato: str = "csv", data_inicial: str = None, dat
 """GERAR RELATÓRIO DE CATEGORIAS (CSV E PDF)"""
 @app.get("/relatorios/categorias", dependencies=[PERMISSAO_TECNICO])
 async def relatorio_categorias(formato: str = "csv", usuario_logado: dict = Depends(obter_usuario_atual)):
-    categorias = await categoria_repositorio.listar_categorias()
+    resultado = await categoria_repositorio.listar_categorias()
+    categorias = resultado.get("categorias", [])
     if formato.lower() == "csv":
         output = io.StringIO()
         writer = csv.writer(output, delimiter=';') 

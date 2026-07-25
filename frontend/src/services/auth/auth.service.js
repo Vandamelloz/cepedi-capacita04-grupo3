@@ -1,4 +1,5 @@
 const API_URL = "http://localhost:3001/usuarios";
+const API_BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const SESSION_KEY = "gipar_usuario";
 
 export const HOME_POR_PERFIL = {
@@ -45,6 +46,36 @@ export function salvarSessao(usuario) {
 
 export function encerrarSessao() {
   sessionStorage.removeItem(SESSION_KEY);
+}
+
+/** Token JWT do FastAPI (necessário para rotas protegidas como /relatorios/*). */
+export function getAccessToken() {
+  return getSessao()?.access_token ?? null;
+}
+
+/**
+ * Obtém JWT via POST /login (OAuth2PasswordRequestForm).
+ * Não interrompe o login do json-server se a API estiver indisponível.
+ */
+async function tentarObterTokenBackend(email, senha) {
+  try {
+    const corpo = new URLSearchParams();
+    corpo.set("username", email);
+    corpo.set("password", senha);
+
+    const resposta = await fetch(`${API_BACKEND_URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: corpo,
+    });
+
+    if (!resposta.ok) return null;
+
+    const dados = await resposta.json();
+    return dados.access_token ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function usuarioTemAcesso(role, pathname) {
@@ -97,6 +128,8 @@ export async function autenticar(identificador, senha) {
     throw new Error("Usuário inativo. Entre em contato com o administrador.");
   }
 
+  const access_token = await tentarObterTokenBackend(usuario.email, senha);
+
   const sessao = {
     id: usuario.id,
     nome: usuario.nome,
@@ -105,6 +138,7 @@ export async function autenticar(identificador, senha) {
     perfil: usuario.perfil,
     status: usuario.status,
     role: mapPerfilToRole(usuario.perfil),
+    access_token,
   };
 
   salvarSessao(sessao);

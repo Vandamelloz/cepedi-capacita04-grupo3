@@ -2,106 +2,232 @@ import {
   CONFIG_RELATORIOS,
   TIPOS_RELATORIO,
 } from "../../constants/relatorios.constants";
-import { buscarEquipamentos } from "../Equipamentos/equipamentos.service";
-import { buscarEmprestimos } from "../Emprestimos/emprestimos.service";
-import { buscarManutencoes } from "../manutencao/manutencoes.service";
+import { getAccessToken } from "../auth/auth.service";
 
-const CARREGADORES = {
-  equipamentos: buscarEquipamentos,
-  emprestimos: buscarEmprestimos,
-  manutencoes: async () => {
-    const { manutencoes } = await buscarManutencoes();
-    return manutencoes;
-  },
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+/** Mapeia cabeçalhos do CSV do backend para chaves usadas na tabela. */
+const MAPA_CABECALHOS = {
+  ID: "id",
+  Equipamento: "equipamento",
+  Patrimonio: "patrimonio",
+  Usuario: "usuario",
+  "Data Retirada": "data_retirada",
+  Status: "status",
+  Nome: "nome",
+  Modelo: "modelo",
+  Email: "email",
+  Tipo: "tipo",
+  Defeito: "defeito",
+  Abertura: "abertura",
+  Data: "data",
+  Descricao: "descricao",
 };
 
-const TRANSFORMADORES = {
-  equipamento: (item) => ({
-    id: item.id,
-    nome: item.nome,
-    categoria: item.categoria,
-    patrimonio: item.patrimonio,
-    status: item.status,
-  }),
+function obterCabecalhosAuth() {
+  const token = getAccessToken();
 
-  emprestimo: (item, contexto) => {
-    const equipamento = contexto.equipamentos.find(
-      (eq) => eq.patrimonio === item.patrimonio
+  if (!token) {
+    throw new Error(
+      "Sessão sem token da API. Faça login novamente para exportar relatórios."
     );
-
-    return {
-      id: item.id,
-      nome: item.equipamento,
-      categoria: equipamento?.categoria ?? "",
-      patrimonio: item.patrimonio,
-      status: item.status,
-    };
-  },
-
-  manutencao: (item, contexto) => {
-    const equipamento = contexto.equipamentos.find(
-      (eq) => Number(eq.id) === Number(item.id_equipamento)
-    );
-
-    return {
-      id: item.id,
-      nome: equipamento?.nome ?? item.nome ?? "",
-      categoria: equipamento?.categoria ?? "",
-      patrimonio: equipamento?.patrimonio ?? item.patrimonio ?? "",
-      status: item.concluida ? "Concluído" : "Em Manutenção",
-    };
-  },
-};
-
-function filtrarPorPeriodo(dados, campoData, dataInicial, dataFinal) {
-  if (!campoData || (!dataInicial && !dataFinal)) {
-    return dados;
   }
 
-  return dados.filter((item) => {
-    const data = item[campoData];
-    if (!data) return true;
-    if (dataInicial && data < dataInicial) return false;
-    if (dataFinal && data > dataFinal) return false;
-    return true;
+  return { Authorization: `Bearer ${token}` };
+}
+
+function montarQuery({ formato, dataInicial, dataFinal, aceitaPeriodo }) {
+  const params = new URLSearchParams();
+  params.set("formato", formato);
+
+  if (aceitaPeriodo && dataInicial && dataFinal) {
+    params.set("data_inicial", dataInicial);
+    params.set("data_final", dataFinal);
+  }
+
+  return params.toString();
+}
+
+function extrairNomeArquivo(contentDisposition, fallback) {
+  if (!contentDisposition) return fallback;
+
+  const match = /filename\*?=(?:UTF-8''|")?([^\";]+)"?/i.exec(
+    contentDisposition
+  );
+  if (!match?.[1]) return fallback;
+
+  return decodeURIComponent(match[1].replace(/['"]/g, "").trim());
+}
+
+/** Parser simples de CSV com delimitador `;` (contrato atual do backend). */
+function parsearCsv(texto) {
+  const linhas = texto
+    .replace(/^\uFEFF/, "")
+    .split(/\r?\n/)
+    .filter((linha) => linha.trim().length > 0);
+
+  if (linhas.length === 0) return [];
+
+  const cabecalhos = dividirLinhaCsv(linhas[0]);
+
+  return linhas.slice(1).map((linha, indice) => {
+    const valores = dividirLinhaCsv(linha);
+    const registro = { id: indice + 1 };
+
+    cabecalhos.forEach((cabecalho, i) => {
+      const chave = MAPA_CABECALHOS[cabecalho] ?? cabecalho.toLowerCase();
+      registro[chave] = valores[i] ?? "";
+    });
+
+    return registro;
   });
 }
 
-async function carregarColecoes(nomes) {
-  const unicos = [...new Set(nomes)];
-  const entradas = await Promise.all(
-    unicos.map(async (nome) => [nome, await CARREGADORES[nome]()])
-  );
+function dividirLinhaCsv(linha) {
+  const campos = [];
+  let atual = "";
+  let emAspas = false;
 
-  return Object.fromEntries(entradas);
+  for (let i = 0; i < linha.length; i += 1) {
+    const char = linha[i];
+
+    if (char === '"') {
+      if (emAspas && linha[i + 1] === '"') {
+        atual += '"';
+        i += 1;
+      } else {
+        emAspas = !emAspas;
+      }
+      continue;
+    }
+
+    if (char === ";" && !emAspas) {
+      campos.push(atual);
+      atual = "";
+      continue;
+    }
+
+    atual += char;
+  }
+
+  campos.push(atual);
+  return campos;
 }
 
-function obterColecaoPrincipal(config, contexto) {
-  const [principal] = config.colecoes;
-  return contexto[principal];
+function dispararDownload(blob, nomeArquivo) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function requisitarRelatorio({
+  tipo,
+  formato,
+  dataInicial = "",
+  dataFinal = "",
+}) {
+  const config = CONFIG_RELATORIOS[tipo];
+  if (!config) {
+    throw new Error("Tipo de relatório inválido.");
+  }
+
+  const query = montarQuery({
+    formato,
+    dataInicial,
+    dataFinal,
+    aceitaPeriodo: config.aceitaPeriodo,
+  });
+
+  const resposta = await fetch(`${API_BASE}/relatorios/${tipo}?${query}`, {
+    method: "GET",
+    headers: obterCabecalhosAuth(),
+  });
+
+  if (resposta.status === 401) {
+    throw new Error(
+      "Não autorizado. Faça login novamente para acessar os relatórios."
+    );
+  }
+
+  if (resposta.status === 403) {
+    throw new Error("Você não tem permissão para gerar este relatório.");
+  }
+
+  if (!resposta.ok) {
+    let detalhe = "Não foi possível gerar o relatório.";
+    try {
+      const erro = await resposta.json();
+      if (erro?.detail) detalhe = String(erro.detail);
+    } catch {
+      /* resposta não-JSON */
+    }
+    throw new Error(detalhe);
+  }
+
+  return resposta;
 }
 
 export function obterLabelTipoRelatorio(tipo) {
-  return TIPOS_RELATORIO.find((item) => item.valor === tipo)?.texto ?? "Relatório";
+  return (
+    TIPOS_RELATORIO.find((item) => item.valor === tipo)?.texto ?? "Relatório"
+  );
 }
 
+export function obterConfigRelatorio(tipo) {
+  return CONFIG_RELATORIOS[tipo] ?? CONFIG_RELATORIOS.emprestimos;
+}
+
+/**
+ * Pré-visualização: consome o mesmo endpoint CSV do backend (sem json-server).
+ */
 export async function buscarDadosRelatorio({
   tipo,
   dataInicial = "",
   dataFinal = "",
 }) {
-  const config = CONFIG_RELATORIOS[tipo] ?? CONFIG_RELATORIOS["inventario-completo"];
-
-  const contexto = await carregarColecoes(config.colecoes);
-  const dadosBrutos = obterColecaoPrincipal(config, contexto);
-
-  const dadosFiltrados = filtrarPorPeriodo(
-    dadosBrutos.filter(config.filtro),
-    config.campoData,
+  const resposta = await requisitarRelatorio({
+    tipo,
+    formato: "csv",
     dataInicial,
-    dataFinal
+    dataFinal,
+  });
+
+  const texto = await resposta.text();
+  return parsearCsv(texto);
+}
+
+/**
+ * Exporta PDF ou CSV via GET /relatorios/{tipo}?formato=...
+ */
+export async function exportarRelatorio({
+  tipo,
+  formato,
+  dataInicial = "",
+  dataFinal = "",
+}) {
+  const formatoNormalizado = String(formato).toLowerCase();
+  if (formatoNormalizado !== "csv" && formatoNormalizado !== "pdf") {
+    throw new Error("Formato inválido. Use csv ou pdf.");
+  }
+
+  const resposta = await requisitarRelatorio({
+    tipo,
+    formato: formatoNormalizado,
+    dataInicial,
+    dataFinal,
+  });
+
+  const blob = await resposta.blob();
+  const fallback = `relatorio_${tipo}.${formatoNormalizado}`;
+  const nomeArquivo = extrairNomeArquivo(
+    resposta.headers.get("Content-Disposition"),
+    fallback
   );
 
-  const transformar = TRANSFORMADORES[config.transformar];
-  return dadosFiltrados.map((item) => transformar(item, contexto));
+  dispararDownload(blob, nomeArquivo);
 }
