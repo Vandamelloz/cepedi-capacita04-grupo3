@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Download, Eye, FileText } from "lucide-react";
 import LayoutUsuario from "../../layouts/usuario/LayoutUsuario";
 import CaixaSelecao from "../../components/CaixadeSelecao/CaixadeSelecao";
@@ -10,41 +10,49 @@ import EstadoVazio from "../../components/EstadoVazio/EstadoVazio";
 import { TIPOS_RELATORIO } from "../../constants/relatorios.constants";
 import {
   buscarDadosRelatorio,
+  exportarRelatorio,
+  obterConfigRelatorio,
   obterLabelTipoRelatorio,
 } from "../../services/relatorios/relatorios.service";
 
-const COLUNAS_RELATORIO = [
-  { titulo: "Nome", chave: "nome", className: "font-semibold text-gray-900" },
-  { titulo: "Categoria", chave: "categoria", className: "text-gray-500" },
-  {
-    titulo: "Patrimônio",
-    chave: "patrimonio",
-    className: "font-mono text-xs text-gray-600",
-  },
-  {
-    titulo: "Status",
-    chave: "status",
-    render: (valor) => <StatusBadge status={valor} />,
-  },
-];
-
 export default function Relatorios() {
-  const [tipoRelatorio, setTipoRelatorio] = useState("inventario-completo");
+  const [tipoRelatorio, setTipoRelatorio] = useState("emprestimos");
   const [dataInicial, setDataInicial] = useState("");
   const [dataFinal, setDataFinal] = useState("");
   const [dadosPreview, setDadosPreview] = useState([]);
   const [carregando, setCarregando] = useState(false);
+  const [exportando, setExportando] = useState("");
   const [erro, setErro] = useState("");
   const [previewGerada, setPreviewGerada] = useState(false);
-  const [tipoRelatorioPreview, setTipoRelatorioPreview] = useState("inventario-completo");
+  const [tipoRelatorioPreview, setTipoRelatorioPreview] = useState("emprestimos");
 
+  const configAtual = obterConfigRelatorio(tipoRelatorio);
   const labelRelatorio = obterLabelTipoRelatorio(tipoRelatorioPreview);
+  const ocupado = carregando || Boolean(exportando);
 
-  const gerarPreview = useCallback(async () => {
+  const colunasPreview = useMemo(() => {
+    const config = obterConfigRelatorio(tipoRelatorioPreview);
+
+    return config.colunas.map((coluna) => {
+      if (coluna.chave !== "status") return coluna;
+
+      return {
+        ...coluna,
+        render: (valor) => <StatusBadge status={valor} />,
+      };
+    });
+  }, [tipoRelatorioPreview]);
+
+  const validarPeriodo = useCallback(() => {
     if (dataInicial && dataFinal && dataInicial > dataFinal) {
       setErro("A data inicial não pode ser posterior à data final.");
-      return;
+      return false;
     }
+    return true;
+  }, [dataInicial, dataFinal]);
+
+  const gerarPreview = useCallback(async () => {
+    if (!validarPeriodo()) return;
 
     setErro("");
     setCarregando(true);
@@ -58,18 +66,48 @@ export default function Relatorios() {
       setDadosPreview(dados);
       setTipoRelatorioPreview(tipoRelatorio);
       setPreviewGerada(true);
-    } catch {
-      setErro("Não foi possível gerar a pré-visualização. Tente novamente.");
+    } catch (error) {
+      setDadosPreview([]);
+      setPreviewGerada(false);
+      setErro(
+        error?.message ||
+          "Não foi possível gerar a pré-visualização. Tente novamente."
+      );
     } finally {
       setCarregando(false);
     }
-  }, [tipoRelatorio, dataInicial, dataFinal]);
+  }, [tipoRelatorio, dataInicial, dataFinal, validarPeriodo]);
+
+  const handleExportar = useCallback(
+    async (formato) => {
+      if (!validarPeriodo()) return;
+
+      setErro("");
+      setExportando(formato);
+
+      try {
+        await exportarRelatorio({
+          tipo: tipoRelatorio,
+          formato,
+          dataInicial,
+          dataFinal,
+        });
+      } catch (error) {
+        setErro(
+          error?.message ||
+            `Não foi possível exportar o relatório em ${formato.toUpperCase()}.`
+        );
+      } finally {
+        setExportando("");
+      }
+    },
+    [tipoRelatorio, dataInicial, dataFinal, validarPeriodo]
+  );
 
   useEffect(() => {
-    
     // eslint-disable-next-line react-hooks/set-state-in-effect
     gerarPreview();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -95,7 +133,7 @@ export default function Relatorios() {
 
             <div className="flex flex-col gap-3">
               <span className="text-sm font-medium text-[#111827]">
-                Período (opcional)
+                Período {configAtual.aceitaPeriodo ? "(opcional)" : "(não aplicável)"}
               </span>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <DataSelecao
@@ -103,14 +141,21 @@ export default function Relatorios() {
                   label="Data Inicial"
                   value={dataInicial}
                   onChange={(event) => setDataInicial(event.target.value)}
+                  disabled={!configAtual.aceitaPeriodo || ocupado}
                 />
                 <DataSelecao
                   id="data-final"
                   label="Data Final"
                   value={dataFinal}
                   onChange={(event) => setDataFinal(event.target.value)}
+                  disabled={!configAtual.aceitaPeriodo || ocupado}
                 />
               </div>
+              {!configAtual.aceitaPeriodo && (
+                <p className="text-xs text-gray-500">
+                  Este relatório não utiliza filtro de período.
+                </p>
+              )}
             </div>
 
             {erro && (
@@ -121,24 +166,29 @@ export default function Relatorios() {
 
             <div className="flex flex-col gap-3">
               <div className="w-full [&_button]:w-full">
-                <Botao estilo="novo" onClick={gerarPreview} disabled={carregando}>
+                <Botao estilo="novo" onClick={gerarPreview} disabled={ocupado}>
                   <Eye className="h-4 w-4" aria-hidden="true" />
                   {carregando ? "Carregando..." : "Pré-visualizar"}
                 </Botao>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <Botao estilo="cancelar" disabled>
+                <Botao
+                  estilo="cancelar"
+                  onClick={() => handleExportar("pdf")}
+                  disabled={ocupado}
+                >
                   <Download className="h-4 w-4" aria-hidden="true" />
-                  PDF
+                  {exportando === "pdf" ? "Exportando..." : "PDF"}
                 </Botao>
                 <button
                   type="button"
-                  disabled
-                  className="flex h-[38px] items-center justify-center gap-2 rounded-lg bg-orange-500 px-3 text-sm font-medium text-white opacity-60 transition-colors"
+                  onClick={() => handleExportar("csv")}
+                  disabled={ocupado}
+                  className="flex h-[38px] items-center justify-center gap-2 rounded-lg bg-orange-500 px-3 text-sm font-medium text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Download className="h-4 w-4" aria-hidden="true" />
-                  CSV
+                  {exportando === "csv" ? "Exportando..." : "CSV"}
                 </button>
               </div>
             </div>
@@ -163,7 +213,7 @@ export default function Relatorios() {
             )}
 
             {!carregando && previewGerada && dadosPreview.length > 0 && (
-              <TabelaGipar colunas={COLUNAS_RELATORIO} dados={dadosPreview} />
+              <TabelaGipar colunas={colunasPreview} dados={dadosPreview} />
             )}
           </article>
         </div>
