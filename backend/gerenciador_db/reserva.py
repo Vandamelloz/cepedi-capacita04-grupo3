@@ -95,7 +95,7 @@ class ReservaRepositorio:
             if con:
                 con.close()
 
-    async def listar_reservas(self):
+    async def listar_reservas(self, usuario_logado: dict = None):
         con = None
         cur = None
         try:
@@ -108,9 +108,16 @@ class ReservaRepositorio:
                 INNER JOIN equipamento eq ON r.id_equipamento = eq.id
                 INNER JOIN usuario u ON r.id_usuario = u.id
                 WHERE r.status != 'CANCELADA'
-                ORDER BY r.data_reserva ASC
             """
-            cur.execute(sql)
+            params = []
+
+            if usuario_logado and usuario_logado.get("perfil") == "COMUM":
+                sql += " AND r.id_usuario = %s"
+                params.append(usuario_logado["id"])
+
+            sql += " ORDER BY r.data_reserva ASC"
+
+            cur.execute(sql, params)
             reservas = cur.fetchall()
 
             return {

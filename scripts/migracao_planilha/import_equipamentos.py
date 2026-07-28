@@ -90,7 +90,7 @@ def setup_logging():
 
 def load_db_config():
     # Procura o .env dentro da pasta backend
-    env_path = Path(__file__).resolve().parents[1] / "backend" / ".env"
+    env_path = Path(__file__).resolve().parents[2] / "backend" / ".env"
     load_dotenv(dotenv_path=env_path)
 
     config = {
