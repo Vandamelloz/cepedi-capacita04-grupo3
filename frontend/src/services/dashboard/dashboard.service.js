@@ -3,8 +3,8 @@
 // ================================================================
 
 import { METRICAS_DEFINICAO, METRICAS_ESTAGIARIO_DEFINICAO } from "../../constants/dashboard.constants";
-import { buscarEquipamentos } from "../equipamentos/equipamentos.service";
-import { buscarEmprestimos } from "../emprestimos/emprestimos.service";
+import { buscarEquipamentos } from "../Equipamentos/equipamentos.service";
+import { buscarEmprestimos } from "../Emprestimos/emprestimos.service";
 import { buscarUsuarios } from "../usuarios/usuarios.service";
 import { apiGet } from "../api.config";
 

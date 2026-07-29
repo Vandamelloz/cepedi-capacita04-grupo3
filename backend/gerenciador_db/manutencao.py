@@ -2,7 +2,7 @@ from fastapi import HTTPException
 import pymysql
 from pymysql.cursors import DictCursor
 import traceback
-from models.models import Manutencao, StatusManutencao, StatusEquipamento
+from models.models import Manutencao, ManutencaoUpdate, StatusManutencao, StatusEquipamento
 from datetime import datetime
 
 class ManutencaoRepositorio:

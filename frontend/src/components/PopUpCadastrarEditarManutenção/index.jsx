@@ -4,7 +4,7 @@
 
 // ✅ CORREÇÃO 1: Importar buscarEquipamentos do lugar certo
 import { salvarManutencao, excluirManutencao } from "../../services/manutencao/manutencoes.service";
-import { buscarEquipamentos } from "../../services/equipamentos/equipamentos.service";
+import { buscarEquipamentos } from "../../services/Equipamentos/equipamentos.service";
 
 import { useState, useEffect } from "react";
 import TituloPagina from "../TituloPagina";

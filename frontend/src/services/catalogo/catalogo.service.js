@@ -2,7 +2,7 @@
 // catalogo.service.js - Catálogo de Equipamentos (FastAPI)
 // ================================================================
 
-import { buscarEquipamentos } from "../equipamentos/equipamentos.service";
+import { buscarEquipamentos } from "../Equipamentos/equipamentos.service";
 
 /**
  * Busca todos os equipamentos para o catálogo
