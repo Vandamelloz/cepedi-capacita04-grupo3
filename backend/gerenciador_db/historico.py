@@ -28,9 +28,9 @@ class HistoricoRepositorio:
             cur.execute(sql, (
                 historico.id_equipamento,
                 historico.id_usuario_acao,
-                historico.status_anterior,
-                historico.status_novo.value,
-                historico.descricao_motivo
+                historico.status_anterior.value if hasattr(historico.status_anterior, 'value') else historico.status_anterior,
+                historico.status_novo.value if hasattr(historico.status_novo, 'value') else historico.status_novo,
+                historico.descricao_motivo if historico.descricao_motivo else "Atualização de status via sistema"
             ))
             con.commit()
             

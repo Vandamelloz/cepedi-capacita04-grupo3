@@ -122,8 +122,32 @@ CREATE TABLE IF NOT EXISTS logs_auditoria (
     FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- Adicionar a coluna quantidade
+--Correções necessárias após verificação da integração do front com o backend
+
 ALTER TABLE equipamento ADD COLUMN quantidade INT NOT NULL DEFAULT 1;
 
-ALTER TABLE emprestimo 
+-- Adiciona status na tabela de equipamentos
+ALTER TABLE equipamento ADD COLUMN status VARCHAR(30) DEFAULT 'DISPONIVEL';
+
+-- Adiciona status na tabela de empréstimos
+ALTER TABLE emprestimo ADD COLUMN status VARCHAR(30) DEFAULT 'ATIVO';
+
+-- Adiciona status na tabela de reservas
+ALTER TABLE reserva ADD COLUMN status VARCHAR(30) DEFAULT 'PENDENTE';
+
+-- Adiciona status na tabela de manutenções (para evitar erros futuros neste módulo)
+ALTER TABLE manutencao ADD COLUMN status VARCHAR(30) DEFAULT 'PENDENTE';
+
 MODIFY COLUMN status ENUM('ATIVO', 'DEVOLVIDO', 'ATRASADO', 'CANCELADO') NOT NULL DEFAULT 'ATIVO';
+
+ALTER TABLE historico_movimentacao ADD COLUMN status_anterior VARCHAR(255);
+
+ALTER TABLE historico_movimentacao ADD COLUMN status_novo VARCHAR(255);
+
+-- CORREÇÃO: Adiciona status CANCELADO ao ENUM da tabela emprestimo
+-- Motivo: endpoint /cancelar_emprestimo tentava gravar 'CANCELADO'
+-- mas o ENUM só tinha ('ATIVO','DEVOLVIDO','ATRASADO'), causando
+-- erro 1265 (Data truncated for column 'status').
+
+ALTER TABLE emprestimo 
+MODIFY COLUMN status ENUM('ATIVO','DEVOLVIDO','ATRASADO','CANCELADO') NOT NULL DEFAULT 'ATIVO';
