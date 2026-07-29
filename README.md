@@ -126,7 +126,7 @@ Toda a aplicação utiliza uma arquitetura desacoplada, onde o Frontend consome 
 ## 1 - Clone o repositório
 
 ```bash
-git clone https://github.com/SEU-USUARIO/SEU-REPOSITORIO.git
+git clone https://github.com/Vandamelloz/cepedi-capacita04-grupo3.git
 ```
 
 Entre na pasta:
@@ -254,7 +254,7 @@ Execute:
 npm run dev
 ```
 
-A aplicação ficará disponível em:
+A aplicação provavelmente ficará disponível em:
 
 ```
 http://localhost:5173/
