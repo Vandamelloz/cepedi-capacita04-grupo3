@@ -289,7 +289,7 @@ class EmprestimoRepositorio:
             if con:
                 con.close()
 
-    async def listar_emprestimos(self, apenas_ativos: bool = False):
+    async def listar_emprestimos(self, apenas_ativos: bool = False, usuario_logado: dict = None):
         con = None
         cur = None
 
@@ -319,14 +319,20 @@ class EmprestimoRepositorio:
                 INNER JOIN equipamento eq ON e.id_equipamento = eq.id
                 LEFT JOIN usuario ts ON e.id_tecnico_saida = ts.id
                 LEFT JOIN usuario tr ON e.id_tecnico_retorno = tr.id
+                WHERE 1=1
             """
+            params = []
+
+            if usuario_logado and usuario_logado.get("perfil") == "COMUM":
+                sql += " AND e.id_usuario = %s"
+                params.append(usuario_logado["id"])
 
             if apenas_ativos:
-                sql += " WHERE e.status IN ('ATIVO', 'ATRASADO')"
+                sql += " AND e.status IN ('ATIVO', 'ATRASADO')"
 
             sql += " ORDER BY e.data_retirada DESC"
 
-            cur.execute(sql)
+            cur.execute(sql, params)
             emprestimos = cur.fetchall()
 
             return {

@@ -19,8 +19,11 @@ from pymysql.cursors import DictCursor
 from datetime import datetime
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Depends
+from fastapi.responses import JSONResponse
+import logging
 from seguranca import verificar_permissao, verificar_senha, criar_token_acesso, obter_usuario_atual
 import traceback 
+import asyncio
 
 """importações para dados sensíveis do banco"""
 from dotenv import load_dotenv
@@ -56,12 +59,30 @@ config_db = {
     "cursorclass": DictCursor
 }
 
-app = FastAPI(debug=True)
+app = FastAPI(debug=False)
 
-# Configuração de CORS (Essencial para o Frontend React)
+
+# Configuração de logger para registrar o erro internamente
+logger = logging.getLogger("uvicorn.error")
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    logger.error(f"Erro interno não tratado na rota {request.url.path}: {exc}", exc_info=True)
+    
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Ocorreu um erro interno no servidor. Tente novamente mais tarde."},
+    )
+
+origens_permitidas = [
+    "http://localhost:5173",  # Porta padrão do Vite / React
+    "http://localhost:3000",  # Porta padrão do React tradicional
+    # "https://seu-front-em-producao.vercel.app" # Se for publicar na nuvem
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Permitir conexões de qualquer origem (em dev)
+    allow_origins=origens_permitidas,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -449,8 +470,7 @@ async def criar_reserva(reserva: Reserva, usuario_logado: dict = Depends(obter_u
 
 @app.get("/listar_reservas")
 async def listar_reservas(usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para listar todas as reservas"""
-    return await reserva_repositorio.listar_reservas()
+    return await reserva_repositorio.listar_reservas(usuario_logado=usuario_logado)
 
 @app.put("/atualizar_reserva/{reserva_id}", dependencies=[PERMISSAO_TECNICO])
 async def atualizar_reserva(reserva_id: int, reserva: Reserva, usuario_logado: dict = Depends(obter_usuario_atual)):
@@ -495,8 +515,7 @@ async def criar_emprestimo(emprestimo: Emprestimo, usuario_logado: dict = Depend
 
 @app.get("/listar_emprestimos")
 async def listar_emprestimos(apenas_ativos: bool = False, usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para listar todos os empréstimos"""
-    return await emprestimo_repositorio.listar_emprestimos(apenas_ativos)
+    return await emprestimo_repositorio.listar_emprestimos(apenas_ativos=apenas_ativos, usuario_logado=usuario_logado)
 
 """UPDATE (atualizar)"""
 @app.put("/atualizar_emprestimo/{emprestimo_id}", dependencies=[PERMISSAO_TECNICO])
@@ -830,7 +849,7 @@ async def relatorio_categorias(formato: str = "csv", usuario_logado: dict = Depe
 #===============================================================================================
 
 """READ (listar)"""
-@app.get("/listar_historico")
+@app.get("/listar_historico", dependencies=[PERMISSAO_TECNICO])
 async def listar_historico(id_equipamento: int = None, usuario_logado: dict = Depends(obter_usuario_atual)):
     """Endpoint para listar todo o histórico (com filtro opcional por equipamento)"""
     return await historico_repositorio.listar_historico(id_equipamento)
@@ -858,6 +877,8 @@ async def testar_email(req: EmailRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 #Rota para login
+
+
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
