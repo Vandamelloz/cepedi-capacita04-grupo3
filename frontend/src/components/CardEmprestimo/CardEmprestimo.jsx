@@ -5,6 +5,7 @@ import { Calendar, Clock, User, CheckCircle, RotateCcw, X, CheckSquare } from "l
 import StatusBadge from "../ui/StatusBadge";
 
 export default function CardEmprestimo({ 
+  id,
   equipamento, 
   patrimonio, 
   usuario, 
@@ -17,9 +18,15 @@ export default function CardEmprestimo({
   onExcluir 
 }) {
   
-  const formatarData = (iso) => iso ? iso.split('T')[0].split('-').reverse().join('/') : "--/--/----";
+  const formatarData = (iso) => {
+    if (!iso) return "--/--/----";
+    try {
+      return iso.split('T')[0].split('-').reverse().join('/');
+    } catch {
+      return "--/--/----";
+    }
+  };
 
-  // Lógica para deixar a borda vermelha se estiver atrasado
   const corBorda = status === "Atrasado" 
     ? "border-red-500 border-2" 
     : "border-gray-200";
@@ -30,8 +37,8 @@ export default function CardEmprestimo({
       <div className="flex-1 flex flex-col justify-evenly">
         <div className="flex items-start justify-between">
           <div>
-            <TituloPagina>{equipamento}</TituloPagina>
-            <SubTitulo>{patrimonio}</SubTitulo>
+            <TituloPagina>{equipamento || "Equipamento"}</TituloPagina>
+            <SubTitulo>{patrimonio || "Sem patrimônio"}</SubTitulo>
           </div>
           <StatusBadge status={status} />
         </div>
@@ -39,7 +46,7 @@ export default function CardEmprestimo({
         <div className="space-y-3 text-sm text-gray-600 my-2">
           <div className="flex justify-between items-center">
             <span className="flex items-center gap-1 text-gray-400"><User size={14}/> Usuário:</span>
-            <span className="font-semibold text-gray-900">{usuario}</span>
+            <span className="font-semibold text-gray-900">{usuario || "Não informado"}</span>
           </div>
           
           <div className="flex justify-between items-center">
@@ -54,12 +61,10 @@ export default function CardEmprestimo({
             </span>
           </div>
 
-          {/* Adiciona a linha da devolução apenas quando o status for concluído */}
           {status === "Concluído" && (
             <div className="flex justify-between items-center mt-2 border-t pt-2 border-gray-100">
               <span className="flex items-center gap-1 text-green-600"><CheckSquare size={14}/> Devolvido em:</span>
               <span className="font-semibold text-green-600">
-                {/* Fallback: se não existir dataDevolucaoReal, mostra a data de previsão que foi atualizada */}
                 {formatarData(dataDevolucaoReal || dataDevolucao)}
               </span>
             </div>
@@ -67,13 +72,15 @@ export default function CardEmprestimo({
         </div>
       </div>
 
-      {/* Os botões só aparecem se o empréstimo ainda não tiver sido concluído ou cancelado */}
       {status !== "Concluído" && status !== "Cancelado" && (
         <div className="border-t pt-3 flex items-center justify-evenly gap-2 mt-auto">
           <Botao 
             type="button"
             estilo="cancelar"
-            onClick={onDevolver}
+            onClick={() => {
+              console.log("🔵 Botão Devolver clicado para ID:", id);
+              onDevolver();
+            }}
           >
             <CheckCircle size={14}/> Devolver
           </Botao>
@@ -81,15 +88,21 @@ export default function CardEmprestimo({
           <Botao 
             type="button"
             estilo="cancelar"
-            onClick={onRenovar}
+            onClick={() => {
+              console.log("🔵 Botão Renovar clicado para ID:", id);
+              onRenovar();
+            }}
           >
             <RotateCcw size={14}/> Renovar
           </Botao>
           
           <button 
-            onClick={onExcluir} 
+            onClick={() => {
+              console.log("🔴 Botão Excluir clicado para ID:", id);
+              onExcluir();
+            }} 
             className="p-2 hover:bg-red-50 rounded-full transition-colors flex items-center justify-center"
-            title="Excluir Empréstimo"
+            title="Cancelar Empréstimo"
           >
             <X color="#ff0000" size={20}/>
           </button>

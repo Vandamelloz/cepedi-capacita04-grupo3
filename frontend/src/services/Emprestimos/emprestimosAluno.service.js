@@ -1,13 +1,18 @@
-const API_URL = "http://localhost:3001/emprestimos";
+// ================================================================
+// emprestimosAluno.service.js - Empréstimos para Alunos (FastAPI)
+// ================================================================
 
-// Mantém o mesmo nome de função de antes (buscarMeusEmprestimos) para não quebrar
-// nenhum import existente — só trocou o que tem por dentro (mock -> API real).
+import { buscarEmprestimos } from "./emprestimos.service";
+
+/**
+ * Busca empréstimos de um aluno específico pelo nome
+ * @param {string} nomeUsuario - Nome do usuário
+ */
 export async function buscarMeusEmprestimos(nomeUsuario) {
-  const resposta = await fetch(`${API_URL}?usuario=${encodeURIComponent(nomeUsuario)}`);
-
-  if (!resposta.ok) {
-    throw new Error("Não foi possível carregar seus empréstimos. Tente novamente.");
-  }
-
-  return await resposta.json();
+  const emprestimos = await buscarEmprestimos();
+  
+  // Filtra pelo nome do usuário (case insensitive)
+  return emprestimos.filter(
+    (emp) => emp.nome_usuario?.toLowerCase() === nomeUsuario?.toLowerCase()
+  );
 }

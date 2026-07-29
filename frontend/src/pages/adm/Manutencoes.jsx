@@ -159,22 +159,23 @@ return (
       ) : (
 
         manutencoesFiltradas.map((m) => (
-
           <CardManutencao
             key={m.id}
-            name={m.nome}
-            pat={m.patrimonio}
-            type={m.tipo}
+            // 🔴 CORREÇÃO: Mapeia os campos do backend para o que o Card espera
+            id={m.id}
+            name={m.nome_equipamento || m.nome || "Equipamento"}
+            pat={m.codigo_patrimonio || m.patrimonio || "N/A"}
+            type={m.tipo || "Corretiva"}
             defect={m.descricao_defeito}
             sentAt={m.data_abertura}
             finishedAt={m.data_conclusao}
-            concluida={m.concluida}
+            concluida={m.status === "CONCLUIDO" || m.concluida}
+            status={m.status}
             onComplete={() => abrirPopupConclusao(m)}
             onEditar={() => abrirPopupCadastro(m)}
             onExcluir={() => abrirPopupExclusao(m)}
             onVisualizar={() => abrirPopupCadastro(m)}
           />
-
         ))
       )}
     </div>
@@ -194,7 +195,7 @@ return (
 
           <PopUpConclusao
             nomeEquipamento={
-              manutencaoSelecionada?.nome
+              manutencaoSelecionada?.nome_equipamento || manutencaoSelecionada?.nome
             }
 
             onFechar={
@@ -227,25 +228,19 @@ return (
 
             modoEdicao={
               !!manutencaoSelecionada &&
-              !manutencaoSelecionada.concluida
+              manutencaoSelecionada.status !== "CONCLUIDO"
             }
 
             modoVisualizacao={
               !!manutencaoSelecionada &&
-              manutencaoSelecionada.concluida
+              manutencaoSelecionada.status === "CONCLUIDO"
             }
 
-            manutencao={
-              manutencaoSelecionada
-            }
+            manutencao={manutencaoSelecionada}
 
-            onFechar={
-              fecharPopupCadastro
-            }
+            onFechar={fecharPopupCadastro}
 
-            onSalvar={
-              salvarManutencao
-            }
+            onSalvar={salvarManutencao}
           />
 
         </div>
@@ -265,7 +260,7 @@ return (
         subtitulo={
           <>
             Tem certeza que deseja excluir a manutenção{" "}
-            <strong>{manutencaoSelecionada?.nome}</strong>? Esta ação não pode ser desfeita.
+            <strong>{manutencaoSelecionada?.nome_equipamento || manutencaoSelecionada?.nome}</strong>? Esta ação não pode ser desfeita.
           </>
         }
       confirmarExclusao={handleExcluir}

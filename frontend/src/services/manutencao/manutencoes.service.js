@@ -1,196 +1,70 @@
-const API_URL = "http://localhost:3001";
+// ================================================================
+// manutencoes.service.js - CRUD de Manutenções (FastAPI)
+// ================================================================
+
+import { apiGet, apiPost, apiPut, apiDelete } from "../api.config";
+
+const ENDPOINTS = {
+  LISTAR: "/listar_manutencoes",
+  CRIAR: "/criar_manutencao",
+  ATUALIZAR: (id) => `/atualizar_manutencao/${id}`,
+  EXCLUIR: (id) => `/excluir_manutencao/${id}`,
+};
 
 export async function buscarManutencoes() {
-  const [manutencoesRes, equipamentosRes] =
-    await Promise.all([
-      fetch(`${API_URL}/manutencoes`),
-      fetch(`${API_URL}/equipamentos`),
-    ]);
+  const resultado = await apiGet(ENDPOINTS.LISTAR);
+  return resultado.manutencoes || [];
+}
 
-  if (
-    !manutencoesRes.ok ||
-    !equipamentosRes.ok 
-  ) {
-    throw new Error(
-      "Não foi possível carregar as manutenções."
-    );
-  }
-
-  const manutencoes = await manutencoesRes.json();
-  const equipamentos = await equipamentosRes.json();
-
-  const manutencoesComEquipamento =
-    manutencoes.map((manutencao) => {
-      const equipamento = equipamentos.find(
-        (equipamento) =>
-          Number(equipamento.id) ===
-          Number(manutencao.id_equipamento)
-      );
-
-      return {
-        ...manutencao,
-        nome: equipamento?.nome ?? "",
-        patrimonio: equipamento?.patrimonio ?? "",
-      };
-    });
-
-  return {
-    manutencoes: manutencoesComEquipamento,
+export async function criarManutencao(dados) {
+  const payload = {
+    id_equipamento: Number(dados.id_equipamento),
+    descricao_defeito: dados.descricao_defeito,
+    status: dados.status || "PENDENTE"
   };
+  const resultado = await apiPost(ENDPOINTS.CRIAR, payload);
+  return resultado;
 }
 
-export async function buscarEquipamentos() {
-  const response = await fetch(
-    `${API_URL}/equipamentos`
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      "Não foi possível carregar os equipamentos."
-    );
+export async function atualizarManutencao(id, dados) {
+  const payload = {};
+  
+  if (dados.descricao_defeito !== undefined) {
+    payload.descricao_defeito = dados.descricao_defeito;
   }
-
-  return await response.json();
+  if (dados.status) {
+    payload.status = dados.status.toUpperCase();
+  }
+  if (dados.data_conclusao) {
+    payload.data_conclusao = dados.data_conclusao;
+  }
+  
+  if (Object.keys(payload).length === 0) {
+    throw new Error("Nenhum dado para atualizar");
+  }
+  
+  const resultado = await apiPut(ENDPOINTS.ATUALIZAR(id), payload);
+  return resultado;
 }
 
-export async function concluirManutencao(id, statusFinal) {
-  // Busca manutenção
-  const manutencaoRes = await fetch(
-    `${API_URL}/manutencoes/${id}`
-  );
-
-  if (!manutencaoRes.ok) {
-    throw new Error("Manutenção não encontrada.");
-  }
-
-  const manutencao = await manutencaoRes.json();
-
-  const dataConclusao = new Date().toISOString();
-
-  // Atualiza manutenção
-const response = await fetch(
-  `${API_URL}/manutencoes/${id}`,
-  {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      concluida: true,
-      data_conclusao: dataConclusao,
-    }),
-  }
-);
-
-if (!response.ok) {
-  throw new Error("Erro ao concluir manutenção.");
-}
-
-  // Atualiza objeto em memória
-  manutencao.concluida = true;
-  manutencao.data_conclusao = dataConclusao;
-
-  // Atualiza status do equipamento
-  await fetch(
-    `${API_URL}/equipamentos/${manutencao.id_equipamento}`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-      status: statusFinal,
-      })
-    }
-  );
-
-  return manutencao;
+export async function concluirManutencao(id) {
+  // 🔴 CORREÇÃO: Envia apenas o status
+  const payload = {
+    status: "CONCLUIDO"
+  };
+  console.log("📤 Concluindo manutenção:", payload);
+  const resultado = await apiPut(ENDPOINTS.ATUALIZAR(id), payload);
+  return resultado;
 }
 
 export async function excluirManutencao(id) {
-  // Buscar manutenção
-  const manutencaoRes = await fetch(
-    `${API_URL}/manutencoes/${id}`
-  );
-
-  if (!manutencaoRes.ok) {
-    throw new Error("Manutenção não encontrada.");
-  }
-
-  const manutencao = await manutencaoRes.json();
-
-  // Equipamento volta para disponível
-  await fetch(
-    `${API_URL}/equipamentos/${manutencao.id_equipamento}`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status: "Disponível",
-      }),
-    }
-  );
-
-  // Excluir manutenção
-  const response = await fetch(
-    `${API_URL}/manutencoes/${id}`,
-    {
-      method: "DELETE",
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Erro ao excluir manutenção.");
-  }
+  const resultado = await apiDelete(ENDPOINTS.EXCLUIR(id));
+  return resultado;
 }
 
 export async function salvarManutencao(manutencao) {
-  const editar = !!manutencao.id;
-
-  const body = editar
-    ? manutencao
-    : {
-        ...manutencao,
-        concluida: false,
-        data_conclusao: null,
-      };
-
-  const response = await fetch(
-    editar
-      ? `${API_URL}/manutencoes/${manutencao.id}`
-      : `${API_URL}/manutencoes`,
-    {
-      method: editar ? "PATCH" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Erro ao salvar manutenção.");
+  if (manutencao.id) {
+    return await atualizarManutencao(manutencao.id, manutencao);
   }
-
-  const dados = await response.json();
-
-  // Atualiza o status do equipamento
-  if (!editar || !dados.concluida) {
-    await fetch(
-      `${API_URL}/equipamentos/${dados.id_equipamento}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: "Em Manutenção",
-        }),
-      }
-    );
-  }
-
-  return dados;
+  return await criarManutencao(manutencao);
 }

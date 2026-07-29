@@ -16,32 +16,37 @@ export default function PopUpEmprestimo({ fechar, aoSalvar }) {
     const [equipamentos, setEquipamentos] = useState([]);
     const [erro, setErro] = useState("");
     const [salvando, setSalvando] = useState(false);
+    const [dataDevolucao, setDataDevolucao] = useState("");
 
     useEffect(() => {
         async function carregarDadosParaFormulario() {
             try {
-
                 const [dadosUsuarios, dadosEquipamentos] = await Promise.all([
                     buscarUsuarios(),
                     buscarEquipamentos()
                 ]);
                 
+                console.log("📦 Usuários carregados:", dadosUsuarios);
+                console.log("📦 Equipamentos carregados:", dadosEquipamentos);
+                
                 setUsuarios(dadosUsuarios);
                 
-                // Filtra para exibir apenas os equipamentos que estão "Disponíveis"
-                const equipamentosLivres = dadosEquipamentos.filter(eq => eq.status === "Disponível");
+                const equipamentosLivres = dadosEquipamentos.filter(eq => eq.status === "DISPONIVEL");
+                console.log("📦 Equipamentos disponíveis (DISPONIVEL):", equipamentosLivres);
                 setEquipamentos(equipamentosLivres);
             } catch (error) {
-                console.error(error);
+                console.error("❌ Erro ao carregar dados:", error);
                 setErro("Erro ao carregar as listas do banco de dados.");
             }
         }
         carregarDadosParaFormulario();
     }, []);
 
-
     const opcoesUsuarios = usuarios.map(u => ({ valor: u.id, texto: u.nome }));
-    const opcoesEquipamentos = equipamentos.map(e => ({ valor: e.id, texto: `${e.nome} (${e.patrimonio})` }));
+    const opcoesEquipamentos = equipamentos.map(e => ({ 
+        valor: e.id, 
+        texto: `${e.nome} (${e.codigo_patrimonio || e.patrimonio})` 
+    }));
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -49,7 +54,6 @@ export default function PopUpEmprestimo({ fechar, aoSalvar }) {
 
         const idUsuario = event.target.usuario.value;
         const idEquipamento = event.target.equipamento.value;
-        const dataDevolucao = event.target.dataDevolucao.value;
         const observacao = event.target.observacao.value.trim();
 
         if (!idUsuario || !idEquipamento || !dataDevolucao) {
@@ -59,30 +63,35 @@ export default function PopUpEmprestimo({ fechar, aoSalvar }) {
 
         setSalvando(true);
 
-       try {
+        try {
             const usuarioSelecionado = usuarios.find(u => String(u.id) === String(idUsuario));
             const equipamentoSelecionado = equipamentos.find(e => String(e.id) === String(idEquipamento));
-            const dataDeHoje = new Date().toISOString().split("T")[0];
-            const statusCalculado = dataDevolucao < dataDeHoje ? "Atrasado" : "Ativo";
+            
+            if (!usuarioSelecionado || !equipamentoSelecionado) {
+                setErro("Usuário ou equipamento inválido.");
+                setSalvando(false);
+                return;
+            }
+
             const novoEmprestimo = {
-                id: crypto.randomUUID(),
-                equipamento: equipamentoSelecionado.nome,
-                patrimonio: equipamentoSelecionado.patrimonio,
-                usuario: usuarioSelecionado.nome,
-                data: dataDeHoje, 
-                dataDevolucao: dataDevolucao,
-                status: statusCalculado, 
-                diasAtraso: 0,
-                observacao: observacao
+                id_usuario: Number(idUsuario),
+                id_equipamento: Number(idEquipamento),
+                id_tecnico_saida: 1,
+                data_previsao_devolucao: new Date(dataDevolucao).toISOString(),
+                observacoes: observacao || null,
+                status: "ATIVO"
             };
 
-            await criarEmprestimo(novoEmprestimo);
+            console.log("📤 Enviando empréstimo:", novoEmprestimo);
 
-            if (aoSalvar) aoSalvar();
+            const resultado = await criarEmprestimo(novoEmprestimo);
+            console.log("✅ Empréstimo criado:", resultado);
+
+            if (aoSalvar) await aoSalvar();
             fechar();
         } catch (error) {
-            console.error(error);
-            setErro("Erro ao registrar o empréstimo.");
+            console.error("❌ Erro ao registrar empréstimo:", error);
+            setErro("Erro ao registrar o empréstimo: " + (error.message || ""));
         } finally {
             setSalvando(false);
         }
@@ -118,11 +127,12 @@ export default function PopUpEmprestimo({ fechar, aoSalvar }) {
                     opcoes={opcoesUsuarios} 
                 />
 
-                {/* Como o DataSelecao ainda usa state em alguns lugares, no formulário não-controlado ele precisa ter um 'id' ou 'name' */}
                 <DataSelecao 
                     label="Previsão de Devolução *" 
                     id="dataDevolucao"
                     name="dataDevolucao"
+                    value={dataDevolucao}
+                    onChange={(e) => setDataDevolucao(e.target.value)}
                 />
 
                 <CaixaTexto 

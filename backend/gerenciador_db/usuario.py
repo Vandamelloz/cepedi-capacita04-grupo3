@@ -83,11 +83,10 @@ class UsuarioRepositorio:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
 
-            # Adiciona tipo_usuario no SELECT
+            # 🔴 CORRIGIDO: Remove o filtro WHERE ativo = True
             sql = """
                 SELECT id, nome, email, tipo_usuario, ativo, data_cadastro 
                 FROM usuario 
-                WHERE ativo = True
                 ORDER BY id
             """
             cur.execute(sql)

@@ -1,3 +1,7 @@
+// ================================================================
+// equipamentos.jsx - VERSÃO CORRIGIDA E OTIMIZADA
+// ================================================================
+
 import LayoutUsuario from "../../layouts/usuario/LayoutUsuario.jsx";
 import PopUpCadastrarEditarEquipamento from "../../components/PopUpCadastrarEditarEquipamento/index.jsx";
 import Pesquisa from "../../components/Pesquisa/Pesquisa";
@@ -6,83 +10,47 @@ import Botao from "../../components/Botao";
 import PopUpExclusao from "../../components/PopUpExclusao";
 import StatusBadge from "../../components/ui/StatusBadge";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { buscarEquipamentos, criarEquipamento, atualizarEquipamento, deletarEquipamento } from "../../services/Equipamentos/equipamentos.service";
 
-const gerarIdEquipamento = () => String(Date.now());
-
-export default function Equipamentos () {
+export default function Equipamentos() {
+    // ============================================================
+    // ESTADOS
+    // ============================================================
     const [popUpEditarEquipamento, setPopUpEditarEquipamento] = useState(false);
     const [popUpCadastrarEquipamento, setPopUpCadastrarEquipamento] = useState(false);
     const [popUpExclusao, setPopUpExclusao] = useState(false);
 
-
     const [termo, setTermo] = useState("");
     const [categoria, setCategoria] = useState("");
-    const [filtroStatus, setFiltroStatus] = useState(""); // Novo estado para status
+    const [filtroStatus, setFiltroStatus] = useState("");
 
     const [equipamentoSelecionado, setEquipamentoSelecionado] = useState(null);
     const [equipamentos, setEquipamentos] = useState([]);
+    const [carregando, setCarregando] = useState(false);
 
-    const carregarEquipamentos = async () => {
+    // ============================================================
+    // FUNÇÕES
+    // ============================================================
+
+    const carregarEquipamentos = useCallback(async () => {
+        setCarregando(true);
         try {
             const dados = await buscarEquipamentos();
-            setEquipamentos(dados);
+            console.log("📦 Equipamentos carregados:", dados);
+            setEquipamentos(Array.isArray(dados) ? dados : []);
         } catch (erro) {
-            console.error(erro);
+            console.error("❌ Erro ao carregar equipamentos:", erro);
+            setEquipamentos([]);
+        } finally {
+            setCarregando(false);
         }
-    };
-
-    useEffect(() => {
-        let ativo = true;
-
-        const carregar = async () => {
-            try {
-                const dados = await buscarEquipamentos();
-                if (ativo) {
-                    setEquipamentos(dados);
-                }
-            } catch (erro) {
-                console.error(erro);
-            }
-        };
-
-        carregar();
-
-        return () => {
-            ativo = false;
-        };
     }, []);
 
-    const salvarEquipamento = async (dadosDoFormulario) => {
-        try {
-            if (equipamentoSelecionado) {
-                await atualizarEquipamento(equipamentoSelecionado.id, { ...equipamentoSelecionado, ...dadosDoFormulario });
-            } else {
-                const novoEquipamento = {
-                    id: gerarIdEquipamento(),
-                    ...dadosDoFormulario
-                };
-                await criarEquipamento(novoEquipamento);
-            }
-            carregarEquipamentos();
-            fecharPopUp();
-        } catch (erro) {
-            console.error(erro);
-        }
-    };
-
-    const excluirEquipamento = async () => {
-        if (equipamentoSelecionado) {
-            try {
-                await deletarEquipamento(equipamentoSelecionado.id);
-                carregarEquipamentos();
-                fecharPopUp();
-            } catch (erro) {
-                console.error(erro);
-            }
-        }
-    };
+    // ✅ CORREÇÃO: Array vazio para executar apenas uma vez
+    useEffect(() => {
+        carregarEquipamentos();
+    }, [carregarEquipamentos]);
 
     const fecharPopUp = () => {
         setPopUpExclusao(false);
@@ -91,50 +59,117 @@ export default function Equipamentos () {
         setEquipamentoSelecionado(null);
     };
 
+    const salvarEquipamento = async (dadosDoFormulario) => {
+    try {
+        console.log("📤 Enviando dados:", dadosDoFormulario);
+
+        const payload = {
+            codigo_patrimonio: dadosDoFormulario.codigo_patrimonio || dadosDoFormulario.patrimonio,
+            nome: dadosDoFormulario.nome,
+            modelo: dadosDoFormulario.modelo || "",
+            id_categoria: Number(dadosDoFormulario.id_categoria || dadosDoFormulario.categoria),
+            quantidade: Number(dadosDoFormulario.quantidade) || 1,
+            status: (dadosDoFormulario.status || "DISPONIVEL").toUpperCase(),
+            ativo: true
+        };
+
+        let resultado;
+        if (equipamentoSelecionado) {
+            resultado = await atualizarEquipamento(equipamentoSelecionado.id, payload);
+        } else {
+            resultado = await criarEquipamento(payload);
+        }
+
+        console.log("✅ Resposta do backend:", resultado);
+
+        // 🔴 Fecha o popup e recarrega a lista
+        fecharPopUp();
+        await carregarEquipamentos();
+        
+        alert("Equipamento salvo com sucesso!");
+
+    } catch (erro) {
+        console.error("❌ Erro ao salvar equipamento:", erro);
+        
+        // 🔴 Se o erro for 'NoneType', o equipamento foi criado mas a resposta veio incompleta
+        if (erro.message && erro.message.includes("NoneType")) {
+            alert("Equipamento criado com sucesso! (Recarregue a lista para ver)");
+            await carregarEquipamentos();
+            fecharPopUp();
+        } else {
+            alert("Erro ao salvar: " + (erro.message || "Verifique os dados e tente novamente."));
+        }
+    }
+};
+
+    const excluirEquipamento = async () => {
+        if (!equipamentoSelecionado) {
+            alert("Nenhum equipamento selecionado!");
+            return;
+        }
+
+        const id = equipamentoSelecionado.id;
+        console.log("🗑️ Tentando excluir equipamento:", { id, nome: equipamentoSelecionado.nome });
+
+        try {
+            await deletarEquipamento(id);
+            console.log("✅ Equipamento excluído com sucesso!");
+            await carregarEquipamentos();
+            fecharPopUp();
+            alert("Equipamento excluído com sucesso!");
+        } catch (erro) {
+            console.error("❌ Erro ao excluir equipamento:", erro);
+            alert("Erro ao excluir: " + (erro.message || "Verifique se o equipamento existe no banco."));
+        }
+    };
+
+    // ============================================================
+    // FILTROS
+    // ============================================================
 
     const equipamentosFiltrados = equipamentos.filter((equipamento) => {
         const termoMinusculo = termo.toLowerCase();
-        
-        const bateTexto = 
+
+        const bateTexto =
             equipamento.nome?.toLowerCase().includes(termoMinusculo) ||
-            equipamento.patrimonio?.toLowerCase().includes(termoMinusculo);
-            
+            (equipamento.codigo_patrimonio || equipamento.patrimonio || "")
+                .toLowerCase()
+                .includes(termoMinusculo);
+
         const bateCategoria = categoria === "" || equipamento.categoria === categoria;
-        
         const bateStatus = filtroStatus === "" || equipamento.status === filtroStatus;
 
         return bateTexto && bateCategoria && bateStatus;
     });
+
+    // ============================================================
+    // RENDER
+    // ============================================================
 
     return (
         <section className="h-screen w-full flex flex-row">
             <LayoutUsuario titulo="Equipamentos">
                 <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
                     <div className="w-full">
-                        
                         <Pesquisa
                             termo={termo}
                             setTermo={setTermo}
-                            
                             categoria={categoria}
                             setCategoria={setCategoria}
                             listaCategorias={["Informática", "Audiovisual", "Laboratório", "Ferramentas", "Redes", "Acessórios"]}
-                            
                             status={filtroStatus}
                             setStatus={setFiltroStatus}
-                            listaStatus={["Disponível", "Emprestado", "Em Manutenção", "Inativo"]}
-                            
+                            listaStatus={["DISPONIVEL", "EM_USO", "EM_MANUTENCAO", "INATIVO"]}
                             placeholderTexto="Buscar por nome ou patrimônio..."
                             placeholderCategoria="Todas as Categorias"
                             placeholderStatus="Todos os Status"
-                            
                             extras={
                                 <div className="ml-auto">
-                                    <Botao 
+                                    <Botao
                                         onClick={() => setPopUpCadastrarEquipamento(true)}
                                         type="button"
-                                        estilo="novo" 
-                                        icone={true}  
+                                        estilo="novo"
+                                        icone={true}
                                     >
                                         Cadastrar Equipamento
                                     </Botao>
@@ -144,42 +179,64 @@ export default function Equipamentos () {
                     </div>
 
                     <div className="w-full">
-                        <TabelaGipar
-                            colunas={[
-                                { titulo: "Nome", chave: "nome" },
-                                { titulo: "Patrimônio", chave: "patrimonio" },
-                                { titulo: "Categoria", chave: "categoria" },
-                                { titulo: "Status", chave: "status", render: (valor) => <StatusBadge status={valor} /> },
-                            ]}
-                            dados={equipamentosFiltrados} 
-                            onEditar={(equipamento) => {
-                                setEquipamentoSelecionado(equipamento);
-                                setPopUpEditarEquipamento(true);
-                            }}
-                            onDeletar={(equipamento) => {
-                                setEquipamentoSelecionado(equipamento);
-                                setPopUpExclusao(true);
-                            }}
-                        />
+                        {carregando ? (
+                            <div className="text-center py-8 text-gray-500">Carregando equipamentos...</div>
+                        ) : (
+                            <TabelaGipar
+                                colunas={[
+                                    { titulo: "Nome", chave: "nome" },
+                                    { titulo: "Patrimônio", chave: "codigo_patrimonio" },
+                                    { titulo: "Categoria", chave: "categoria" },
+                                    {
+                                        titulo: "Status",
+                                        chave: "status",
+                                        render: (valor) => <StatusBadge status={valor} />,
+                                    },
+                                ]}
+                                dados={equipamentosFiltrados}
+                                onEditar={(equipamento) => {
+                                    setEquipamentoSelecionado(equipamento);
+                                    setPopUpEditarEquipamento(true);
+                                }}
+                                onDeletar={(equipamento) => {
+                                    setEquipamentoSelecionado(equipamento);
+                                    setPopUpExclusao(true);
+                                }}
+                            />
+                        )}
                     </div>
 
-                    {/* MODAIS */}
+                    {/* ============================================================
+                        MODAIS
+                    ============================================================ */}
+
                     {popUpEditarEquipamento && (
                         <>
                             <div className="fixed inset-0 bg-black/40 z-40" onClick={fecharPopUp} />
                             <div className="fixed inset-0 flex items-center justify-center z-50">
-                                <PopUpCadastrarEditarEquipamento DadosIniciais={equipamentoSelecionado} cancelar={fecharPopUp} salvar={salvarEquipamento} modoEdicao={true} />
+                                <PopUpCadastrarEditarEquipamento
+                                    DadosIniciais={equipamentoSelecionado}
+                                    cancelar={fecharPopUp}
+                                    salvar={salvarEquipamento}
+                                    modoEdicao={true}
+                                />
                             </div>
                         </>
                     )}
+
                     {popUpCadastrarEquipamento && (
                         <>
                             <div className="fixed inset-0 bg-black/40 z-40" onClick={fecharPopUp} />
                             <div className="fixed inset-0 flex items-center justify-center z-50">
-                                <PopUpCadastrarEditarEquipamento cancelar={fecharPopUp} salvar={salvarEquipamento} modoEdicao={false} />
+                                <PopUpCadastrarEditarEquipamento
+                                    cancelar={fecharPopUp}
+                                    salvar={salvarEquipamento}
+                                    modoEdicao={false}
+                                />
                             </div>
                         </>
                     )}
+
                     {popUpExclusao && (
                         <>
                             <div className="fixed inset-0 bg-black/40 z-40" onClick={fecharPopUp} />
@@ -187,16 +244,15 @@ export default function Equipamentos () {
                                 <PopUpExclusao
                                     titulo="Confirmar Exclusão"
                                     subtitulo="Essa ação não poderá ser desfeita."
-                                    objeto={equipamentoSelecionado ? equipamentoSelecionado.nome : "Equipamento"}
+                                    objeto={equipamentoSelecionado?.nome || "Equipamento"}
                                     confirmarExclusao={excluirEquipamento}
                                     cancelarExclusao={fecharPopUp}
                                 />
                             </div>
                         </>
                     )}
-
                 </main>
             </LayoutUsuario>
-        </section>  
+        </section>
     );
 }

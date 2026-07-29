@@ -106,3 +106,24 @@ CREATE TABLE logs_auditoria (
     data_acao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+-- ================================================================
+-- CRIAR TABELA: logs_auditoria
+-- ================================================================
+
+CREATE TABLE IF NOT EXISTS logs_auditoria (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NULL,
+    acao VARCHAR(50) NOT NULL,
+    tabela_afetada VARCHAR(50) NOT NULL,
+    id_registro_afetado INT NULL,
+    detalhes TEXT,
+    data_acao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- Adicionar a coluna quantidade
+ALTER TABLE equipamento ADD COLUMN quantidade INT NOT NULL DEFAULT 1;
+
+ALTER TABLE emprestimo 
+MODIFY COLUMN status ENUM('ATIVO', 'DEVOLVIDO', 'ATRASADO', 'CANCELADO') NOT NULL DEFAULT 'ATIVO';
