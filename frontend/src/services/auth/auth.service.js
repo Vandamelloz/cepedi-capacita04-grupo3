@@ -1,5 +1,19 @@
-const API_URL = "http://localhost:3001/usuarios";
+// ================================================================
+// auth.service.js - GIPAR Frontend
+// CORRIGIDO: Agora usa APENAS o FastAPI (porta 8000)
+// ================================================================
+
+// ================================================================
+// 1. CONFIGURAÇÃO DAS URLs
+// ================================================================
+
+// 🔴 ÚNICA URL DA API - NUNCA usa 3001!
 const API_BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+// ================================================================
+// 2. CONFIGURAÇÕES DE PERFIL E ROTAS
+// ================================================================
+
 const SESSION_KEY = "gipar_usuario";
 
 export const HOME_POR_PERFIL = {
@@ -10,23 +24,61 @@ export const HOME_POR_PERFIL = {
 };
 
 export const ROTAS_POR_PERFIL = {
-  adm: ["/dashboard", "/equipamentos", "/equipamento", "/emprestimos", "/manutencoes", "/usuarios", "/relatorios"],
-  estagiario: ["/dashboard", "/equipamentos", "/equipamento", "/EstagEquipamentos", "/EstagEmprestimos"],
-
-  professor: ["/dashboard", "/equipamentos", "/equipamento", "/manutencoes"],
-  aluno: ["/alunoEmprestimos", "/catalogo", "/equipamentos", "/equipamento"],
+  adm: [
+    "/dashboard",
+    "/equipamentos",
+    "/equipamento",
+    "/emprestimos",
+    "/manutencoes",
+    "/usuarios",
+    "/relatorios",
+    "/relatorios/equipamentos",
+    "/relatorios/emprestimos",
+    "/relatorios/usuarios",
+    "/relatorios/manutencoes",
+    "/relatorios/reservas",
+    "/relatorios/categorias"
+  ],
+  estagiario: [
+    "/dashboard",
+    "/equipamentos",
+    "/equipamento",
+    "/EstagEquipamentos",
+    "/EstagEmprestimos"
+  ],
+  professor: [
+    "/dashboard",
+    "/equipamentos",
+    "/equipamento",
+    "/manutencoes"
+  ],
+  aluno: [
+    "/alunoEmprestimos",
+    "/catalogo",
+    "/equipamentos",
+    "/equipamento"
+  ],
 };
+
+// ================================================================
+// 3. MAPEAMENTO DE PERFIS
+// ================================================================
 
 export function mapPerfilToRole(perfil) {
   const mapa = {
-    Administrador: "adm",
-    Estagiário: "estagiario",
-    Aluno: "aluno",
-    Professor: "professor",
+    admin: "adm",
+    tecnico: "estagiario",
+    comum: "aluno",
+    ADMINISTRADOR: "adm",
+    TECNICO: "estagiario",
+    COMUM: "aluno"
   };
-
   return mapa[perfil] ?? "aluno";
 }
+
+// ================================================================
+// 4. GERENCIAMENTO DE SESSÃO
+// ================================================================
 
 export function getSessao() {
   const dados = sessionStorage.getItem(SESSION_KEY);
@@ -41,6 +93,7 @@ export function getSessao() {
 }
 
 export function salvarSessao(usuario) {
+  console.log("💾 Salvando sessão:", usuario);
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(usuario));
 }
 
@@ -48,35 +101,102 @@ export function encerrarSessao() {
   sessionStorage.removeItem(SESSION_KEY);
 }
 
-/** Token JWT do FastAPI (necessário para rotas protegidas como /relatorios/*). */
 export function getAccessToken() {
-  return getSessao()?.access_token ?? null;
+  const sessao = getSessao();
+  console.log("🔑 Token obtido:", sessao?.access_token ? "Sim ✅" : "Não ❌");
+  return sessao?.access_token ?? null;
 }
 
-/**
- * Obtém JWT via POST /login (OAuth2PasswordRequestForm).
- * Não interrompe o login do json-server se a API estiver indisponível.
- */
-async function tentarObterTokenBackend(email, senha) {
-  try {
-    const corpo = new URLSearchParams();
-    corpo.set("username", email);
-    corpo.set("password", senha);
+// ================================================================
+// 5. AUTENTICAÇÃO (LOGIN) - USANDO O FASTAPI
+// ================================================================
 
-    const resposta = await fetch(`${API_BACKEND_URL}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: corpo,
+export async function autenticar(identificador, senha) {
+  const corpo = new URLSearchParams();
+  corpo.set("username", identificador.trim().toLowerCase());
+  corpo.set("password", senha);
+
+  console.log("📤 Tentando login:", identificador);
+
+  const resposta = await fetch(`${API_BACKEND_URL}/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: corpo,
+  });
+
+  if (!resposta.ok) {
+    let mensagemErro = "E-mail/login ou senha incorretos.";
+    try {
+      const erro = await resposta.json();
+      if (erro.detail) mensagemErro = erro.detail;
+    } catch {
+      // ignora
+    }
+    throw new Error(mensagemErro);
+  }
+
+  const dados = await resposta.json();
+  console.log("✅ Login bem-sucedido:", dados);
+
+  const sessao = {
+    id: dados.id,
+    nome: dados.nome,
+    email: dados.email,
+    perfil: dados.perfil,
+    role: mapPerfilToRole(dados.perfil),
+    tipo_usuario: dados.tipo_usuario,
+    access_token: dados.access_token,
+  };
+
+  salvarSessao(sessao);
+  return sessao;
+}
+
+// ================================================================
+// 6. USUÁRIOS - AGORA USA O FASTAPI
+// ================================================================
+
+export async function buscarUsuariosAtivos() {
+  try {
+    const token = getAccessToken();
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const resposta = await fetch(`${API_BACKEND_URL}/listar_usuarios`, {
+      method: "GET",
+      headers,
     });
 
-    if (!resposta.ok) return null;
+    if (!resposta.ok) {
+      throw new Error("Erro ao buscar usuários");
+    }
 
-    const dados = await resposta.json();
-    return dados.access_token ?? null;
-  } catch {
-    return null;
+    const resultado = await resposta.json();
+    
+    if (resultado.usuarios) {
+      return resultado.usuarios;
+    }
+    
+    if (Array.isArray(resultado)) {
+      return resultado;
+    }
+    
+    return [];
+    
+  } catch (error) {
+    console.error("Erro ao buscar usuários:", error);
+    throw new Error("Não foi possível carregar os usuários. Verifique se o backend está rodando.");
   }
 }
+
+// ================================================================
+// 7. VERIFICAÇÃO DE PERMISSÃO
+// ================================================================
 
 export function usuarioTemAcesso(role, pathname) {
   const rotasPermitidas = ROTAS_POR_PERFIL[role] ?? [];
@@ -85,62 +205,32 @@ export function usuarioTemAcesso(role, pathname) {
   );
 }
 
-export async function buscarUsuariosAtivos() {
-  const resposta = await fetch(API_URL);
+// ================================================================
+// 8. FUNÇÕES AUXILIARES PARA O BACKEND
+// ================================================================
 
-  if (!resposta.ok) {
-    throw new Error(
-      "Não foi possível carregar os usuários. Verifique se o json-server está rodando na porta 3001."
-    );
-  }
-
-  const usuarios = await resposta.json();
-  return usuarios.filter((usuario) => usuario.status === "Ativo");
-}
-
-export async function autenticar(identificador, senha) {
-  const resposta = await fetch(API_URL);
-
-  if (!resposta.ok) {
-    throw new Error(
-      "Não foi possível conectar ao servidor. Verifique se o json-server está rodando na porta 3001."
-    );
-  }
-
-  const usuarios = await resposta.json();
-  const identificadorNormalizado = identificador.trim().toLowerCase();
-
-  const usuario = usuarios.find((item) => {
-    const email = (item.email ?? "").toLowerCase();
-    const login = (item.login ?? "").toLowerCase();
-
-    return (
-      (email === identificadorNormalizado || login === identificadorNormalizado) &&
-      item.senha === senha
-    );
-  });
-
-  if (!usuario) {
-    throw new Error("E-mail/login ou senha incorretos.");
-  }
-
-  if (usuario.status !== "Ativo") {
-    throw new Error("Usuário inativo. Entre em contato com o administrador.");
-  }
-
-  const access_token = await tentarObterTokenBackend(usuario.email, senha);
-
-  const sessao = {
-    id: usuario.id,
-    nome: usuario.nome,
-    email: usuario.email,
-    login: usuario.login,
-    perfil: usuario.perfil,
-    status: usuario.status,
-    role: mapPerfilToRole(usuario.perfil),
-    access_token,
+export async function fetchAutenticado(endpoint, options = {}) {
+  const token = getAccessToken();
+  const headers = {
+    "Content-Type": "application/json",
+    ...options.headers,
   };
 
-  salvarSessao(sessao);
-  return sessao;
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const resposta = await fetch(`${API_BACKEND_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  if (!resposta.ok) {
+    const erro = await resposta.json().catch(() => ({}));
+    throw new Error(erro.detail || "Erro na requisição");
+  }
+
+  return resposta.json();
 }
+
+export const API_URL = API_BACKEND_URL;

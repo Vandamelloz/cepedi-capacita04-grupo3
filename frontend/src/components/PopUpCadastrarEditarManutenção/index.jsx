@@ -1,4 +1,11 @@
-import {buscarEquipamentos, salvarManutencao, excluirManutencao,} from "../../services/manutencao/manutencoes.service";
+// ================================================================
+// PopUpCadastrarEditarManutenção/index.jsx - CORRIGIDO
+// ================================================================
+
+// ✅ CORREÇÃO 1: Importar buscarEquipamentos do lugar certo
+import { salvarManutencao, excluirManutencao } from "../../services/manutencao/manutencoes.service";
+import { buscarEquipamentos } from "../../services/equipamentos/equipamentos.service";
+
 import { useState, useEffect } from "react";
 import TituloPagina from "../TituloPagina";
 import SubTitulo from "../SubTitulo";
@@ -23,124 +30,86 @@ export default function PopUpCadastrarEditarManutenção({
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
 
-
   useEffect(() => {
-
-  async function carregarEquipamentos() {
-
-    try {
-
-      const dados =
-        await buscarEquipamentos();
+    async function carregarEquipamentos() {
+      try {
+        const dados = await buscarEquipamentos();
 
         if (modoEdicao || modoVisualizacao) {
-            setEquipamentos(dados);
+          setEquipamentos(dados);
         } else {
+          // ✅ CORREÇÃO 2: Filtra equipamentos com status "DISPONIVEL" (FastAPI)
           setEquipamentos(
             dados.filter(
               (equipamento) =>
-                equipamento.status === "Disponível"
-      )
-  );
-}
-
-    } catch {
-
-      setErro(
-        "Erro ao carregar equipamentos."
-      );
+                equipamento.status === "DISPONIVEL"  // ← agora em inglês
+            )
+          );
+        }
+      } catch {
+        setErro("Erro ao carregar equipamentos.");
+      }
     }
-  }
 
-  carregarEquipamentos();
+    carregarEquipamentos();
+  }, []);
 
-}, []);
+  // Preenche os campos ao editar/visualizar
+  useEffect(() => {
+    if (!manutencao) return;
+    setEquipamento(String(manutencao.id_equipamento));
+    setTipo(manutencao.tipo);
+    setDefeito(manutencao.descricao_defeito);
+    setData(manutencao.data_abertura);
+  }, [manutencao]);
 
-// Preenche os campos ao editar/visualizar
-useEffect(() => {
-  if (!manutencao) return;
-
-  setEquipamento(String(manutencao.id_equipamento));
-  setTipo(manutencao.tipo);
-  setDefeito(manutencao.descricao_defeito);
-  setData(manutencao.data_abertura);
-}, [manutencao]);
-
+  // ✅ CORREÇÃO 3: Usa "codigo_patrimonio" em vez de "patrimonio"
   const opcoesEquipamentos = equipamentos.map(
     (equipamento) => ({
       valor: equipamento.id,
-      texto: `${equipamento.nome} (${equipamento.patrimonio})`
+      texto: `${equipamento.nome} (${equipamento.codigo_patrimonio || equipamento.patrimonio})`
     })
   );
 
   const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  e.preventDefault();
+    if (!equipamento || !tipo || !defeito || !data) {
+      setErro("Preencha todos os campos obrigatórios.");
+      return;
+    }
 
-  if (
-    !equipamento ||
-    !tipo ||
-    !defeito ||
-    !data
-  ) {
+    setSalvando(true);
+    setErro("");
 
-    setErro(
-      "Preencha todos os campos obrigatórios."
+    const equipamentoSelecionado = equipamentos.find(
+      (eq) => String(eq.id) === String(equipamento)
     );
 
-    return;
-  }
+    if (!equipamentoSelecionado) {
+      setErro("Equipamento inválido");
+      setSalvando(false);
+      return;
+    }
 
-  setSalvando(true);
+    const payload = {
+      id: manutencao?.id,
+      id_equipamento: Number(equipamento),
+      tipo,
+      descricao_defeito: defeito,
+      data_abertura: data,
+    };
 
-  setErro("");
-
-  const equipamentoSelecionado =
-    equipamentos.find(
-      (eq) =>
-        String(eq.id) ===
-        String(equipamento)
-    );
-
-  if (!equipamentoSelecionado) {
-
-    setErro("Equipamento inválido");
-
-    setSalvando(false);
-
-    return;
-  }
-
-  const payload = {
-    id: manutencao?.id,
-    id_equipamento: Number(equipamento),
-    tipo,
-    descricao_defeito: defeito,
-    data_abertura: data,
-};
-
-  try {
-
-    const dadosSalvos =
-      await salvarManutencao(
-      payload
-  );
-
-    onSalvar(dadosSalvos);
-
-    onFechar();
-
-  } catch {
-
-    setErro(
-      "Erro ao salvar manutenção."
-    );
-
-  } finally {
-
-    setSalvando(false);
-  }
-};
+    try {
+      const dadosSalvos = await salvarManutencao(payload);
+      onSalvar(dadosSalvos);
+      onFechar();
+    } catch {
+      setErro("Erro ao salvar manutenção.");
+    } finally {
+      setSalvando(false);
+    }
+  };
 
   return (
     <div className="bg-[#F3F4F6] relative flex flex-col w-[550px] max-w-[90vw] max-h-[90vh] overflow-y-auto rounded-xl shadow-sm p-5">
@@ -158,7 +127,7 @@ useEffect(() => {
             : modoEdicao
             ? "Editar Manutenção"
             : "Registrar Manutenção"}
-          </TituloPagina>
+        </TituloPagina>
 
         <SubTitulo>
           {modoVisualizacao
@@ -175,10 +144,7 @@ useEffect(() => {
         </p>
       )}
 
-      <form
-        onSubmit={handleSubmit}
-        className="w-full flex flex-col gap-[15px]"
-      >
+      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-[15px]">
         <CaixaSelecao
           label="Equipamento *"
           id="equipamento"
@@ -186,9 +152,7 @@ useEffect(() => {
           opcoes={opcoesEquipamentos}
           value={equipamento}
           disabled={modoVisualizacao}
-          onChange={(e) =>
-            setEquipamento(e.target.value)
-          }
+          onChange={(e) => setEquipamento(e.target.value)}
         />
 
         <CaixaSelecao
@@ -196,20 +160,12 @@ useEffect(() => {
           id="tipo"
           placeholder="Selecione o tipo"
           opcoes={[
-            {
-              valor: "Preventiva",
-              texto: "Preventiva"
-            },
-            {
-              valor: "Corretiva",
-              texto: "Corretiva"
-            }
+            { valor: "Preventiva", texto: "Preventiva" },
+            { valor: "Corretiva", texto: "Corretiva" }
           ]}
           value={tipo}
           disabled={modoVisualizacao}
-          onChange={(e) =>
-            setTipo(e.target.value)
-          }
+          onChange={(e) => setTipo(e.target.value)}
         />
 
         <CaixaTexto
@@ -218,9 +174,7 @@ useEffect(() => {
           placeholder="Digite o defeito"
           value={defeito}
           disabled={modoVisualizacao}
-          onChange={(e) =>
-            setDefeito(e.target.value)
-          }
+          onChange={(e) => setDefeito(e.target.value)}
         />
 
         <DataSelecao
@@ -228,40 +182,34 @@ useEffect(() => {
           label="Data de Envio *"
           value={data}
           disabled={modoVisualizacao}
-          onChange={(e) =>
-            setData(e.target.value)
-          }
+          onChange={(e) => setData(e.target.value)}
         />
 
         {!modoVisualizacao && (
           <div className="flex justify-end gap-3 mt-2">
-          <Botao
-            children="Cancelar"
-            onClick={onFechar}
-            type="button"
-            estilo="cancelar"
-            icone={false}
-          />
+            <Botao
+              children="Cancelar"
+              onClick={onFechar}
+              type="button"
+              estilo="cancelar"
+              icone={false}
+            />
 
-          <Botao
-            children={
-              salvando
-                ? "Salvando..."
-                : modoEdicao
-                ? "Salvar"
-                : "Registrar"
-            }
-            type="submit"
-            estilo={
-              modoEdicao
-                ? "salvar"
-                : "registrar"
-            }
-            icone={false}
-            disabled={salvando}
-          />
-  </div>
-)}
+            <Botao
+              children={
+                salvando
+                  ? "Salvando..."
+                  : modoEdicao
+                  ? "Salvar"
+                  : "Registrar"
+              }
+              type="submit"
+              estilo={modoEdicao ? "salvar" : "registrar"}
+              icone={false}
+              disabled={salvando}
+            />
+          </div>
+        )}
       </form>
     </div>
   );

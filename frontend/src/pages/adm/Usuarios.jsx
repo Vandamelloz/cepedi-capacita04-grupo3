@@ -7,9 +7,7 @@ import PopUpExclusao from "../../components/PopUpExclusao";
 import StatusBadge from "../../components/ui/StatusBadge";
 
 import { useState, useEffect, useCallback } from "react";
-import { buscarUsuarios, criarUsuario, atualizarUsuario, deletarUsuario } from "../../services/usuarios/usuarios.service";
-
-const gerarIdUsuario = () => String(Date.now());
+import { buscarUsuarios, criarUsuario, atualizarUsuario, inativarUsuario, reativarUsuario } from "../../services/usuarios/usuarios.service";
 
 export default function Usuario() {
     const [popUpEditarUsuario, setPopUpEditarUsuario] = useState(false);
@@ -26,52 +24,58 @@ export default function Usuario() {
     const carregarUsuarios = useCallback(async () => {
         try {
             const dados = await buscarUsuarios();
-            setUsuarios(dados);
+            console.log("📦 Usuários carregados:", dados);
+            setUsuarios(Array.isArray(dados) ? dados : []);
         } catch (erro) {
-            console.error(erro);
+            console.error("❌ Erro ao carregar usuários:", erro);
+            setUsuarios([]);
         }
     }, []);
 
     useEffect(() => {
-        let montado = true;
-        (async () => {
-            try {
-                const dados = await buscarUsuarios();
-                if (montado) setUsuarios(dados);
-            } catch (erro) {
-                console.error(erro);
-            }
-        })();
-        return () => { montado = false; };
-    }, []);
+        carregarUsuarios();
+    }, [carregarUsuarios]);
 
     const salvarUsuario = async (dadosDoFormulario) => {
         try {
             if (usuarioSelecionado) {
-                await atualizarUsuario(usuarioSelecionado.id, { ...usuarioSelecionado, ...dadosDoFormulario });
+                await atualizarUsuario(usuarioSelecionado.id, dadosDoFormulario);
             } else {
-                const novoUsuario = {
-                    id: gerarIdUsuario(),
-                    ...dadosDoFormulario
-                };
-                await criarUsuario(novoUsuario);
+                await criarUsuario(dadosDoFormulario);
             }
-            carregarUsuarios();
+            await carregarUsuarios();
             fecharPopUp();
+            alert("✅ Usuário salvo com sucesso!");
         } catch (erro) {
-            console.error(erro);
+            console.error("❌ Erro ao salvar usuário:", erro);
+            alert("Erro ao salvar usuário: " + (erro.message || ""));
         }
     };
 
     const excluirUsuario = async () => {
         if (usuarioSelecionado) {
             try {
-                await deletarUsuario(usuarioSelecionado.id);
-                carregarUsuarios();
+                console.log("🗑️ Inativando usuário:", usuarioSelecionado.id);
+                await inativarUsuario(usuarioSelecionado.id);
+                await carregarUsuarios();
                 fecharPopUp();
+                alert("✅ Usuário inativado com sucesso!");
             } catch (erro) {
-                console.error(erro);
+                console.error("❌ Erro ao inativar usuário:", erro);
+                alert("Erro ao inativar usuário: " + (erro.message || ""));
             }
+        }
+    };
+
+    const reativarUsuarioHandler = async (usuario) => {
+        try {
+            console.log("🔄 Reativando usuário:", usuario.id);
+            await reativarUsuario(usuario.id);
+            await carregarUsuarios();
+            alert("✅ Usuário reativado com sucesso!");
+        } catch (erro) {
+            console.error("❌ Erro ao reativar usuário:", erro);
+            alert("Erro ao reativar usuário: " + (erro.message || ""));
         }
     };
 
@@ -82,7 +86,6 @@ export default function Usuario() {
         setUsuarioSelecionado(null);
     };
 
-
     const usuariosFiltrados = usuarios.filter((usuario) => {
         const termoMinusculo = termo.toLowerCase();
         
@@ -90,11 +93,15 @@ export default function Usuario() {
             usuario.nome?.toLowerCase().includes(termoMinusculo) ||
             usuario.email?.toLowerCase().includes(termoMinusculo);
             
-        // Filtra pelo perfil (Administrador, Aluno, etc.)
-        const batePerfil = filtroPerfil === "" || usuario.perfil === filtroPerfil;
+        const batePerfil = filtroPerfil === "" || usuario.tipo_usuario === filtroPerfil;
         
-        // Filtra pelo status (Ativo, Inativo)
-        const bateStatus = filtroStatus === "" || usuario.status === filtroStatus;
+        // 🔴 CORREÇÃO: Quando filtroStatus está vazio, mostra TODOS
+        let bateStatus = true;
+        if (filtroStatus === "Ativo") {
+            bateStatus = usuario.ativo === true || usuario.ativo === 1 || usuario.ativo === "true" || usuario.ativo === "1";
+        } else if (filtroStatus === "Inativo") {
+            bateStatus = usuario.ativo === false || usuario.ativo === 0 || usuario.ativo === "false" || usuario.ativo === "0";
+        }
 
         return bateTexto && batePerfil && bateStatus;
     });
@@ -105,23 +112,17 @@ export default function Usuario() {
 
                 <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
                     <div className="w-full">
-                       
                         <Pesquisa
                             termo={termo}
                             setTermo={setTermo}
-                            
-                            // Usamos a prop 'categoria' do componente genérico para passar os Perfis
                             categoria={filtroPerfil}
                             setCategoria={setFiltroPerfil}
-                            listaCategorias={["Administrador", "Estagiário", "Aluno", "Professor"]}
+                            listaCategorias={["ADMINISTRADOR", "TECNICO", "COMUM"]}
                             placeholderCategoria="Todos os Perfis" 
-                            
-                            // Filtro de Status
                             status={filtroStatus}
                             setStatus={setFiltroStatus}
                             listaStatus={["Ativo", "Inativo"]}
                             placeholderStatus="Todos os Status"
-                            
                             placeholderTexto="Buscar por nome ou email..."
                             extras={
                                 <div className="ml-auto">
@@ -143,8 +144,12 @@ export default function Usuario() {
                             colunas={[
                                 { titulo: "Nome", chave: "nome" },
                                 { titulo: "Email", chave: "email" },
-                                { titulo: "Perfil", chave: "perfil" },
-                                { titulo: "Status", chave: "status", render: (valor) => <StatusBadge status={valor} /> },
+                                { titulo: "Perfil", chave: "tipo_usuario" },
+                                { 
+                                    titulo: "Status", 
+                                    chave: "ativo", 
+                                    render: (valor) => <StatusBadge status={valor ? "Ativo" : "Inativo"} /> 
+                                },
                             ]}
                             dados={usuariosFiltrados} 
                             onEditar={(usuario) => {
@@ -180,8 +185,8 @@ export default function Usuario() {
                             <div className="fixed inset-0 bg-black/40 z-40" onClick={fecharPopUp} />
                             <div className="fixed inset-0 flex items-center justify-center z-50">
                                 <PopUpExclusao
-                                    titulo="Confirmar Exclusão"
-                                    subtitulo="Essa ação não poderá ser desfeita."
+                                    titulo="Confirmar Inativação"
+                                    subtitulo="Deseja realmente inativar este usuário? Ele não poderá mais acessar o sistema, mas seus dados permanecerão no histórico."
                                     objeto={usuarioSelecionado ? usuarioSelecionado.nome : "Usuário"}
                                     confirmarExclusao={excluirUsuario}
                                     cancelarExclusao={fecharPopUp}

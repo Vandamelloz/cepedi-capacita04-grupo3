@@ -27,7 +27,7 @@ from dotenv import load_dotenv
 import os
 
 """importações de models"""
-from models.models import Categoria, Usuario, Equipamento, Manutencao, Reserva, Emprestimo, TipoUsuario
+from models.models import Categoria, Usuario, Equipamento, Manutencao, Reserva, Emprestimo, TipoUsuario, EmprestimoUpdate, StatusEmprestimo, StatusEquipamento, StatusManutencao, StatusReserva, ManutencaoUpdate
 
 """importações de repositórios"""
 from gerenciador_db.categoria import CategoriaRepositorio
@@ -43,6 +43,7 @@ from gerenciador_db.auditoria import AuditoriaRepositorio
 from models.models import LogAuditoria
 from gerenciador_db.historico import HistoricoRepositorio
 from models.models import HistoricoMovimentacao
+
 
 
 load_dotenv() # Carrega as variáveis de ambiente do arquivo .env
@@ -316,6 +317,24 @@ async def reativar_equipamento(equipamento_id: int, usuario_logado: dict = Depen
     ))
     return resultado
 
+"""DELETE (excluir permanentemente)"""
+@app.delete("/excluir_equipamento/{equipamento_id}", dependencies=[PERMISSAO_ADMIN])
+async def excluir_equipamento(equipamento_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
+    """
+    Endpoint para excluir um equipamento permanentemente.
+    ⚠️ Apenas ADMIN pode fazer isso!
+    """
+    resultado = await equipamento_repositorio.excluir_equipamento(equipamento_id)
+    
+    await auditoria_repositorio.registrar_log(LogAuditoria(
+        id_usuario=usuario_logado["id"], 
+        acao="DELETE", 
+        tabela_afetada="equipamento",
+        id_registro_afetado=equipamento_id, 
+        detalhes="Equipamento excluído permanentemente do sistema"
+    ))
+    return resultado
+
 
 #===============================================================================================
 #                               CRUD - MANUTENÇÃO
@@ -330,11 +349,45 @@ async def criar_manutencao(manutencao: Manutencao, usuario_logado: dict = Depend
         id_usuario=usuario_logado["id"], acao="INSERT", tabela_afetada="manutencao",
         id_registro_afetado=id_registro, detalhes="Manutenção criada no sistema"
     ))
+    
+    # 🔴 Busca o status atual do equipamento e converte para ENUM
+    con = None
+    cur = None
+    status_atual_enum = StatusEquipamento.DISPONIVEL
+    try:
+        con = pymysql.connect(**config_db)
+        cur = con.cursor()
+        cur.execute("SELECT status FROM equipamento WHERE id = %s", (manutencao.id_equipamento,))
+        equipamento = cur.fetchone()
+        if equipamento:
+            status_atual_str = equipamento['status']
+            # Converte a string para ENUM
+            if status_atual_str == "DISPONIVEL":
+                status_atual_enum = StatusEquipamento.DISPONIVEL
+            elif status_atual_str == "EM_USO":
+                status_atual_enum = StatusEquipamento.EM_USO
+            elif status_atual_str == "RESERVADO":
+                status_atual_enum = StatusEquipamento.RESERVADO
+            elif status_atual_str == "EM_MANUTENCAO":
+                status_atual_enum = StatusEquipamento.EM_MANUTENCAO
+            elif status_atual_str == "INATIVO":
+                status_atual_enum = StatusEquipamento.INATIVO
+    except Exception as e:
+        print(f"Erro ao buscar status do equipamento: {e}")
+    finally:
+        if cur:
+            cur.close()
+        if con:
+            con.close()
+    
     await historico_repositorio.registrar_movimentacao(HistoricoMovimentacao(
-    id_equipamento=manutencao.id_equipamento,
-    id_usuario_acao=usuario_logado["id"],
-    descricao_motivo=f"Manutenção registrada (ID {id_registro})"
+        id_equipamento=manutencao.id_equipamento,
+        id_usuario_acao=usuario_logado["id"],
+        status_anterior=status_atual_enum,
+        status_novo=StatusEquipamento.EM_MANUTENCAO,
+        descricao_motivo=f"Manutenção registrada (ID {id_registro})"
     ))
+    
     return resultado
 
 @app.get("/listar_manutencoes")
@@ -342,13 +395,25 @@ async def listar_manutencoes(usuario_logado: dict = Depends(obter_usuario_atual)
     """Endpoint para listar todas as manutenções"""
     return await manutencao_repositorio.listar_manutencoes()
 
+"""UPDATE (atualizar) - CORRIGIDO com modelo de atualização parcial"""
 @app.put("/atualizar_manutencao/{manutencao_id}", dependencies=[PERMISSAO_TECNICO])
-async def atualizar_manutencao(manutencao_id: int, manutencao: Manutencao, usuario_logado: dict = Depends(obter_usuario_atual)):
+async def atualizar_manutencao(
+    manutencao_id: int, 
+    manutencao: ManutencaoUpdate,  # ← MUDOU PARA O NOVO MODELO
+    usuario_logado: dict = Depends(obter_usuario_atual)
+):
+    """
+    Endpoint para atualizar uma manutenção existente.
+    Aceita atualização parcial (apenas os campos enviados).
+    """
     resultado = await manutencao_repositorio.atualizar_manutencao(manutencao_id, manutencao)
     
     await auditoria_repositorio.registrar_log(LogAuditoria(
-        id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="manutencao",
-        id_registro_afetado=manutencao_id, detalhes="Manutenção atualizada no sistema"
+        id_usuario=usuario_logado["id"], 
+        acao="UPDATE", 
+        tabela_afetada="manutencao",
+        id_registro_afetado=manutencao_id, 
+        detalhes="Manutenção atualizada no sistema"
     ))
     return resultado
 
@@ -358,8 +423,11 @@ async def excluir_manutencao(manutencao_id: int, usuario_logado: dict = Depends(
     resultado = await manutencao_repositorio.excluir_manutencao(manutencao_id)
     
     await auditoria_repositorio.registrar_log(LogAuditoria(
-        id_usuario=usuario_logado["id"], acao="DELETE", tabela_afetada="manutencao",
-        id_registro_afetado=manutencao_id, detalhes="Manutenção excluída do sistema"
+        id_usuario=usuario_logado["id"], 
+        acao="DELETE", 
+        tabela_afetada="manutencao",
+        id_registro_afetado=manutencao_id, 
+        detalhes="Manutenção excluída do sistema"
     ))
     return resultado
 
@@ -432,13 +500,25 @@ async def listar_emprestimos(apenas_ativos: bool = False, usuario_logado: dict =
 
 """UPDATE (atualizar)"""
 @app.put("/atualizar_emprestimo/{emprestimo_id}", dependencies=[PERMISSAO_TECNICO])
-async def atualizar_emprestimo(emprestimo_id: int, emprestimo: Emprestimo, usuario_logado: dict = Depends(obter_usuario_atual)):
+async def atualizar_emprestimo(
+    emprestimo_id: int, 
+    emprestimo: EmprestimoUpdate,  # ← MUDOU AQUI
+    usuario_logado: dict = Depends(obter_usuario_atual)
+):
+    """
+    Endpoint para atualizar um empréstimo existente.
+    Aceita atualização parcial (apenas os campos enviados).
+    """
     resultado = await emprestimo_repositorio.atualizar_emprestimo(emprestimo_id, emprestimo)
     
     await auditoria_repositorio.registrar_log(LogAuditoria(
-        id_usuario=usuario_logado["id"], acao="UPDATE", tabela_afetada="emprestimo",
-        id_registro_afetado=emprestimo_id, detalhes="Empréstimo atualizado no sistema"
+        id_usuario=usuario_logado["id"], 
+        acao="UPDATE", 
+        tabela_afetada="emprestimo",
+        id_registro_afetado=emprestimo_id, 
+        detalhes="Empréstimo atualizado no sistema"
     ))
+    
     return resultado
 
 """UPDATE (devolver)"""
@@ -454,6 +534,75 @@ async def devolver_emprestimo(emprestimo_id: int, usuario_logado: dict = Depends
 
 """ESSE CRUD NÃO POSSUI A FUNÇÃO DELETE, POIS O REGISTRO DE EMPRÉSTIMO DEVE SER MANTIDO
 PARA FINS DE HISTÓRICO, LOGS E RELATÓRIOS."""
+
+"""UPDATE (cancelar)"""
+@app.patch("/cancelar_emprestimo/{emprestimo_id}", dependencies=[PERMISSAO_TECNICO])
+async def cancelar_emprestimo(emprestimo_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
+    """Endpoint para cancelar um empréstimo (altera status para CANCELADO)"""
+    
+    con = None
+    cur = None
+    try:
+        con = pymysql.connect(**config_db)
+        cur = con.cursor()
+        
+        # Verifica se o empréstimo existe
+        cur.execute("SELECT id, id_equipamento, status FROM emprestimo WHERE id = %s", (emprestimo_id,))
+        emprestimo = cur.fetchone()
+        if not emprestimo:
+            raise HTTPException(status_code=404, detail="Empréstimo não encontrado")
+        
+        # Verifica se já está cancelado ou devolvido
+        if emprestimo['status'] in ['DEVOLVIDO', 'CANCELADO']:
+            raise HTTPException(status_code=400, detail="Empréstimo já está finalizado")
+        
+        # Atualiza status para CANCELADO
+        sql = "UPDATE emprestimo SET status = 'CANCELADO' WHERE id = %s"
+        cur.execute(sql, (emprestimo_id,))
+        con.commit()
+        
+        # Retorna o equipamento para DISPONIVEL
+        cur.execute("""
+            UPDATE equipamento SET status = 'DISPONIVEL' 
+            WHERE id = %s
+        """, (emprestimo['id_equipamento'],))
+        con.commit()
+        
+        # 🔴 CORREÇÃO: Registra auditoria sem status_anterior/status_novo
+        await auditoria_repositorio.registrar_log(LogAuditoria(
+            id_usuario=usuario_logado["id"], 
+            acao="UPDATE", 
+            tabela_afetada="emprestimo",
+            id_registro_afetado=emprestimo_id, 
+            detalhes=f"Empréstimo cancelado - status alterado para CANCELADO"
+        ))
+        
+        # 🔴 CORREÇÃO: Registra histórico com status do equipamento (NÃO do empréstimo)
+        await historico_repositorio.registrar_movimentacao(HistoricoMovimentacao(
+            id_equipamento=emprestimo['id_equipamento'],
+            id_usuario_acao=usuario_logado["id"],
+            status_anterior="EM_USO",  # ← Status do equipamento antes de cancelar
+            status_novo="DISPONIVEL",   # ← Status do equipamento depois de cancelar
+            descricao_motivo=f"Empréstimo cancelado (ID {emprestimo_id})"
+        ))
+        
+        return {
+            "sucesso": True,
+            "mensagem": "Empréstimo cancelado com sucesso"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        if con:
+            con.rollback()
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if cur:
+            cur.close()
+        if con:
+            con.close()
 
 """GERAR RELATÓRIO (CSV E PDF) COM FILTRO DE DATAS"""
 @app.get("/relatorios/emprestimos", dependencies=[PERMISSAO_TECNICO])
@@ -711,35 +860,54 @@ async def testar_email(req: EmailRequest):
 #Rota para login
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    con = pymysql.connect(**config_db)
-    cur = con.cursor()
-    
+
+    print("🔑 Iniciando processo de login...")
+    con = None
+    cur = None
     try:
+        # Tenta conectar
+        print("🔄 Conectando ao banco...")
+        con = pymysql.connect(**config_db)
+        cur = con.cursor()
+        print("✅ Conectado ao banco!")
+
+        # Busca o usuário
+        print(f"🔍 Buscando usuário: {form_data.username}")
         sql = "SELECT id, nome, email, senha, tipo_usuario FROM usuario WHERE email = %s AND ativo = True"
         cur.execute(sql, (form_data.username,))
         usuario_db = cur.fetchone()
 
-        if not usuario_db or not verificar_senha(form_data.password, usuario_db['senha']):
+        if not usuario_db:
+            print("❌ Usuário não encontrado!")
             raise HTTPException(status_code=401, detail="Email ou senha incorretos")
 
-        # Mapeamento de perfis para o frontend
+        print(f"✅ Usuário encontrado: {usuario_db['email']}")
+
+        # Verifica senha
+        print("🔐 Verificando senha...")
+        if not verificar_senha(form_data.password, usuario_db['senha']):
+            print("❌ Senha incorreta!")
+            raise HTTPException(status_code=401, detail="Email ou senha incorretos")
+        print("✅ Senha correta!")
+
+        # Mapeamento de perfis
         perfil_map = {
             "ADMINISTRADOR": "admin",
             "TECNICO": "tecnico",
             "COMUM": "comum"
         }
-        
         perfil_frontend = perfil_map.get(usuario_db['tipo_usuario'], "comum")
 
-        # Cria o token JWT
+        # Cria token
+        print("🎫 Gerando token...")
         token_acesso = criar_token_acesso(dados={
-            "sub": usuario_db['email'], 
+            "sub": usuario_db['email'],
             "id": usuario_db['id'],
             "nome": usuario_db['nome'],
             "perfil": usuario_db['tipo_usuario']
         })
-        
-        #dados do usuário que serão retornados para o frontend
+        print("✅ Token gerado com sucesso!")
+
         return {
             "access_token": token_acesso,
             "token_type": "bearer",
@@ -749,11 +917,29 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             "perfil": perfil_frontend,
             "tipo_usuario": usuario_db['tipo_usuario']
         }
+
+    except HTTPException:
+        # Repassa a exceção HTTP
+        raise
+
+    except Exception as e:
+        # 🔴 ESSE É O PONTO IMPORTANTE: Mostra o erro completo
+        print("=" * 50)
+        print("❌ ERRO NO LOGIN:")
+        print(f"Tipo: {type(e).__name__}")
+        print(f"Mensagem: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        print("=" * 50)
+        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+
     finally:
         if cur:
             cur.close()
+            print("🔒 Cursor fechado")
         if con:
             con.close()
+            print("🔒 Conexão fechada")
 
 @app.get("/listar_logs", dependencies=[PERMISSAO_ADMIN])
 async def listar_logs(tabela: str = None, id_usuario: int = None):

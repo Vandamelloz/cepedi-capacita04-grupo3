@@ -352,20 +352,50 @@ class EmprestimoRepositorio:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
             
-            # Atualiza apenas os campos que fazem sentido ser corrigidos manualmente
-            sql = "UPDATE emprestimo SET data_previsao_devolucao = %s, observacoes = %s WHERE id = %s"
-            cur.execute(sql, (emprestimo.data_previsao_devolucao, emprestimo.observacoes, emprestimo_id))
+            # 🔴 APENAS VERIFICA SE EXISTE (sem verificar status)
+            cur.execute("SELECT id FROM emprestimo WHERE id = %s", (emprestimo_id,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Empréstimo não encontrado")
+            
+            # Constrói query dinâmica
+            updates = []
+            valores = []
+            
+            if emprestimo.data_previsao_devolucao is not None:
+                updates.append("data_previsao_devolucao = %s")
+                valores.append(emprestimo.data_previsao_devolucao)
+            
+            if emprestimo.observacoes is not None:
+                updates.append("observacoes = %s")
+                valores.append(emprestimo.observacoes)
+            
+            if emprestimo.status is not None:
+                updates.append("status = %s")
+                valores.append(emprestimo.status.value)
+            
+            if not updates:
+                raise HTTPException(status_code=400, detail="Nenhum dado para atualizar")
+            
+            valores.append(emprestimo_id)
+            sql = f"UPDATE emprestimo SET {', '.join(updates)} WHERE id = %s"
+            cur.execute(sql, valores)
             con.commit()
 
             return {
                 "sucesso": True,
-                "mensagem": "Dados do empréstimo corrigidos com sucesso"
+                "mensagem": "Empréstimo atualizado com sucesso"
             }
+            
+        except HTTPException:
+            raise
         except Exception as e:
-            if con: con.rollback()
+            if con: 
+                con.rollback()
             traceback.print_exc()
             raise HTTPException(status_code=500, detail=str(e))
         finally:
-            if cur: cur.close()
-            if con: con.close()
+            if cur: 
+                cur.close()
+            if con: 
+                con.close()
 

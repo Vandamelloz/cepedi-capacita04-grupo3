@@ -34,11 +34,29 @@ class StatusEmprestimo(str, Enum):
     ATIVO = "ATIVO"
     DEVOLVIDO = "DEVOLVIDO"
     ATRASADO = "ATRASADO"
+    CANCELADO = "CANCELADO"  # ← ADICIONE ESTA LINHA
 
 
 # ================================================================
 # MODELOS
 # ================================================================
+
+class EmprestimoUpdate(BaseModel):
+    data_previsao_devolucao: Optional[datetime] = None
+    observacoes: Optional[str] = None
+    status: Optional[StatusEmprestimo] = None
+
+class EmprestimoUpdate(BaseModel):
+    data_previsao_devolucao: Optional[datetime] = None
+    observacoes: Optional[str] = None
+    status: Optional[StatusEmprestimo] = None
+    id_tecnico_retorno: Optional[int] = None
+
+class ManutencaoUpdate(BaseModel):
+    id_equipamento: Optional[int] = None
+    descricao_defeito: Optional[str] = None
+    status: Optional[StatusManutencao] = None
+    data_conclusao: Optional[datetime] = None
 
 class Categoria(BaseModel):
     nome: str
@@ -58,6 +76,7 @@ class Equipamento(BaseModel):
     nome: str
     modelo: Optional[str] = None
     id_categoria: int
+    quantidade: int = Field(default=1, ge=1)
     status: StatusEquipamento = StatusEquipamento.DISPONIVEL
     ativo: Optional[bool] = True
 
