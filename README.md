@@ -307,7 +307,7 @@ http://localhost:5173/
 ### Frontend
 
 - Hiago Alves da Silva
-- Isabela Sousa Sousa
+- Isabela Sousa Damasceno
 - Paulo Victor Almeida de Oliveira
 - Paulo Vitor Dias Soares
 
