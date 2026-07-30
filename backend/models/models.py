@@ -3,10 +3,6 @@ from datetime import date, datetime
 from pydantic import BaseModel, Field
 from enum import Enum
 
-# ================================================================
-# ENUMS
-# ================================================================
-
 class TipoUsuario(str, Enum):
     ADMINISTRADOR = "ADMINISTRADOR"
     TECNICO = "TECNICO"
@@ -34,7 +30,7 @@ class StatusEmprestimo(str, Enum):
     ATIVO = "ATIVO"
     DEVOLVIDO = "DEVOLVIDO"
     ATRASADO = "ATRASADO"
-    CANCELADO = "CANCELADO"  # ← ADICIONE ESTA LINHA
+    CANCELADO = "CANCELADO"
 
 
 # ================================================================
@@ -45,15 +41,11 @@ class EmprestimoUpdate(BaseModel):
     data_previsao_devolucao: Optional[datetime] = None
     observacoes: Optional[str] = None
     status: Optional[StatusEmprestimo] = None
-
-class EmprestimoUpdate(BaseModel):
-    data_previsao_devolucao: Optional[datetime] = None
-    observacoes: Optional[str] = None
-    status: Optional[StatusEmprestimo] = None
     id_tecnico_retorno: Optional[int] = None
 
 class ManutencaoUpdate(BaseModel):
     id_equipamento: Optional[int] = None
+    tipo: Optional[str] = None 
     descricao_defeito: Optional[str] = None
     status: Optional[StatusManutencao] = None
     data_conclusao: Optional[datetime] = None
@@ -82,11 +74,13 @@ class Equipamento(BaseModel):
 
 
 class Manutencao(BaseModel):
+    id: Optional[int] = None
     id_equipamento: int
+    tipo: str 
     descricao_defeito: str
+    data_abertura: Optional[str] = None
     status: StatusManutencao = StatusManutencao.PENDENTE
     data_conclusao: Optional[datetime] = None
-
 
 class Reserva(BaseModel):
     id_equipamento: int

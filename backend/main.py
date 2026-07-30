@@ -39,7 +39,7 @@ from models.models import LogAuditoria
 from models.models import HistoricoMovimentacao
 
 
-load_dotenv()  # Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()  
 
 config_db = {
     "host": os.getenv("host"),
@@ -51,8 +51,6 @@ config_db = {
 
 app = FastAPI(debug=False)
 
-
-# Configuração de logger para registrar o erro internamente
 logger = logging.getLogger("uvicorn.error")
 
 @app.exception_handler(Exception)
@@ -67,18 +65,18 @@ async def global_exception_handler(request, exc):
 origens_permitidas = [
     "http://localhost:5173",  # Porta padrão do Vite / React
     "http://localhost:3000",  # Porta padrão do React tradicional
-    # "https://seu-front-em-producao.vercel.app" # Se for publicar na nuvem
+   
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],  # Portas do seu Vite
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-"""Instância de classe Para controle das tabelas do banco de dados"""
+
 categoria_repositorio = CategoriaRepositorio(config_db)
 usuario_repositorio = UsuarioRepositorio(config_db)
 equipamento_repositorio = EquipamentoRepositorio(config_db)
@@ -95,11 +93,7 @@ reserva_repositorio.set_historico_repositorio(historico_repositorio)
 
 emprestimo_repositorio.set_reserva_repositorio(reserva_repositorio)
 
-# ================================================================
-# 🔴 CORREÇÃO: definição única de permissões (estava duplicada no
-# arquivo original — uma vez aqui, e de novo logo após o endpoint "/").
-# Mantidas nos 3 papéis atuais (ADMINISTRADOR, TECNICO, COMUM).
-# ================================================================
+
 PERMISSAO_ADMIN = Depends(verificar_permissao(["ADMINISTRADOR"]))
 PERMISSAO_TECNICO = Depends(verificar_permissao(["ADMINISTRADOR", "TECNICO"]))
 PERMISSAO_TODOS = Depends(verificar_permissao(["ADMINISTRADOR", "TECNICO", "COMUM"]))
@@ -107,7 +101,7 @@ PERMISSAO_TODOS = Depends(verificar_permissao(["ADMINISTRADOR", "TECNICO", "COMU
 
 @app.get("/")
 async def home():
-    """Endpoint de teste para verificar se a API está funcionando"""
+   
     return {
         "mensagem": "Bem-vindo à API do GIPAR!",
         "versao": "2.0",
@@ -154,10 +148,8 @@ async def home():
 @app.post("/criar_categoria", dependencies=[PERMISSAO_ADMIN])
 async def criar_categoria(categoria: Categoria,
     usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para criar uma nova categoria"""
-    resultado = await categoria_repositorio.criar_categoria(categoria)
 
-    # === Início da Auditoria ===
+    resultado = await categoria_repositorio.criar_categoria(categoria)
     novo_log = LogAuditoria(
         id_usuario=usuario_logado["id"],
         acao="INSERT",
@@ -166,14 +158,12 @@ async def criar_categoria(categoria: Categoria,
         detalhes=f"Categoria criada no sistema"
     )
     await auditoria_repositorio.registrar_log(novo_log)
-    # === Fim da Auditoria ===
 
     return resultado
 
 """READ (listar)"""
 @app.get("/listar_categorias")
 async def listar_categorias(usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para listar todas as categorias"""
     return await categoria_repositorio.listar_categorias()
 
 """UPDATE (atualizar)"""
@@ -218,19 +208,16 @@ async def criar_usuario(usuario: Usuario, usuario_logado: dict = Depends(obter_u
 """READ (listar)"""
 @app.get("/listar_usuarios", dependencies=[PERMISSAO_TECNICO])
 async def listar_usuarios(usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para listar apenas os usuários ativos"""
     return await usuario_repositorio.listar_usuarios()
 
 """READ (listar por tipo)"""
 @app.get("/listar_usuarios/tipo/{tipo}", dependencies=[PERMISSAO_TECNICO])
 async def listar_usuarios_por_tipo(tipo: str, usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para listar usuários por tipo (ADMINISTRADOR, TECNICO, COMUM)"""
     return await usuario_repositorio.listar_usuarios_por_tipo(tipo)
 
 """READ (buscar um)"""
 @app.get("/buscar_usuario/{usuario_id}", dependencies=[PERMISSAO_TECNICO])
 async def buscar_usuario(usuario_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para buscar um usuário específico pelo ID"""
     return await usuario_repositorio.buscar_usuario(usuario_id)
 
 """UPDATE (atualizar)"""
@@ -247,7 +234,6 @@ async def atualizar_usuario(usuario_id: int, usuario: Usuario, usuario_logado: d
 """UPDATE (alterar tipo)"""
 @app.patch("/alterar_tipo_usuario/{usuario_id}",  dependencies=[PERMISSAO_ADMIN])
 async def alterar_tipo_usuario(usuario_id: int, novo_tipo: str, admin_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para alterar o tipo de usuário (apenas administradores)"""
     return await usuario_repositorio.alterar_tipo_usuario(usuario_id, novo_tipo, admin_id)
 
 """INACTIVATE (inativar)"""
@@ -297,7 +283,6 @@ async def criar_equipamento(equipamento: Equipamento, usuario_logado: dict = Dep
 """READ (listar)"""
 @app.get("/listar_equipamentos")
 async def listar_equipamentos( usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para listar apenas os equipamentos ativos"""
     return await equipamento_repositorio.listar_equipamentos()
 
 """UPDATE (atualizar)"""
@@ -336,10 +321,6 @@ async def reativar_equipamento(equipamento_id: int, usuario_logado: dict = Depen
 """DELETE (excluir permanentemente)"""
 @app.delete("/excluir_equipamento/{equipamento_id}", dependencies=[PERMISSAO_ADMIN])
 async def excluir_equipamento(equipamento_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
-    """
-    Endpoint para excluir um equipamento permanentemente.
-    ⚠️ Apenas ADMIN pode fazer isso!
-    """
     resultado = await equipamento_repositorio.excluir_equipamento(equipamento_id)
 
     await auditoria_repositorio.registrar_log(LogAuditoria(
@@ -366,7 +347,7 @@ async def criar_manutencao(manutencao: Manutencao, usuario_logado: dict = Depend
         id_registro_afetado=id_registro, detalhes="Manutenção criada no sistema"
     ))
 
-    # 🔴 Busca o status atual do equipamento e converte para ENUM
+ 
     con = None
     cur = None
     status_atual_enum = StatusEquipamento.DISPONIVEL
@@ -377,7 +358,6 @@ async def criar_manutencao(manutencao: Manutencao, usuario_logado: dict = Depend
         equipamento = cur.fetchone()
         if equipamento:
             status_atual_str = equipamento['status']
-            # Converte a string para ENUM
             if status_atual_str == "DISPONIVEL":
                 status_atual_enum = StatusEquipamento.DISPONIVEL
             elif status_atual_str == "EM_USO":
@@ -408,7 +388,6 @@ async def criar_manutencao(manutencao: Manutencao, usuario_logado: dict = Depend
 
 @app.get("/listar_manutencoes")
 async def listar_manutencoes(usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para listar todas as manutenções"""
     return await manutencao_repositorio.listar_manutencoes()
 
 """UPDATE (atualizar) - CORRIGIDO com modelo de atualização parcial"""
@@ -494,6 +473,7 @@ async def excluir_reserva(reserva_id: int, usuario_logado: dict = Depends(obter_
 
 @app.post("/criar_emprestimo", dependencies=[PERMISSAO_TECNICO])
 async def criar_emprestimo(emprestimo: Emprestimo, usuario_logado: dict = Depends(obter_usuario_atual)):
+    emprestimo.id_tecnico_saida = usuario_logado["id"]
     resultado = await emprestimo_repositorio.criar_emprestimo(emprestimo)
     id_registro = resultado.get("id", 0) if isinstance(resultado, dict) else getattr(resultado, "id", 0)
 
@@ -552,32 +532,24 @@ PARA FINS DE HISTÓRICO, LOGS E RELATÓRIOS."""
 """UPDATE (cancelar)"""
 @app.patch("/cancelar_emprestimo/{emprestimo_id}", dependencies=[PERMISSAO_TECNICO])
 async def cancelar_emprestimo(emprestimo_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para cancelar um empréstimo (altera status para CANCELADO)"""
-
     con = None
     cur = None
     try:
         con = pymysql.connect(**config_db)
         cur = con.cursor()
 
-        # Verifica se o empréstimo existe
         cur.execute("SELECT id, id_equipamento, status FROM emprestimo WHERE id = %s", (emprestimo_id,))
         emprestimo = cur.fetchone()
         if not emprestimo:
             raise HTTPException(status_code=404, detail="Empréstimo não encontrado")
 
-        # Verifica se já está cancelado ou devolvido
         if emprestimo['status'] in ['DEVOLVIDO', 'CANCELADO']:
             raise HTTPException(status_code=400, detail="Empréstimo já está finalizado")
-
-        # Atualiza status para CANCELADO
-        # 🔴 Requer que o ENUM da coluna status da tabela emprestimo já
-        # inclua 'CANCELADO' (ver ALTER TABLE combinado anteriormente).
         sql = "UPDATE emprestimo SET status = 'CANCELADO' WHERE id = %s"
         cur.execute(sql, (emprestimo_id,))
         con.commit()
 
-        # Retorna o equipamento para DISPONIVEL
+      
         cur.execute("""
             UPDATE equipamento SET status = 'DISPONIVEL'
             WHERE id = %s
@@ -626,22 +598,19 @@ async def relatorio_emprestimos(
     data_final: str = None,
     usuario_logado: dict = Depends(obter_usuario_atual)
 ):
-    """Endpoint para baixar o relatório de empréstimos em formato CSV ou PDF"""
-
-    # 1. Puxa os dados usando a função que já existe no seu banco
     resultado = await emprestimo_repositorio.listar_emprestimos()
     emprestimos = resultado.get("emprestimos", [])
 
-    # 2. Filtra pelas datas (se o frontend enviar)
+  
     if data_inicial and data_final:
         emprestimos_filtrados = []
         for emp in emprestimos:
-            data_ret = str(emp.get("data_retirada", ""))[:10]  # Pega só a parte AAAA-MM-DD
+            data_ret = str(emp.get("data_retirada", ""))[:10]  
             if data_ret and data_inicial <= data_ret <= data_final:
                 emprestimos_filtrados.append(emp)
         emprestimos = emprestimos_filtrados
 
-    # 3. Se pedirem CSV:
+    # Se pedirem CSV:
     if formato.lower() == "csv":
         output = io.StringIO()
         writer = csv.writer(output, delimiter=';')
@@ -663,17 +632,17 @@ async def relatorio_emprestimos(
             headers={"Content-Disposition": "attachment; filename=relatorio_emprestimos.csv"}
         )
 
-    # 4. Se pedirem PDF:
+    #  Se pedirem PDF:
     elif formato.lower() == "pdf":
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", size=12)
 
-        # Título
+       
         pdf.cell(200, 10, txt="Relatorio de Emprestimos", ln=True, align='C')
         pdf.ln(5)
 
-        # Cabeçalho da Tabela
+     
         pdf.set_font("Arial", 'B', 10)
         pdf.cell(15, 10, "ID", 1)
         pdf.cell(45, 10, "Equipamento", 1)
@@ -683,7 +652,7 @@ async def relatorio_emprestimos(
         pdf.cell(25, 10, "Status", 1)
         pdf.ln()
 
-        # Linhas da Tabela
+   
         pdf.set_font("Arial", size=9)
         for emp in emprestimos:
             pdf.cell(15, 10, str(emp.get("emprestimo_id", "")), 1)
@@ -693,9 +662,6 @@ async def relatorio_emprestimos(
             pdf.cell(25, 10, str(emp.get("data_retirada", ""))[:10], 1)
             pdf.cell(25, 10, str(emp.get("status", ""))[:10], 1)
             pdf.ln()
-
-        # 🔴 CORREÇÃO: fpdf2 recente já retorna bytearray (não string),
-        # então .encode('latin1') quebrava. bytes(...) funciona nos dois casos.
         pdf_bytes = bytes(pdf.output(dest='S'))
 
         return Response(
@@ -704,7 +670,7 @@ async def relatorio_emprestimos(
             headers={"Content-Disposition": "attachment; filename=relatorio_emprestimos.pdf"}
         )
 
-    # 5.Formato errado:
+
     else:
         raise HTTPException(status_code=400, detail="Formato invalido. Use ?formato=csv ou ?formato=pdf")
 
@@ -731,7 +697,6 @@ async def relatorio_equipamentos(formato: str = "csv", usuario_logado: dict = De
         pdf.set_font("Arial", size=9)
         for eq in equipamentos:
             pdf.cell(0, 10, f"ID: {eq.get('id')} | Pat: {eq.get('codigo_patrimonio')} | Nome: {eq.get('nome')} | Mod: {eq.get('modelo')}", 1, 1)
-        # 🔴 CORREÇÃO: bytes(...) no lugar de .encode('latin1')
         return Response(content=bytes(pdf.output(dest='S')), media_type="application/pdf", headers={"Content-Disposition": "attachment; filename=relatorios.pdf"})
     raise HTTPException(status_code=400, detail="Formato invalido")
 
@@ -754,7 +719,6 @@ async def relatorio_usuarios(formato: str = "csv", usuario_logado: dict = Depend
         pdf.cell(200, 10, txt="Relatorio de Usuarios", ln=True, align='C')
         for u in usuarios:
             pdf.cell(0, 10, f"ID: {u.get('id')} | Nome: {u.get('nome')} | Email: {u.get('email')} | Tipo: {u.get('tipo_usuario')}", 1, 1)
-        # 🔴 CORREÇÃO: bytes(...) no lugar de .encode('latin1')
         return Response(content=bytes(pdf.output(dest='S')), media_type="application/pdf", headers={"Content-Disposition": "attachment; filename=usuarios.pdf"})
     raise HTTPException(status_code=400, detail="Formato invalido")
 
@@ -786,7 +750,6 @@ async def relatorio_manutencoes(formato: str = "csv", data_inicial: str = None, 
         pdf.cell(200, 10, txt="Relatorio de Manutencoes", ln=True, align='C')
         for m in manutencoes:
             pdf.cell(0, 10, f"ID: {m.get('id')} | Eqp: {m.get('id_equipamento')} | Defeito: {str(m.get('descricao_defeito'))[:30]} | Data: {m.get('data_abertura')}", 1, 1)
-        # 🔴 CORREÇÃO: bytes(...) no lugar de .encode('latin1')
         return Response(content=bytes(pdf.output(dest='S')), media_type="application/pdf", headers={"Content-Disposition": "attachment; filename=manutencoes.pdf"})
     raise HTTPException(status_code=400, detail="Formato invalido")
 
@@ -818,7 +781,6 @@ async def relatorio_reservas(formato: str = "csv", data_inicial: str = None, dat
         pdf.cell(200, 10, txt="Relatorio de Reservas", ln=True, align='C')
         for r in reservas:
             pdf.cell(0, 10, f"ID: {r.get('id')} | Eqp: {r.get('id_equipamento')} | Usu: {r.get('id_usuario')} | Data: {r.get('data_reserva')}", 1, 1)
-        # 🔴 CORREÇÃO: bytes(...) no lugar de .encode('latin1')
         return Response(content=bytes(pdf.output(dest='S')), media_type="application/pdf", headers={"Content-Disposition": "attachment; filename=reservas.pdf"})
     raise HTTPException(status_code=400, detail="Formato invalido")
 
@@ -852,7 +814,6 @@ async def relatorio_categorias(formato: str = "csv", usuario_logado: dict = Depe
 """READ (listar)"""
 @app.get("/listar_historico", dependencies=[PERMISSAO_TECNICO])
 async def listar_historico(id_equipamento: int = None, usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para listar todo o histórico (com filtro opcional por equipamento)"""
     return await historico_repositorio.listar_historico(id_equipamento)
 
 
@@ -860,6 +821,108 @@ async def listar_historico(id_equipamento: int = None, usuario_logado: dict = De
 #                               SERVIÇOS EXTRAS
 #===============================================================================================
 
+@app.get("/diagnostico/manutencao/{manutencao_id}")
+async def diagnosticar_manutencao(manutencao_id: int, usuario_logado: dict = Depends(obter_usuario_atual)):
+    con = None
+    cur = None
+    try:
+        con = pymysql.connect(**config_db)
+        cur = con.cursor()
+        
+        cur.execute("SELECT * FROM manutencao WHERE id = %s", (manutencao_id,))
+        manutencao = cur.fetchone()
+        
+        if not manutencao:
+            raise HTTPException(status_code=404, detail="Manutenção não encontrada")
+        
+        return {
+            "manutencao": manutencao,
+            "tipo_atual": manutencao.get('tipo'),
+            "status_atual": manutencao.get('status'),
+            "campos": list(manutencao.keys()) if manutencao else []
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if cur:
+            cur.close()
+        if con:
+            con.close()
+
+
+async def obter_estatisticas(self):
+    con = None
+    cur = None
+    try:
+        con = pymysql.connect(**self.config_db)
+        cur = con.cursor()
+
+        cur.execute("SELECT COUNT(*) as total FROM equipamento WHERE ativo = 1")
+        total_equipamentos = cur.fetchone()['total']
+
+        cur.execute("SELECT COUNT(*) as total FROM usuario WHERE ativo = 1")
+        total_usuarios = cur.fetchone()['total']
+
+    
+        cur.execute("""
+            SELECT COUNT(*) as total 
+            FROM manutencao 
+            WHERE status IN ('PENDENTE', 'EM_ANDAMENTO')
+        """)
+        em_manutencao = cur.fetchone()['total']
+
+     
+        cur.execute("""
+            SELECT COUNT(*) as total 
+            FROM manutencao 
+            WHERE tipo = 'CORRETIVA' 
+            AND status IN ('PENDENTE', 'EM_ANDAMENTO')
+        """)
+        corretivas = cur.fetchone()['total']
+
+        
+        cur.execute("""
+            SELECT COUNT(*) as total 
+            FROM manutencao 
+            WHERE tipo = 'PREVENTIVA' 
+            AND status IN ('PENDENTE', 'EM_ANDAMENTO')
+        """)
+        preventivas = cur.fetchone()['total']
+
+
+        cur.execute("""
+            SELECT COUNT(*) as total 
+            FROM manutencao 
+            WHERE status = 'CONCLUIDO'
+        """)
+        concluidas = cur.fetchone()['total']
+
+
+        cur.execute("""
+            SELECT COUNT(*) as total 
+            FROM emprestimo 
+            WHERE status = 'ATIVO'
+        """)
+        emprestimos_ativos = cur.fetchone()['total']
+
+        return {
+            "total_equipamentos": total_equipamentos,
+            "total_usuarios": total_usuarios,
+            "em_manutencao": em_manutencao,
+            "corretivas": corretivas,
+            "preventivas": preventivas,
+            "concluidas": concluidas,
+            "emprestimos_ativos": emprestimos_ativos
+        }
+    except Exception as e:
+        print(f"Erro no dashboard: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if cur:
+            cur.close()
+        if con:
+            con.close()
 class EmailRequest(BaseModel):
     destinatario: str
     assunto: str
@@ -867,7 +930,6 @@ class EmailRequest(BaseModel):
 
 @app.post("/testar-email")
 async def testar_email(req: EmailRequest):
-    """Endpoint para testar a integração do disparo de e-mails"""
     try:
         sucesso = enviar_email(req.destinatario, req.assunto, req.corpo)
         if sucesso:
@@ -877,7 +939,7 @@ async def testar_email(req: EmailRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Rota para login
+
 
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -886,7 +948,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     con = None
     cur = None
     try:
-        # Tenta conectar
+   
         print("🔄 Conectando ao banco...")
         con = pymysql.connect(**config_db)
         cur = con.cursor()
@@ -904,14 +966,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
         print(f"✅ Usuário encontrado: {usuario_db['email']}")
 
-        # Verifica senha
+      
         print("🔐 Verificando senha...")
         if not verificar_senha(form_data.password, usuario_db['senha']):
             print("❌ Senha incorreta!")
             raise HTTPException(status_code=401, detail="Email ou senha incorretos")
         print("✅ Senha correta!")
 
-        # Mapeamento de perfis
+      
         perfil_map = {
             "ADMINISTRADOR": "admin",
             "TECNICO": "tecnico",
@@ -919,7 +981,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         }
         perfil_frontend = perfil_map.get(usuario_db['tipo_usuario'], "comum")
 
-        # Cria token
+   
         print("🎫 Gerando token...")
         token_acesso = criar_token_acesso(dados={
             "sub": usuario_db['email'],
@@ -940,11 +1002,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         }
 
     except HTTPException:
-        # Repassa a exceção HTTP
         raise
 
     except Exception as e:
-        # 🔴 ESSE É O PONTO IMPORTANTE: Mostra o erro completo
         print("=" * 50)
         print("❌ ERRO NO LOGIN:")
         print(f"Tipo: {type(e).__name__}")
@@ -964,10 +1024,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 @app.get("/listar_logs", dependencies=[PERMISSAO_ADMIN])
 async def listar_logs(tabela: str = None, id_usuario: int = None):
-    """Endpoint para listar os logs de auditoria"""
     return await auditoria_repositorio.listar_logs(tabela, id_usuario)
 
 @app.get("/dashboard/estatisticas", dependencies=[PERMISSAO_TECNICO])
 async def obter_estatisticas_dashboard(usuario_logado: dict = Depends(obter_usuario_atual)):
-    """Endpoint para obter dados agrupados para o dashboard principal."""
     return await dashboard_service.obter_estatisticas()

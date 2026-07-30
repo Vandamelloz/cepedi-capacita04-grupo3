@@ -2,16 +2,13 @@ import LayoutUsuario from "../../layouts/usuario/LayoutUsuario.jsx";
 import Pesquisa from "../../components/Pesquisa/Pesquisa";
 import TabelaGipar from "../../components/tabelaGipar/TabelaGipar";
 import StatusBadge from "../../components/ui/StatusBadge";
-
 import { useState, useEffect, useCallback } from "react";
 import { buscarEquipamentos } from "../../services/Equipamentos/equipamentos.service";
 
 export default function Equipamentos() {
-    
     const [termo, setTermo] = useState("");
     const [categoria, setCategoria] = useState("");
     const [filtroStatus, setFiltroStatus] = useState("");
-
     const [equipamentos, setEquipamentos] = useState([]);
 
     const carregarEquipamentos = useCallback(async () => {
@@ -24,19 +21,20 @@ export default function Equipamentos() {
     }, []);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         carregarEquipamentos();
     }, [carregarEquipamentos]);
 
-    // 🌟 LÓGICA DE FILTRAGEM COMPOSTA (Texto + Categoria + Status)
     const equipamentosFiltrados = equipamentos.filter((equipamento) => {
         const termoMinusculo = termo.toLowerCase();
         
-        const bateTexto = 
-            equipamento.nome?.toLowerCase().includes(termoMinusculo) ||
-            equipamento.patrimonio?.toLowerCase().includes(termoMinusculo);
+        // Puxando o codigo_patrimonio real do backend
+        const patrimonio = (equipamento.codigo_patrimonio || equipamento.patrimonio || "").toLowerCase();
+        const nomeEq = (equipamento.nome || "").toLowerCase();
             
-        const bateCategoria = categoria === "" || equipamento.categoria === categoria;
+        const bateTexto = nomeEq.includes(termoMinusculo) || patrimonio.includes(termoMinusculo);
+            
+        const cat = equipamento.nome_categoria || equipamento.categoria || "";
+        const bateCategoria = categoria === "" || cat === categoria;
         
         const bateStatus = filtroStatus === "" || equipamento.status === filtroStatus;
 
@@ -57,19 +55,15 @@ export default function Equipamentos() {
             >
                 <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
                     <div className="w-full">
-    
                         <Pesquisa
                             termo={termo}
                             setTermo={setTermo}
-                            
                             categoria={categoria}
                             setCategoria={setCategoria}
                             listaCategorias={["Informática", "Audiovisual", "Laboratório", "Ferramentas", "Redes", "Acessórios"]}
-                            
                             status={filtroStatus}
                             setStatus={setFiltroStatus}
                             listaStatus={["Disponível", "Emprestado", "Em Manutenção", "Inativo"]}
-                            
                             placeholderTexto="Buscar por nome ou patrimônio..."
                             placeholderCategoria="Todas as Categorias"
                             placeholderStatus="Todos os Status"
@@ -91,8 +85,10 @@ export default function Equipamentos() {
                                         </div>
                                     )
                                 },
-                                { titulo: "Patrimônio", chave: "patrimonio" },
-                                { titulo: "Categoria", chave: "categoria" },
+                                // Chave corrigida para bater com o MySQL
+                                { titulo: "Patrimônio", chave: "codigo_patrimonio", render: (valor, linha) => valor || linha.patrimonio },
+                                // Ajuste preventivo para aceitar nome_categoria do banco de dados
+                                { titulo: "Categoria", chave: "nome_categoria", render: (valor, linha) => valor || linha.categoria },
                                 { titulo: "Status", chave: "status" ,render: (valor) => <StatusBadge status={valor} />},
                             ]}
                             dados={equipamentosFiltrados} 

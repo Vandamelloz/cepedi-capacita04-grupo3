@@ -78,7 +78,9 @@ export default function useManutencoes() {
     }, [manutencoes]);
 
     const corretivas = useMemo(() => {
-        return manutencoes.filter(m => m.status === "PENDENTE" || m.status === "EM_ANDAMENTO").length;
+        return manutencoes.filter(m => 
+            m.tipo === "CORRETIVA" && (m.status === "PENDENTE" || m.status === "EM_ANDAMENTO")
+        ).length;
     }, [manutencoes]);
 
     const concluidas = useMemo(() => {

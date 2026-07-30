@@ -1,8 +1,3 @@
-// ================================================================
-// PopUpCadastrarEditarManutenção/index.jsx - CORRIGIDO
-// ================================================================
-
-// ✅ CORREÇÃO 1: Importar buscarEquipamentos do lugar certo
 import { salvarManutencao, excluirManutencao } from "../../services/manutencao/manutencoes.service";
 import { buscarEquipamentos } from "../../services/Equipamentos/equipamentos.service";
 
@@ -38,11 +33,10 @@ export default function PopUpCadastrarEditarManutenção({
         if (modoEdicao || modoVisualizacao) {
           setEquipamentos(dados);
         } else {
-          // ✅ CORREÇÃO 2: Filtra equipamentos com status "DISPONIVEL" (FastAPI)
           setEquipamentos(
             dados.filter(
               (equipamento) =>
-                equipamento.status === "DISPONIVEL"  // ← agora em inglês
+                equipamento.status === "DISPONIVEL"
             )
           );
         }
@@ -52,18 +46,16 @@ export default function PopUpCadastrarEditarManutenção({
     }
 
     carregarEquipamentos();
-  }, []);
+  }, [modoEdicao, modoVisualizacao]);
 
-  // Preenche os campos ao editar/visualizar
   useEffect(() => {
     if (!manutencao) return;
     setEquipamento(String(manutencao.id_equipamento));
-    setTipo(manutencao.tipo);
+    setTipo(manutencao.tipo_manutencao || manutencao.tipo || "");
     setDefeito(manutencao.descricao_defeito);
     setData(manutencao.data_abertura);
   }, [manutencao]);
 
-  // ✅ CORREÇÃO 3: Usa "codigo_patrimonio" em vez de "patrimonio"
   const opcoesEquipamentos = equipamentos.map(
     (equipamento) => ({
       valor: equipamento.id,
@@ -73,7 +65,6 @@ export default function PopUpCadastrarEditarManutenção({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!equipamento || !tipo || !defeito || !data) {
       setErro("Preencha todos os campos obrigatórios.");
       return;
@@ -92,20 +83,38 @@ export default function PopUpCadastrarEditarManutenção({
       return;
     }
 
+    let tipoFormatado = tipo;  
+    if (typeof tipoFormatado === 'string') {
+      tipoFormatado = tipoFormatado.toUpperCase();
+      if (tipoFormatado === "PREVENTIVO") {
+        tipoFormatado = "PREVENTIVA";
+      }
+      if (tipoFormatado !== "PREVENTIVA" && tipoFormatado !== "CORRETIVA") {
+        tipoFormatado = "CORRETIVA";
+      }
+    }
+
+    console.log("🔍 VALOR ATUAL DO TIPO NO ESTADO:", tipo);
+    console.log("🔍 TIPO FORMATADO PARA ENVIO:", tipoFormatado);
+
     const payload = {
-      id: manutencao?.id,
+      id: manutencao?.id || undefined,
       id_equipamento: Number(equipamento),
-      tipo,
+      tipo: tipoFormatado,  
       descricao_defeito: defeito,
       data_abertura: data,
     };
 
+    console.log("🔍 PAYLOAD COMPLETO:", JSON.stringify(payload, null, 2));
+
     try {
       const dadosSalvos = await salvarManutencao(payload);
+      console.log(" Salvo com sucesso:", dadosSalvos);
       onSalvar(dadosSalvos);
       onFechar();
-    } catch {
-      setErro("Erro ao salvar manutenção.");
+    } catch (error) {
+      console.error(" Erro detalhado:", error);
+      setErro(error?.response?.data?.detail || "Erro ao salvar manutenção.");
     } finally {
       setSalvando(false);
     }
@@ -125,16 +134,16 @@ export default function PopUpCadastrarEditarManutenção({
           {modoVisualizacao
             ? "Manutenção Concluída"
             : modoEdicao
-            ? "Editar Manutenção"
-            : "Registrar Manutenção"}
+              ? "Editar Manutenção"
+              : "Registrar Manutenção"}
         </TituloPagina>
 
         <SubTitulo>
           {modoVisualizacao
             ? "Visualize os detalhes da manutenção concluída."
             : modoEdicao
-            ? "Faça as alterações necessárias."
-            : "Registre uma nova manutenção."}
+              ? "Faça as alterações necessárias."
+              : "Registre uma nova manutenção."}
         </SubTitulo>
       </div>
 
@@ -160,8 +169,8 @@ export default function PopUpCadastrarEditarManutenção({
           id="tipo"
           placeholder="Selecione o tipo"
           opcoes={[
-            { valor: "Preventiva", texto: "Preventiva" },
-            { valor: "Corretiva", texto: "Corretiva" }
+            { valor: "PREVENTIVA", texto: "Preventiva" }, 
+            { valor: "CORRETIVA", texto: "Corretiva" }    
           ]}
           value={tipo}
           disabled={modoVisualizacao}
@@ -200,8 +209,8 @@ export default function PopUpCadastrarEditarManutenção({
                 salvando
                   ? "Salvando..."
                   : modoEdicao
-                  ? "Salvar"
-                  : "Registrar"
+                    ? "Salvar"
+                    : "Registrar"
               }
               type="submit"
               estilo={modoEdicao ? "salvar" : "registrar"}
