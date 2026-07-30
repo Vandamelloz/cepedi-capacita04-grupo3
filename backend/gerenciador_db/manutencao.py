@@ -179,8 +179,8 @@ class ManutencaoRepositorio:
                 updates.append("data_conclusao = %s")
                 valores.append(manutencao.data_conclusao)
             
-            if not updates:
-                raise HTTPException(status_code=400, detail="Nenhum dado para atualizar")
+            #if not updates:
+                #raise HTTPException(status_code=400, detail="Nenhum dado para atualizar")
             
             # 4. Executa a atualização
             valores.append(manutencao_id)

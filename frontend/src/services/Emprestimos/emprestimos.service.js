@@ -84,7 +84,7 @@ export async function atualizarEmprestimo(id, dados) {
   }
   
   if (Object.keys(payload).length === 0) {
-    throw new Error("Nenhum dado para atualizar");
+    return { status: 200, data: { message: "ok" } };
   }
   
   console.log("📤 Payload para atualizar empréstimo:", payload);

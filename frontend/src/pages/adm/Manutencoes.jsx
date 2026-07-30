@@ -1,5 +1,5 @@
 import LayoutUsuario from "../../layouts/usuario/LayoutUsuario";
-import SummaryCard, {WrenchIcon, AlertIcon, CheckCircleIcon,} from "../../components/CardsTopoPagina";
+import SummaryCard, { WrenchIcon, AlertIcon, CheckCircleIcon, } from "../../components/CardsTopoPagina";
 import CardManutencao from "../../components/CardsManutencao";
 import CampoPesquisa from "../../components/Pesquisa/Pesquisa";
 import Botao from "../../components/Botao";
@@ -10,268 +10,259 @@ import useManutencoes from "../../hooks/useManutencoes";
 
 export default function Manutencoes() {
 
-const {
+  const {
 
-manutencoesFiltradas,
+    manutencoesFiltradas,
 
-carregando,
-erro,
+    carregando,
+    erro,
 
-termo,
-setTermo,
+    termo,
+    setTermo,
 
-mostrarConcluidas,
-setMostrarConcluidas,
+    mostrarConcluidas,
+    setMostrarConcluidas,
 
-emManutencao,
-corretivas,
-concluidas,
+    emManutencao,
+    corretivas,
+    concluidas,
 
-popupConclusaoAberto,
-popupCadastroAberto,
-popupExclusaoAberto,
+    popupConclusaoAberto,
+    popupCadastroAberto,
+    popupExclusaoAberto,
 
-manutencaoSelecionada,
+    manutencaoSelecionada,
 
-abrirPopupConclusao,
-fecharPopupConclusao,
+    abrirPopupConclusao,
+    fecharPopupConclusao,
 
-abrirPopupCadastro,
-fecharPopupCadastro,
+    abrirPopupCadastro,
+    fecharPopupCadastro,
 
-abrirPopupExclusao,
-fecharPopupExclusao,
+    abrirPopupExclusao,
+    fecharPopupExclusao,
 
-handleExcluir,
+    handleExcluir,
 
-handleConcluir,
+    handleConcluir,
 
-salvarManutencao,
 
-} = useManutencoes();
 
-return (
+  } = useManutencoes();
 
-<LayoutUsuario titulo="Manutenções">
+  return (
 
-  <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+    <LayoutUsuario titulo="Manutenções">
 
-    {erro && (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-        {erro}
-      </div>
-    )}
+      <main className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
 
-    <div className="flex gap-4 flex-wrap">
+        {erro && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+            {erro}
+          </div>
+        )}
 
-      <SummaryCard
-        icon={<WrenchIcon />}
-        label="Em Manutenção"
-        count={emManutencao}
-        color="orange"
-      />
+        <div className="flex gap-4 flex-wrap">
 
-      <SummaryCard
-        icon={<AlertIcon />}
-        label="Corretivas"
-        count={corretivas}
-        color="red"
-      />
+          <SummaryCard
+            icon={<WrenchIcon />}
+            label="Em Manutenção"
+            count={emManutencao}
+            color="orange"
+          />
 
-      <SummaryCard
-        icon={<CheckCircleIcon />}
-        label="Concluídas"
-        count={concluidas}
-        color="green"
-      />
+          <SummaryCard
+            icon={<AlertIcon />}
+            label="Corretivas"
+            count={corretivas}
+            color="red"
+          />
 
-    </div>
+          <SummaryCard
+            icon={<CheckCircleIcon />}
+            label="Concluídas"
+            count={concluidas}
+            color="green"
+          />
 
-    <div className="w-full">
+        </div>
 
-      <CampoPesquisa
-        termo={termo}
-        setTermo={setTermo}
-        placeholderTexto="Buscar por equipamento..."
-        listaStatus={[]}
-        listaCategorias={[]}
+        <div className="w-full">
 
-        extras={
+          <CampoPesquisa
+            termo={termo}
+            setTermo={setTermo}
+            placeholderTexto="Buscar por equipamento..."
+            listaStatus={[]}
+            listaCategorias={[]}
+
+            extras={
+              <>
+
+                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+
+                  <input
+                    type="checkbox"
+
+                    checked={
+                      mostrarConcluidas
+                    }
+
+                    onChange={(e) =>
+                      setMostrarConcluidas(
+                        e.target.checked
+                      )
+                    }
+
+                    className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                  />
+
+                  Mostrar concluídas
+
+                </label>
+
+                <div className="ml-auto">
+
+                  <Botao
+                    estilo="novo"
+                    icone
+
+                    onClick={() =>
+                      abrirPopupCadastro()
+                    }
+                  >
+                    Registrar Manutenção
+                  </Botao>
+
+                </div>
+
+              </>
+            }
+          />
+
+        </div>
+
+        <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 w-full auto-rows-fr items-stretch">
+
+          {carregando ? (
+
+            <p className="text-gray-400 text-sm">
+              Carregando manutenções...
+            </p>
+
+          ) : manutencoesFiltradas.length === 0 ? (
+
+            <p className="text-gray-400 text-sm">
+              Nenhuma manutenção encontrada.
+            </p>
+
+          ) : (
+
+            manutencoesFiltradas.map((m) => (
+              <CardManutencao
+                key={m.id}
+                // 🔴 CORREÇÃO: Mapeia os campos do backend para o que o Card espera
+                id={m.id}
+                name={m.nome_equipamento || m.nome || "Equipamento"}
+                pat={m.codigo_patrimonio || m.patrimonio || "N/A"}
+                type={m.tipo || "Corretiva"}
+                defect={m.descricao_defeito}
+                sentAt={m.data_abertura}
+                finishedAt={m.data_conclusao}
+                concluida={m.status === "CONCLUIDO" || m.concluida}
+                status={m.status}
+                onComplete={() => abrirPopupConclusao(m)}
+                onEditar={() => abrirPopupCadastro(m)}
+                onExcluir={() => abrirPopupExclusao(m)}
+                onVisualizar={() => abrirPopupCadastro(m)}
+              />
+            ))
+          )}
+        </div>
+
+        {popupConclusaoAberto && (
+
           <>
+            <div
+              className="fixed inset-0 bg-black/40 z-40"
 
-            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+              onClick={
+                fecharPopupConclusao
+              }
+            />
 
-              <input
-                type="checkbox"
+            <div className="fixed inset-0 flex items-center justify-center z-50">
 
-                checked={
-                  mostrarConcluidas
+              <PopUpConclusao
+                nomeEquipamento={
+                  manutencaoSelecionada?.nome_equipamento || manutencaoSelecionada?.nome
                 }
 
-                onChange={(e) =>
-                  setMostrarConcluidas(
-                    e.target.checked
-                  )
+                onFechar={
+                  fecharPopupConclusao
                 }
 
-                className="w-4 h-4 rounded border-gray-300 cursor-pointer"
+                onConfirmar={
+                  handleConcluir
+                }
               />
 
-              Mostrar concluídas
-
-            </label>
-
-            <div className="ml-auto">
-
-              <Botao
-                estilo="novo"
-                icone
-
-                onClick={() =>
-                  abrirPopupCadastro()
-                }
-              >
-                Registrar Manutenção
-              </Botao>
-
             </div>
-
           </>
-        }
-      />
+        )}
 
-    </div>
+        {popupCadastroAberto && (
 
-    <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 w-full auto-rows-fr items-stretch">
-
-      {carregando ? (
-
-        <p className="text-gray-400 text-sm">
-          Carregando manutenções...
-        </p>
-
-      ) : manutencoesFiltradas.length === 0 ? (
-
-        <p className="text-gray-400 text-sm">
-          Nenhuma manutenção encontrada.
-        </p>
-
-      ) : (
-
-        manutencoesFiltradas.map((m) => (
-          <CardManutencao
-            key={m.id}
-            // 🔴 CORREÇÃO: Mapeia os campos do backend para o que o Card espera
-            id={m.id}
-            name={m.nome_equipamento || m.nome || "Equipamento"}
-            pat={m.codigo_patrimonio || m.patrimonio || "N/A"}
-            type={m.tipo || "Corretiva"}
-            defect={m.descricao_defeito}
-            sentAt={m.data_abertura}
-            finishedAt={m.data_conclusao}
-            concluida={m.status === "CONCLUIDO" || m.concluida}
-            status={m.status}
-            onComplete={() => abrirPopupConclusao(m)}
-            onEditar={() => abrirPopupCadastro(m)}
-            onExcluir={() => abrirPopupExclusao(m)}
-            onVisualizar={() => abrirPopupCadastro(m)}
-          />
-        ))
-      )}
-    </div>
-
-    {popupConclusaoAberto && (
-
-      <>
-        <div
-          className="fixed inset-0 bg-black/40 z-40"
-
-          onClick={
-            fecharPopupConclusao
-          }
-        />
-
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-
-          <PopUpConclusao
-            nomeEquipamento={
-              manutencaoSelecionada?.nome_equipamento || manutencaoSelecionada?.nome
-            }
-
-            onFechar={
-              fecharPopupConclusao
-            }
-
-            onConfirmar={
-              handleConcluir
-            }
-          />
-
-        </div>
-      </>
-    )}
-
-    {popupCadastroAberto && (
-
-      <>
-        <div
-          className="fixed inset-0 bg-black/40 z-40"
-
-          onClick={
-            fecharPopupCadastro
-          }
-        />
-
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-
-          <PopUpCadastrarEditarManutenção
-
-            modoEdicao={
-              !!manutencaoSelecionada &&
-              manutencaoSelecionada.status !== "CONCLUIDO"
-            }
-
-            modoVisualizacao={
-              !!manutencaoSelecionada &&
-              manutencaoSelecionada.status === "CONCLUIDO"
-            }
-
-            manutencao={manutencaoSelecionada}
-
-            onFechar={fecharPopupCadastro}
-
-            onSalvar={salvarManutencao}
-          />
-
-        </div>
-      </>
-    )}
-
-    {popupExclusaoAberto && (
-  <>
-    <div
-      className="fixed inset-0 bg-black/40 z-40"
-      onClick={fecharPopupExclusao}
-    />
-
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <PopUpExclusao
-        titulo="Confirmar Exclusão"
-        subtitulo={
           <>
-            Tem certeza que deseja excluir a manutenção{" "}
-            <strong>{manutencaoSelecionada?.nome_equipamento || manutencaoSelecionada?.nome}</strong>? Esta ação não pode ser desfeita.
+            <div
+              className="fixed inset-0 bg-black/40 z-40"
+
+              onClick={
+                fecharPopupCadastro
+              }
+            />
+
+            <div className="fixed inset-0 flex items-center justify-center z-50">
+
+              <PopUpCadastrarEditarManutenção
+                modoEdicao={!!manutencaoSelecionada && manutencaoSelecionada.status !== "CONCLUIDO"}
+                modoVisualizacao={!!manutencaoSelecionada && manutencaoSelecionada.status === "CONCLUIDO"}
+                manutencao={manutencaoSelecionada}
+                onFechar={fecharPopupCadastro}
+                onSalvar={() => {
+                  fecharPopupCadastro();
+                  window.location.reload(); 
+                }}
+              />
+            </div>
           </>
-        }
-      confirmarExclusao={handleExcluir}
-      cancelarExclusao={fecharPopupExclusao}
-      />
-    </div>
-  </>
-)}
+        )}
 
-  </main>
+        {popupExclusaoAberto && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/40 z-40"
+              onClick={fecharPopupExclusao}
+            />
 
-</LayoutUsuario>
-);
+            <div className="fixed inset-0 flex items-center justify-center z-50">
+              <PopUpExclusao
+                titulo="Confirmar Exclusão"
+                subtitulo={
+                  <>
+                    Tem certeza que deseja excluir a manutenção{" "}
+                    <strong>{manutencaoSelecionada?.nome_equipamento || manutencaoSelecionada?.nome}</strong>? Esta ação não pode ser desfeita.
+                  </>
+                }
+                confirmarExclusao={handleExcluir}
+                cancelarExclusao={fecharPopupExclusao}
+              />
+            </div>
+          </>
+        )}
+
+      </main>
+
+    </LayoutUsuario>
+  );
 }

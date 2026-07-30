@@ -14,63 +14,48 @@ class UsuarioRepositorio:
     # MÉTODO PARA CRIAR USUÁRIO (COM TIPO_USUARIO)
     # ================================================================
     async def criar_usuario(self, usuario: Usuario):
-        con = None
-        cur = None
+            con = None
+            cur = None
 
-        try:
-            # 1. Hasheia a senha recebida da API
-            senha_hasheada = obter_hash_senha(usuario.senha)
+            try:
+                con = pymysql.connect(**self.config_db)
+                cur = con.cursor()
 
-            # 2. Abre a conexão com o banco de dados
-            con = pymysql.connect(**self.config_db)
-            cur = con.cursor()
+                # Verifica se o email já existe
+                cur.execute("SELECT id FROM usuario WHERE email = %s", (usuario.email,))
+                if cur.fetchone():
+                    raise HTTPException(status_code=400, detail="E-mail já cadastrado")
 
-            # 3. Verifica se o email já existe
-            cur.execute("SELECT id FROM usuario WHERE email = %s", (usuario.email,))
-            if cur.fetchone():
-                raise HTTPException(status_code=400, detail="Email já cadastrado")
+                senha_hasheada = obter_hash_senha(usuario.senha)
 
-            # 4. Verifica se o tipo_usuario é válido
-            tipos_validos = ['ADMINISTRADOR', 'TECNICO', 'COMUM']
-            if usuario.tipo_usuario.value not in tipos_validos:
-                raise HTTPException(status_code=400, detail="Tipo de usuário inválido")
+                # ADICIONAMOS A COLUNA 'ativo' AQUI NO INSERT
+                sql = """
+                    INSERT INTO usuario (nome, email, senha, tipo_usuario, ativo) 
+                    VALUES (%s, %s, %s, %s, %s)
+                """
+                
+                cur.execute(sql, (
+                    usuario.nome,
+                    usuario.email,
+                    senha_hasheada,
+                    usuario.tipo_usuario.value if hasattr(usuario.tipo_usuario, 'value') else usuario.tipo_usuario,
+                    usuario.ativo  # <--- Passa o true/false vindo do frontend
+                ))
+                
+                con.commit()
+                return {"sucesso": True, "mensagem": "Usuário criado com sucesso"}
 
-            # 5. Executa a query com a senha criptografada e tipo_usuario
-            sql = """
-                INSERT INTO usuario (nome, email, senha, tipo_usuario) 
-                VALUES (%s, %s, %s, %s)
-            """
-            cur.execute(sql, (
-                usuario.nome, 
-                usuario.email, 
-                senha_hasheada, 
-                usuario.tipo_usuario.value  # ← Pega o valor do ENUM
-            ))
-            con.commit()
-
-            id_gerado = cur.lastrowid
-
-            return {
-                "sucesso": True,
-                "mensagem": "Usuário criado com sucesso",
-                "id": id_gerado,
-                "nome": usuario.nome,
-                "email": usuario.email,
-                "tipo_usuario": usuario.tipo_usuario.value
-            }
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            if con:
+            except HTTPException:
+                raise
+            except Exception as e:
                 con.rollback()
-            traceback.print_exc()
-            raise HTTPException(status_code=500, detail=str(e))
-        finally:
-            if cur:
-                cur.close()
-            if con:
-                con.close()
+                traceback.print_exc()
+                raise HTTPException(status_code=500, detail=str(e))
+            finally:
+                if cur:
+                    cur.close()
+                if con:
+                    con.close()
 
     # ================================================================
     # MÉTODO PARA LISTAR USUÁRIOS
@@ -193,30 +178,33 @@ class UsuarioRepositorio:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
 
-            # Verifica se o usuário existe
+       
             cur.execute("SELECT id FROM usuario WHERE id = %s", (usuario_id,))
             if not cur.fetchone():
                 raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-            # Verifica se o email já está sendo usado por outro usuário
+         
             cur.execute("SELECT id FROM usuario WHERE email = %s AND id != %s", (usuario.email, usuario_id))
             if cur.fetchone():
                 raise HTTPException(status_code=400, detail="Email já está em uso por outro usuário")
 
-            # Hasheia a senha se foi fornecida
+           
             senha_hasheada = obter_hash_senha(usuario.senha)
 
-            # Atualiza incluindo tipo_usuario
+            
             sql = """
                 UPDATE usuario 
-                SET nome = %s, email = %s, senha = %s, tipo_usuario = %s 
+                SET nome = %s, email = %s, senha = %s, tipo_usuario = %s, ativo = %s 
                 WHERE id = %s
             """
+            
+        
             cur.execute(sql, (
                 usuario.nome, 
                 usuario.email, 
                 senha_hasheada, 
-                usuario.tipo_usuario.value,
+                usuario.tipo_usuario.value if hasattr(usuario.tipo_usuario, 'value') else usuario.tipo_usuario,
+                usuario.ativo, 
                 usuario_id
             ))
             con.commit()
@@ -249,12 +237,12 @@ class UsuarioRepositorio:
             con = pymysql.connect(**self.config_db)
             cur = con.cursor()
 
-            # Verifica se o usuário existe
+           
             cur.execute("SELECT id FROM usuario WHERE id = %s", (usuario_id,))
             if not cur.fetchone():
                 raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-            # Verifica se é o último administrador (não pode inativar)
+           
             cur.execute("""
                 SELECT COUNT(*) as total 
                 FROM usuario 
@@ -268,7 +256,7 @@ class UsuarioRepositorio:
             if usuario_tipo == 'ADMINISTRADOR' and total_admins <= 1:
                 raise HTTPException(status_code=400, detail="Não é possível inativar o último administrador do sistema")
 
-            # Inativa o usuário
+            
             sql = "UPDATE usuario SET ativo = False WHERE id = %s"
             cur.execute(sql, (usuario_id,))
             con.commit()

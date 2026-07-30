@@ -40,7 +40,7 @@ export async function atualizarManutencao(id, dados) {
   }
   
   if (Object.keys(payload).length === 0) {
-    throw new Error("Nenhum dado para atualizar");
+    return { status: 200, data: { message: "ok" } };
   }
   
   const resultado = await apiPut(ENDPOINTS.ATUALIZAR(id), payload);
